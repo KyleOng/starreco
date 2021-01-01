@@ -1,5 +1,5 @@
 # star-reco
-
+![star-rec](asset/19197320.jpg)
 
 Star classification is a type of ratings scale commonly used by reviewers to rate certain items such as films, TV shows, restaurants, and hotels. 
 
