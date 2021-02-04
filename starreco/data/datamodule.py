@@ -1,4 +1,5 @@
 import pytorch_lightning as pl 
+from torchvision import transforms
 
 from starreco.data.dataset import *
 
@@ -16,7 +17,6 @@ class DataModule(pl.LightningDataModule):
         """
         Constructor
         """
-
         # Validate whether predefined dataset exist
         if dataset in self.datasets: 
             self.dataset = dataset 
@@ -28,22 +28,25 @@ class DataModule(pl.LightningDataModule):
         """
         Prepare and download different dataset based on configuration from constructor
         """
-
-        # Movielens datasets
-        if "ml-" in self.dataset:
-            df = MovielensDataset(self.dataset.split("ml-")[-1]).import_data()
-
-        # Epinions dataset
-        elif self.dataset =="epinions":
-            df = EpinionsDataset().import_data()
-
-        # Book Crossing dataset
-        elif self.dataset =="book-crossing":
-            df = BookCrossingDataset().import_data()
+        # Import dataset
+        if "ml-" in self.dataset: 
+             # Movielens datasets
+            dataset = MovielensDataset(self.dataset.split("ml-")[-1])
+        elif self.dataset =="epinions": 
+             # Epinions dataset
+            dataset = EpinionsDataset()
+        elif self.dataset =="book-crossing": 
+            # Book Crossing dataset
+            dataset = BookCrossingDataset()
+        df = dataset.import_data()
 
         return df
 
     def setup(self, stage = None):
         "Perform data operations"
-        return None
-    
+
+        df = self.prepare_data()
+        if stage == 'fit' or stage is None:
+            pass
+        if stage == 'test' or stage is None:
+            pass

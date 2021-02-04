@@ -6,7 +6,6 @@ import zipfile, tarfile
 
 from tqdm import tqdm
 import pandas as pd
-import pytorch_lightning as pl 
 import requests
 
 class Dataset:
@@ -19,7 +18,6 @@ class Dataset:
         """
         Download dataset from the url
         """
-
         # Obtain the characters after the last "/" as filename
         file_name = url.split("/")[-1]
         dataset_path = self.datasets_path + file_name
@@ -79,7 +77,6 @@ class MovielensDataset(Dataset):
         2. Extract dataset from archive file
         3. Dataset to dataframe
         """
-
         # old dataset
         if self.type == "1m":
             dataset_path = super().download_data("http://files.grouplens.org/datasets/movielens/ml-1m.zip")
@@ -125,7 +122,6 @@ class EpinionsDataset(Dataset):
         3. Preprocess dataset
         4. Dataset to dataframe
         """
-
         # Get dataset
         dataset_path = super().download_data("http://deepyeti.ucsd.edu/jmcauley/datasets/epinions/epinions_data.tar.gz")
         tf = tarfile.open(dataset_path , "r:gz") 
@@ -151,7 +147,6 @@ class BookCrossingDataset(Dataset):
         2. Extract dataset from archive file
         3. Dataset to dataframe
         """
-
         # Get dataset
         dataset_path = super().download_data("http://www2.informatik.uni-freiburg.de/~cziegler/BX/BX-CSV-Dump.zip")
         zf = zipfile.ZipFile(dataset_path)
