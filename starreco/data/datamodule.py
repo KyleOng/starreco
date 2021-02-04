@@ -13,7 +13,9 @@ class DataModule(pl.LightningDataModule):
     ]
 
     def __init__(self, dataset = "ml-1m"):
-        """Constructor"""
+        """
+        Constructor
+        """
 
         # Validate whether predefined dataset exist
         if dataset in self.datasets: 
@@ -23,7 +25,9 @@ class DataModule(pl.LightningDataModule):
         super().__init__()
     
     def prepare_data(self):
-        "Prepare data from different dataset"
+        """
+        Prepare and download different dataset based on configuration from constructor
+        """
 
         # Movielens datasets
         if "ml-" in self.dataset:
@@ -38,3 +42,8 @@ class DataModule(pl.LightningDataModule):
             df = BookCrossingDataset().import_data()
 
         return df
+
+    def setup(self, stage = None):
+        "Perform data operations"
+        return None
+    
