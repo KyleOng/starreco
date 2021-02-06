@@ -5,10 +5,7 @@ from starreco.data.dataset import *
 
 class DataModule(pl.LightningDataModule):
     datasets = [
-        "ml-100k", 
         "ml-1m", 
-        "ml-latest-small",
-        "ml-latest",
         "epinions",
         "book-crossing"
     ]
@@ -29,18 +26,18 @@ class DataModule(pl.LightningDataModule):
         Prepare and download different dataset based on configuration from constructor
         """
         # Import dataset
-        if "ml-" in self.dataset: 
+        if self.dataset =="ml-1m":
              # Movielens datasets
-            dataset = MovielensDataset(self.dataset.split("ml-")[-1])
+            dataset = MovielensDataset()
         elif self.dataset =="epinions": 
              # Epinions dataset
             dataset = EpinionsDataset()
         elif self.dataset =="book-crossing": 
             # Book Crossing dataset
             dataset = BookCrossingDataset()
-        df = dataset.import_data()
+        ratings = dataset.prepare_data()
 
-        return df
+        return ratings
 
     def setup(self, stage = None):
         "Perform data operations"

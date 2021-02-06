@@ -2,14 +2,18 @@ import urllib
 import os
 import json
 import re
+import warnings
 import zipfile, tarfile
 
 from tqdm import tqdm
 import pandas as pd
+import numpy as np
 import requests
 
 class Dataset:
     datasets_path = "starreco/dataset/"
+    user_maps = None
+    item_maps = None
     
     def __init__(self):
         pass
@@ -65,98 +69,148 @@ class Dataset:
         # Return dataset path
         return dataset_path
 
+    def prepare_data(self):
+        ratings, users, items = self.import_data()
+
+        ratings = ratings[[self.user_column, self.item_column, self.rating_column]]
+
+        """ratings[self.user_column] = ratings[self.user_column].astype("category")
+        self.users_map = ratings[self.user_column].cat.categories
+        ratings[self.user_column] = ratings[self.user_column].cat.codes
+
+        ratings[self.item_column] = ratings[self.item_column].astype("category")
+        self.items_map = ratings[self.item_column].cat.categories
+        ratings[self.item_column] = ratings[self.item_column].cat.codes"""
+
+        if users is not None:
+            ratings = ratings.merge(users, on = self.user_column, how = "left")
+
+            ratings[self.user_column] = ratings[self.user_column].astype("category")
+            self.user_maps = ratings[self.user_column].cat.categories
+            ratings[self.user_column] = ratings[self.user_column].cat.codes
+
+        if items is not None:
+            ratings = ratings.merge(items, on = self.item_column, how = "left")
+
+            ratings[self.item_column] = ratings[self.item_column].astype("category")
+            self.item_maps = ratings[self.item_column].cat.categories
+            ratings[self.item_column] = ratings[self.item_column].cat.codes
+        
+        print(ratings)
+        return ratings
+
 class MovielensDataset(Dataset):
-    def __init__(self, type = "1m"):
+    rating_column = "rating"
+    user_column = "userId"
+    item_column = "movieId"
+
+    def __init__(self, size = "1m"):
         super().__init__()
-        self.type = type
+        self.size = size # ** haven't implement for various movielens dataset size **
             
     def import_data(self):
         """
         Import Movielens dataset
-        1. Get dataset path
-        2. Extract dataset from archive file
-        3. Dataset to dataframe
+        ~ Movielens also provides latest dataset, but only suitable for development and eduction.
+        ~ Latest Movielens dataset also not appropriate for reporting research results.
+        ~ Hence, old datasets are utilized for benchmarking.
+        ~ For more info: https://grouplens.org/datasets/movielens/
         """
-        # old dataset
-        if self.type == "1m":
-            dataset_path = super().download_data("http://files.grouplens.org/datasets/movielens/ml-1m.zip")
-            zf = zipfile.ZipFile(dataset_path)
-            ratings = pd.read_csv(
-                zf.open("ml-1m/ratings.dat"), 
-                delimiter = "::", #seperator
-                names = ["userId", "movieId", "rating", "timestamp"], 
-                engine = "python" #remove ParserWarning: "c" engine not supported
-            )
-        elif self.type == "100k":
-            dataset_path = super().download_data("http://files.grouplens.org/datasets/movielens/ml-100k.zip")
-            zf = zipfile.ZipFile(dataset_path)
-            ratings = pd.read_csv(
-                zf.open("ml-100k/u.data"), 
-                delimiter = "\t", #seperator
-                names = ["userId", "movieId", "rating", "timestamp"], 
-                engine = "python" #remove ParserWarning: "c" engine not supported
-            )
-        # latest dataset
-        elif self.type == "25m":
-            dataset_path = super().download_data("http://files.grouplens.org/datasets/movielens/ml-25m.zip")
-            zf = zipfile.ZipFile(dataset_path)
-            ratings = pd.read_csv(zf.open("ml-25m/ratings.csv"))
-        elif self.type == "latest-small":
-            dataset_path = super().download_data("http://files.grouplens.org/datasets/movielens/ml-latest-small.zip")
-            zf = zipfile.ZipFile(dataset_path)
-            print(zf.__dict__)
-            ratings = pd.read_csv(zf.open("ml-latest-small/ratings.csv"))
-        elif self.type == "latest":
-            dataset_path = super().download_data("http://files.grouplens.org/datasets/movielens/ml-latest.zip")
-            zf = zipfile.ZipFile(dataset_path)
-            ratings = pd.read_csv(zf.open("ml-latest/ratings.csv"))
+        dataset_path = super().download_data(f"http://files.grouplens.org/datasets/movielens/ml-1m.zip")
+        zf = zipfile.ZipFile(dataset_path)
+        ratings = pd.read_csv(zf.open(f"ml-1m/ratings.dat"), delimiter = "::", 
+        names = ["userId", "movieId", "rating", "timestamp"], engine = "python")
 
-        return ratings
+        users = pd.read_csv(zf.open(f"ml-1m/users.dat"), delimiter = "::",
+        names = ["userId", "gender", "age", "occupation", "zipCode"], engine = "python")
+
+        items = pd.read_csv(zf.open(f"ml-1m/movies.dat"), delimiter = "::",
+        names = ["movieId", "title", "gender"], encoding = "ISO-8859-1", engine = "python")
+
+        return ratings, users, items
         
 class EpinionsDataset(Dataset):
+    rating_column = "stars"
+    user_column = "user"
+    item_column = "item"
+
     def import_data(self):
         """
         Import Epinions Dataset
-        1. Get dataset path
-        2. Extract dataset from archive file
-        3. Preprocess dataset
-        4. Dataset to dataframe
+        ~ Json parsing is required as Epinions does not provide clean json format datasets.
         """
         # Get dataset
         dataset_path = super().download_data("http://deepyeti.ucsd.edu/jmcauley/datasets/epinions/epinions_data.tar.gz")
         tf = tarfile.open(dataset_path , "r:gz") 
 
-        # Preprocess json string so that it is json compatible
-        data = tf.extractfile("epinions_data/epinions.json").read()
-        data = data.decode("UTF-8")
-        data = "[" + data + "]"
-        data = data.replace("\n","")
-        data = data.replace("}{", "},{")
+        # Parse ratings string to json
+        ratings_json_str = tf.extractfile("epinions_data/epinions.json").read()
+        ratings_json_str = ratings_json_str.decode("UTF-8")
+        ratings_json_str = ratings_json_str.strip()
+        ratings_json_str = "[" + ratings_json_str + "]"
+        ratings_json_str = ratings_json_str.replace("\n","")
+        ratings_json_str = ratings_json_str.replace("}{", "},{")
+        ratings_json_parse = json.loads(json.dumps(eval(ratings_json_str)))
+        ratings = pd.json_normalize(ratings_json_parse)
 
-        # Json string to json
-        data = json.loads(json.dumps(eval(data)))
+        # Parse users trusts string to dict
+        user_trusts_str = tf.extractfile("epinions_data/network_trust.txt").read()
+        user_trusts_str = user_trusts_str.decode("UTF-8")
+        user_trusts_str = user_trusts_str.strip()
+        user_trusts_parse = user_trusts_str.split("\n")
+        user_trusts_parse = [
+            {"user": user_trust.split(" trust ")[0].strip(), 
+            "trust": user_trust.split(" trust ")[1].strip()} 
+            for user_trust in user_trusts_parse
+        ]
+        user_trusts = pd.DataFrame(user_trusts_parse)
+        user_trusts = user_trusts.groupby("user")["trust"].apply(list).reset_index(name = "trusts")
 
-        ratings = pd.json_normalize(data)
-        return ratings
+        # Parse users trustbys string to dict
+        user_trustedbys_str = tf.extractfile("epinions_data/network_trustedby.txt").read()
+        user_trustedbys_str = user_trustedbys_str.decode("UTF-8")
+        user_trustedbys_str = user_trustedbys_str.strip()
+        user_trustedbys_parse = user_trustedbys_str.split("\n")
+        user_trustedbys_parse = [
+            {"user": user_trustedby.split(" trustedby ")[1].strip(), 
+            "trustedby": user_trustedby.split(" trustedby ")[0].strip()} 
+            for user_trustedby in user_trustedbys_parse
+        ]
+        user_trustedbys = pd.DataFrame(user_trustedbys_parse)
+        user_trustedbys = user_trustedbys.groupby("user")["trustedby"].apply(list).reset_index(name = "trustedby")
+
+        users = user_trusts.merge(user_trustedbys, on = "user")
+
+        # Merge (inner join) two users datafarme
+        # users = user_trusts.merge(user_trustedbys, on = "user")
+
+        # Warn users regarding absent of item dataset
+        # warnings.warn("Epinions dataset does not have items related dataset. Return None instead")
+
+        return ratings, users, None
 
 class BookCrossingDataset(Dataset):
+    rating_column = "Book-Rating"
+    user_column = "User-ID"
+    item_column = "ISBN"
+
     def import_data(self):
         """
         Import Book Crossing Dataset
-        1. Get dataset path
-        2. Extract dataset from archive file
-        3. Dataset to dataframe
         """
         # Get dataset
         dataset_path = super().download_data("http://www2.informatik.uni-freiburg.de/~cziegler/BX/BX-CSV-Dump.zip")
         zf = zipfile.ZipFile(dataset_path)
-        ratings = pd.read_csv(
-            zf.open("BX-Book-Ratings.csv"),
-            delimiter = ";",
-            encoding = "ISO-8859-1" # Prevent error 'utf-8' codec can't decode byte 0xba in position 183549: invalid start byte
-        )
 
-        return ratings
+        ratings = pd.read_csv(zf.open("BX-Book-Ratings.csv"), delimiter = ";",
+        escapechar = "\\", encoding = "ISO-8859-1")
+        users = pd.read_csv(zf.open("BX-Users.csv"), delimiter = ";",
+        escapechar = "\\", encoding = "ISO-8859-1")
+        items = pd.read_csv(zf.open("BX-Books.csv"), delimiter = ";",
+        escapechar = "\\", encoding = "ISO-8859-1")
+        #ratings = ratings.merge(users, on = "User-ID", how = "outer").merge(items, on = "ISBN", how = "outer")
+
+        return ratings, users, items
 
 
     
