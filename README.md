@@ -10,7 +10,3 @@ Star classification is a type of ratings scale commonly used by reviewers to rat
 - Neural Collaborative Filtering
 - Neural Network Matrix Factorization
 - AutoRec
-
-## Dataloader (How data is loaded?)
-<img src="asset/steps.png"/>
-
