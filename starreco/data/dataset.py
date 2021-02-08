@@ -5,15 +5,18 @@ import re
 import warnings
 import zipfile, tarfile
 
-from tqdm import tqdm
 import pandas as pd
 import numpy as np
 import requests
+from tqdm import tqdm
 
 class Dataset:
     datasets_path = "starreco/dataset/"
-    user_maps = None
-    item_maps = None
+    ratings = None
+    users = None
+    items = None
+    rated_users = None
+    rated_items = None
     
     def __init__(self):
         pass
@@ -71,32 +74,46 @@ class Dataset:
 
     def prepare_data(self):
         ratings, users, items = self.import_data()
-
         ratings = ratings[[self.user_column, self.item_column, self.rating_column]]
 
-        """ratings[self.user_column] = ratings[self.user_column].astype("category")
-        self.users_map = ratings[self.user_column].cat.categories
-        ratings[self.user_column] = ratings[self.user_column].cat.codes
-
-        ratings[self.item_column] = ratings[self.item_column].astype("category")
-        self.items_map = ratings[self.item_column].cat.categories
-        ratings[self.item_column] = ratings[self.item_column].cat.codes"""
-
         if users is not None:
-            ratings = ratings.merge(users, on = self.user_column, how = "left")
+            ratings = ratings.rename({self.user_column: self.user_column+"_code"}, axis = 1)
+            users = users.rename({self.user_column: self.user_column+"_reversed"}, axis = 1)
 
-            ratings[self.user_column] = ratings[self.user_column].astype("category")
-            self.user_maps = ratings[self.user_column].cat.categories
-            ratings[self.user_column] = ratings[self.user_column].cat.codes
+            ratings[self.user_column+"_code"] = ratings[self.user_column+"_code"].astype("category")
+            users[self.user_column+"_reversed"] = users[self.user_column+"_reversed"].astype("category")
+
+            user_maps = dict(enumerate(ratings[self.user_column+"_code"].cat.categories))
+            ratings[self.user_column+"_code"] = ratings[self.user_column+"_code"].cat.codes
+            users[self.user_column+"_code"] = users[self.user_column+"_reversed"].map(
+                dict((y,x) for x,y in user_maps.items())
+            )
+            rated_users = ratings.merge(users, how = "left", on = self.user_column+"_code")[users.columns]
+
+            # Set users and rated_users as class property
+            self.users = users
+            self.rated_users = rated_users.loc[:, ~rated_users.columns.str.contains(f"^{self.user_column}", case=False)] 
 
         if items is not None:
-            ratings = ratings.merge(items, on = self.item_column, how = "left")
+            ratings = ratings.rename({self.item_column: self.item_column+"_code"}, axis = 1)
+            items = items.rename({self.item_column: self.item_column+"_reversed"}, axis = 1)
 
-            ratings[self.item_column] = ratings[self.item_column].astype("category")
-            self.item_maps = ratings[self.item_column].cat.categories
-            ratings[self.item_column] = ratings[self.item_column].cat.codes
-        
-        print(ratings)
+            ratings[self.item_column+"_code"] = ratings[self.item_column+"_code"].astype("category")
+            items[self.item_column+"_reversed"] = items[self.item_column+"_reversed"].astype("category")
+
+            item_maps = dict(enumerate(ratings[self.item_column+"_code"].cat.categories))
+            ratings[self.item_column+"_code"] = ratings[self.item_column+"_code"].cat.codes
+            items[self.item_column+"_code"] = items[self.item_column+"_reversed"].map(
+                dict((y,x) for x,y in item_maps.items())
+            )
+            rated_items = ratings.merge(items, how = "left", on = self.item_column+"_code")[items.columns]
+
+            # Set items and rated_items as class property
+            self.items = items
+            self.rated_items = rated_items.loc[:, ~rated_items.columns.str.contains(f"^{self.item_column}", case=False)] 
+
+        # Set ratings as class property
+        self.ratings = ratings
         return ratings
 
 class MovielensDataset(Dataset):
@@ -118,14 +135,18 @@ class MovielensDataset(Dataset):
         """
         dataset_path = super().download_data(f"http://files.grouplens.org/datasets/movielens/ml-1m.zip")
         zf = zipfile.ZipFile(dataset_path)
+
         ratings = pd.read_csv(zf.open(f"ml-1m/ratings.dat"), delimiter = "::", 
         names = ["userId", "movieId", "rating", "timestamp"], engine = "python")
 
         users = pd.read_csv(zf.open(f"ml-1m/users.dat"), delimiter = "::",
         names = ["userId", "gender", "age", "occupation", "zipCode"], engine = "python")
+        users[["gender", "occupation", "zipCode"]] = users[["gender", "occupation", "zipCode"]].astype("category")
 
         items = pd.read_csv(zf.open(f"ml-1m/movies.dat"), delimiter = "::",
-        names = ["movieId", "title", "gender"], encoding = "ISO-8859-1", engine = "python")
+        names = ["movieId", "title", "genre"], encoding = "ISO-8859-1", engine = "python")
+        items["genre"] = items["genre"].apply(lambda x:x.split("|"))
+        items[["title"]] = items[["title"]].astype("category")
 
         return ratings, users, items
         
@@ -204,13 +225,15 @@ class BookCrossingDataset(Dataset):
 
         ratings = pd.read_csv(zf.open("BX-Book-Ratings.csv"), delimiter = ";",
         escapechar = "\\", encoding = "ISO-8859-1")
+
         users = pd.read_csv(zf.open("BX-Users.csv"), delimiter = ";",
         escapechar = "\\", encoding = "ISO-8859-1")
+        users["Location"] = users["Location"].apply(lambda x:x.split(", "))
+
         items = pd.read_csv(zf.open("BX-Books.csv"), delimiter = ";",
         escapechar = "\\", encoding = "ISO-8859-1")
-        #ratings = ratings.merge(users, on = "User-ID", how = "outer").merge(items, on = "ISBN", how = "outer")
+        items[["Book-Author", "Publisher"]] = items[["Book-Author", "Publisher"]].astype("category")
+        items = items[["ISBN", "Book-Author", "Publisher"]]
 
         return ratings, users, items
-
-
     

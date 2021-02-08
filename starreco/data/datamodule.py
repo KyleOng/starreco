@@ -35,8 +35,8 @@ class DataModule(pl.LightningDataModule):
         elif self.dataset =="book-crossing": 
             # Book Crossing dataset
             dataset = BookCrossingDataset()
-        ratings = dataset.prepare_data()
 
+        ratings = dataset.prepare_data()
         return ratings
 
     def setup(self, stage = None):
