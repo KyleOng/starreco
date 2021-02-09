@@ -1,8 +1,7 @@
 # star-reco
 
 <div style="float: right">
-  <img src="asset/logo.svg" width="150"/>
-  <h1>Star Reco</h1>
+  <img src="asset/logo.svg" width="150"/><h1>Star Reco</h1>
 </div>
 
 <img src="asset/19197320.jpg"/>
