@@ -1,10 +1,6 @@
 # star-reco
 
-<div style="float: right">
-  <img src="asset/logo.svg" width="150"/>Star Reco
-</div>
-
-<img src="asset/19197320.jpg"/>
+<img src="asset/logo.svg" width="200"/>
 
 Star classification is a type of ratings scale commonly used by reviewers to rate certain items such as films, TV shows, restaurants, and hotels. These ratings reflect customers' prefences and businesses are able to utilize them to build rating-based recommendation system. 
 
