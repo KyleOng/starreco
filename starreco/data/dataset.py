@@ -73,42 +73,55 @@ class Dataset:
         return dataset_path
 
     def prepare_data(self):
+        # Import data
         ratings, users, items = self.import_data()
+
+        # Rating dataset only focused on three attributes - user, item and rating
         ratings = ratings[[self.user_column, self.item_column, self.rating_column]]
 
+        # If users dataset exist, factorize user_id in rating dataset and map to user dataset
         if users is not None:
-            ratings = ratings.rename({self.user_column: self.user_column+"_code"}, axis = 1)
-            users = users.rename({self.user_column: self.user_column+"_reversed"}, axis = 1)
+            # user_id_code = Factorized user_id
+            # user_id_reversed = Original user_id
 
-            ratings[self.user_column+"_code"] = ratings[self.user_column+"_code"].astype("category")
-            users[self.user_column+"_reversed"] = users[self.user_column+"_reversed"].astype("category")
+            ratings = ratings.rename({self.user_column: self.user_column + "_code"}, axis = 1)
+            users = users.rename({self.user_column: self.user_column + "_reversed"}, axis = 1)
 
-            user_maps = dict(enumerate(ratings[self.user_column+"_code"].cat.categories))
-            ratings[self.user_column+"_code"] = ratings[self.user_column+"_code"].cat.codes
-            users[self.user_column+"_code"] = users[self.user_column+"_reversed"].map(
+            ratings[self.user_column + "_code"] = ratings[self.user_column + "_code"].astype("category")
+            users[self.user_column + "_reversed"] = users[self.user_column + "_reversed"].astype("category")
+
+            user_maps = dict(enumerate(ratings[self.user_column + "_code"].cat.categories))
+            ratings[self.user_column + "_code"] = ratings[self.user_column + "_code"].cat.codes
+            users[self.user_column + "_code"] = users[self.user_column + "_reversed"].map(
                 dict((y,x) for x,y in user_maps.items())
             )
-            rated_users = ratings.merge(users, how = "left", on = self.user_column+"_code")[users.columns]
+            rated_users = ratings.merge(users, how = "left", on = self.user_column + "_code")[users.columns]
 
             # Set users and rated_users as class property
+            self.user_column = self.user_column + "_code"
             self.users = users
             self.rated_users = rated_users.loc[:, ~rated_users.columns.str.contains(f"^{self.user_column}", case=False)] 
 
+        # If items dataset exist, factorize item_id in ratings dataset and map to items dataset
         if items is not None:
-            ratings = ratings.rename({self.item_column: self.item_column+"_code"}, axis = 1)
-            items = items.rename({self.item_column: self.item_column+"_reversed"}, axis = 1)
+            # item_id_code = Factorized item_id
+            # item_id_reversed = Original item_id
 
-            ratings[self.item_column+"_code"] = ratings[self.item_column+"_code"].astype("category")
-            items[self.item_column+"_reversed"] = items[self.item_column+"_reversed"].astype("category")
+            ratings = ratings.rename({self.item_column: self.item_column + "_code"}, axis = 1)
+            items = items.rename({self.item_column: self.item_column + "_reversed"}, axis = 1)
 
-            item_maps = dict(enumerate(ratings[self.item_column+"_code"].cat.categories))
-            ratings[self.item_column+"_code"] = ratings[self.item_column+"_code"].cat.codes
-            items[self.item_column+"_code"] = items[self.item_column+"_reversed"].map(
+            ratings[self.item_column + "_code"] = ratings[self.item_column + "_code"].astype("category")
+            items[self.item_column + "_reversed"] = items[self.item_column + "_reversed"].astype("category")
+
+            item_maps = dict(enumerate(ratings[self.item_column + "_code"].cat.categories))
+            ratings[self.item_column + "_code"] = ratings[self.item_column + "_code"].cat.codes
+            items[self.item_column + "_code"] = items[self.item_column + "_reversed"].map(
                 dict((y,x) for x,y in item_maps.items())
             )
-            rated_items = ratings.merge(items, how = "left", on = self.item_column+"_code")[items.columns]
+            rated_items = ratings.merge(items, how = "left", on = self.item_column + "_code")[items.columns]
 
             # Set items and rated_items as class property
+            self.item_column = self.item_column + "_code"
             self.items = items
             self.rated_items = rated_items.loc[:, ~rated_items.columns.str.contains(f"^{self.item_column}", case=False)] 
 
