@@ -2,6 +2,7 @@ import pytorch_lightning as pl
 from torchvision import transforms
 
 from starreco.data.dataset import *
+from starreco.preprocess.transformer import Transformer
 
 class DataModule(pl.LightningDataModule):
     datasets = [
@@ -37,6 +38,8 @@ class DataModule(pl.LightningDataModule):
             dataset = BookCrossingDataset()
 
         ratings = dataset.prepare_data()
+        print(Transformer().transform(dataset.rated_users, True))
+        print(Transformer().transform(dataset.rated_items, True))
         return ratings
 
     def setup(self, stage = None):

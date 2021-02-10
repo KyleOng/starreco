@@ -12,11 +12,6 @@ from tqdm import tqdm
 
 class Dataset:
     datasets_path = "starreco/dataset/"
-    ratings = None
-    users = None
-    items = None
-    rated_users = None
-    rated_items = None
     
     def __init__(self):
         pass
@@ -79,54 +74,67 @@ class Dataset:
         # Rating dataset only focused on three attributes - user, item and rating
         ratings = ratings[[self.user_column, self.item_column, self.rating_column]]
 
+
+        ratings[self.user_column] = ratings[self.user_column].astype("category")
+        user_maps = dict(enumerate(ratings[self.user_column].cat.categories))
+        ratings[self.user_column] = ratings[self.user_column].cat.codes
+
+        ratings[self.item_column] = ratings[self.item_column].astype("category")
+        item_maps = dict(enumerate(ratings[self.item_column].cat.categories))
+        ratings[self.item_column] = ratings[self.item_column].cat.codes
+
+        ratings = ratings.rename(
+            {self.user_column : self.user_column + "_code",
+             self.item_column : self.item_column + "_code"},
+            axis = 1
+        )
+
+        self.ratings = ratings
+
         # If users dataset exist, factorize user_id in rating dataset and map to user dataset
-        if users is not None:
-            # user_id_code = Factorized user_id
-            # user_id_reversed = Original user_id
-
-            ratings = ratings.rename({self.user_column: self.user_column + "_code"}, axis = 1)
-            users = users.rename({self.user_column: self.user_column + "_reversed"}, axis = 1)
-
-            ratings[self.user_column + "_code"] = ratings[self.user_column + "_code"].astype("category")
-            users[self.user_column + "_reversed"] = users[self.user_column + "_reversed"].astype("category")
-
-            user_maps = dict(enumerate(ratings[self.user_column + "_code"].cat.categories))
-            ratings[self.user_column + "_code"] = ratings[self.user_column + "_code"].cat.codes
-            users[self.user_column + "_code"] = users[self.user_column + "_reversed"].map(
+        if users is not None: 
+            users[self.user_column] = users[self.user_column].astype("category")
+            users[self.user_column + "_code"] = users[self.user_column].map(
                 dict((y,x) for x,y in user_maps.items())
             )
+            users = users.rename(
+                {self.user_column : self.user_column + "_reversed"},
+                axis = 1
+            )
+
+            # Left inner join between ratings (left) and users (right)
             rated_users = ratings.merge(users, how = "left", on = self.user_column + "_code")[users.columns]
+            rated_users = rated_users.loc[:, ~rated_users.columns.str.contains(f"^{self.user_column}", case=False)]
 
             # Set users and rated_users as class property
-            self.user_column = self.user_column + "_code"
             self.users = users
-            self.rated_users = rated_users.loc[:, ~rated_users.columns.str.contains(f"^{self.user_column}", case=False)] 
+            self.rated_users = rated_users
+        else:
+            self.users = pd.DataFrame(user_maps, columns = ["user_id_code", "user_id_reversed"])
+            self.rated_users = pd.DataFrame()
 
-        # If items dataset exist, factorize item_id in ratings dataset and map to items dataset
-        if items is not None:
-            # item_id_code = Factorized item_id
-            # item_id_reversed = Original item_id
-
-            ratings = ratings.rename({self.item_column: self.item_column + "_code"}, axis = 1)
-            items = items.rename({self.item_column: self.item_column + "_reversed"}, axis = 1)
-
-            ratings[self.item_column + "_code"] = ratings[self.item_column + "_code"].astype("category")
-            items[self.item_column + "_reversed"] = items[self.item_column + "_reversed"].astype("category")
-
-            item_maps = dict(enumerate(ratings[self.item_column + "_code"].cat.categories))
-            ratings[self.item_column + "_code"] = ratings[self.item_column + "_code"].cat.codes
-            items[self.item_column + "_code"] = items[self.item_column + "_reversed"].map(
+        # If items dataset exist, factorize item_id in rating dataset and map to item dataset
+        if items is not None: 
+            items[self.item_column] = items[self.item_column].astype("category")
+            items[self.item_column + "_code"] = items[self.item_column].map(
                 dict((y,x) for x,y in item_maps.items())
             )
+            items = items.rename(
+                {self.item_column : self.item_column + "_reversed"},
+                axis = 1
+            )
+
+            # Left inner join between ratings (left) and items (right)
             rated_items = ratings.merge(items, how = "left", on = self.item_column + "_code")[items.columns]
+            rated_items = rated_items.loc[:, ~rated_items.columns.str.contains(f"^{self.item_column}", case=False)]
 
             # Set items and rated_items as class property
-            self.item_column = self.item_column + "_code"
             self.items = items
-            self.rated_items = rated_items.loc[:, ~rated_items.columns.str.contains(f"^{self.item_column}", case=False)] 
-
-        # Set ratings as class property
-        self.ratings = ratings
+            self.rated_items = rated_items
+        else:
+            self.items = pd.DataFrame(item_maps, columns = ["item_id_code", "item_id_reversed"])
+            self.rated_items = pd.DataFrame()
+        
         return ratings
 
 class MovielensDataset(Dataset):
@@ -159,7 +167,6 @@ class MovielensDataset(Dataset):
         items = pd.read_csv(zf.open(f"ml-1m/movies.dat"), delimiter = "::",
         names = ["movieId", "title", "genre"], encoding = "ISO-8859-1", engine = "python")
         items["genre"] = items["genre"].apply(lambda x:x.split("|"))
-        items[["title"]] = items[["title"]].astype("category")
 
         return ratings, users, items
         
@@ -241,7 +248,7 @@ class BookCrossingDataset(Dataset):
 
         users = pd.read_csv(zf.open("BX-Users.csv"), delimiter = ";",
         escapechar = "\\", encoding = "ISO-8859-1")
-        users["Location"] = users["Location"].apply(lambda x:x.split(", "))
+        users["Location"] = users["Location"].astype("category")
 
         items = pd.read_csv(zf.open("BX-Books.csv"), delimiter = ";",
         escapechar = "\\", encoding = "ISO-8859-1")

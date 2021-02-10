@@ -1,4 +1,7 @@
+import warnings
 
+import pandas as pd
+import numpy as np
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
@@ -6,39 +9,55 @@ from sklearn.preprocessing import MinMaxScaler, MultiLabelBinarizer, OneHotEncod
 
 class Transformer:
     class CustomMultiLabelBinarizer(MultiLabelBinarizer):
-        def transform(self, X, y = None):
-            return super().transform(X)
-
         def fit_transform(self, X, y = None):
-            return super().fit_transform(X)
+            for column in X.columns:
+                if X[column].isnull().values.any():
+                    X[column].loc[X[column].isnull()] = X[column].loc[X[column].isnull()].apply(lambda x: [])
+            return super().fit_transform(X.values.flatten())
 
-    def transform(self, features, return_dataframe = False):
-
-        categorical_columns = features.select_dtypes(["category", "bool"]).columns
-        numerical_columns = features.select_dtypes(["int", "float"]).columns
-        list_columns = featuress.columns[features.applymap(type).eq(list).any()]
-
-        categorical_pipeline = Pipeline([
+    def __init__(self):
+        self.categorical_pipeline = Pipeline([
             ("imputer", SimpleImputer(strategy = "constant", fill_value = "missing")),
             ("onehot", OneHotEncoder(handle_unknown = "ignore"))
         ])
 
-        numerical_pipeline = Pipeline([
+        self.numerical_pipeline = Pipeline([
             ("imputer", SimpleImputer(strategy = "mean")),
             ("onehot", MinMaxScaler())
         ])
 
-        list_pipeline = CustomMultiLabelBinarizer()
+        self.list_pipeline = self.CustomMultiLabelBinarizer(sparse_output=True)
+
+    def transform(self, df, return_dataframe = False):
+
+        # Auto defined column types. Column types should be set correctly in Dataset module.
+        categorical_columns = df.select_dtypes(["category", "bool"]).columns
+        numerical_columns = df.select_dtypes(["int", "float"]).columns
+        list_columns = df.columns[df.applymap(type).eq(list).any()]
 
         transformer = ColumnTransformer([
-            ("categorical", categorical_pipeline, categorical_columns),
-            ("numerical", numerical_pipeline, numerical_columns)
-            ("list", list_pipeline, list_columns)
+            ("categorical", self.categorical_pipeline, categorical_columns),
+            ("numerical", self.numerical_pipeline, numerical_columns),
+            ("list", self.list_pipeline, list_columns)
         ])
 
-        features_transform = transformer.transform(features)
+        df_transform = transformer.fit_transform(df)
 
-        if return_dataframe():
-        
+        if return_dataframe:
+            try:
+                columns_transform = []
+                if len(categorical_columns):
+                    columns_transform.append(transformer.named_transformers_["categorical"].named_steps["onehot"].get_feature_names(categorical_columns))
+                if len(numerical_columns):
+                    columns_transform.append(numerical_columns)
+                if len(list_columns):
+                    columns_transform.append(transformer.named_transformers_["list"].classes_)
+                return pd.DataFrame(df_transform.toarray(), columns = np.concatenate(columns_transform))
+            except MemoryError as e:
+                warnings.warn(f"{str(e)}. Return values instead.")
+                return df_transform
+            except Exception:
+                warnings.warn("Dataframe empty.")
+                return df_transform
         else:
-            return features_transform
+            return df_transform
