@@ -168,7 +168,7 @@ class MovielensDataset(Dataset):
 
         items = pd.read_csv(zf.open(f"ml-1m/movies.dat"), delimiter = "::",
         names = ["movieId", "title", "genre"], encoding = "ISO-8859-1", engine = "python")
-        items["genre"] = items["genre"].apply(lambda x:x.split("|"))
+        items["genre"] = items["genre"].apply(lambda x:set(x.split("|")))
 
         return ratings, users, items
         

@@ -4,7 +4,7 @@ from torchvision import transforms
 from sklearn.model_selection import train_test_split
 
 from starreco.data.dataset import *
-from starreco.preprocess import Transformer
+from starreco.preprocessing import Preprocessor
 
 class DataModule(pl.LightningDataModule):
     datasets = [
@@ -40,6 +40,10 @@ class DataModule(pl.LightningDataModule):
             dataset = BookCrossingDataset()
 
         ratings = dataset.prepare_data()
+
+        #print(Preprocessor().df_to_sparse(ratings, dataset.user_column, dataset.item_column))
+        #print(Preprocessor().transform(dataset.rated_items, return_dataframe = True))
+
         return ratings[[dataset.user_column, dataset.item_column]].values, \
         ratings[dataset.rating_column].values
 
