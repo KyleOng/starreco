@@ -75,6 +75,7 @@ class Preprocessor:
             )
         # List type transformers: multilabel binarizer
         if len(list_columns):
+            # Each column has its own pipeline, because MultilabelBinarizer does not support multi column
             for list_column in list_columns: 
                 pipe = Pipeline([
                     ("imputer", SimpleImputer(strategy = "constant", fill_value = {})),
