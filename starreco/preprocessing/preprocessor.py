@@ -85,7 +85,7 @@ class Preprocessor:
                     (f"list_{list_column}", pipe, [list_column])
                 )
 
-        # Perfrom transformation/preprocessing
+        # Perform transformation/preprocessing
         df_transform = column_transformer.fit_transform(df)
 
         # Return transform data as dataframe if return_dataframe set as True
