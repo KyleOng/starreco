@@ -11,6 +11,14 @@ from sklearn.preprocessing import MinMaxScaler, MultiLabelBinarizer, OneHotEncod
 
 class CustomMultiLabelBinarizer(MultiLabelBinarizer):
     def fit_transform(self, X, y = None):
+        """
+        Fix original MultiLabelBinarizer fit_transform() which only takes 2 positional arguments.
+        However the pipeline provides 3 positional arguments.
+        Hence, add an additional argument y.
+        :param X: X
+        :param y: y (target), set as None
+        """
+        y = None
         if not isinstance(X, np.ndarray):
             X = np.array(X, dtype = "object")
         return super().fit_transform(X.flatten())

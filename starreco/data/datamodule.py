@@ -7,11 +7,7 @@ from starreco.data.dataset import *
 from starreco.preprocessing import Preprocessor
 
 class DataModule(pl.LightningDataModule):
-    datasets = [
-        "ml-1m", 
-        "epinions",
-        "book-crossing"
-    ]
+    datasets = ["ml-1m", "epinions",  "book-crossing"]
 
     def __init__(self, dataset = "ml-1m"):
         """
