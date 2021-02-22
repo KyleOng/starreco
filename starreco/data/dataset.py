@@ -74,7 +74,6 @@ class Dataset:
         # Rating dataset only focused on three attributes - user, item and rating
         ratings = ratings[[self.user_column, self.item_column, self.rating_column]]
 
-
         ratings[self.user_column] = ratings[self.user_column].astype("category")
         user_maps = dict(enumerate(ratings[self.user_column].cat.categories))
         ratings[self.user_column] = ratings[self.user_column].cat.codes
@@ -134,6 +133,9 @@ class Dataset:
         else:
             self.items = pd.DataFrame(item_maps, columns = ["item_id_code", "item_id_reversed"])
             self.rated_items = pd.DataFrame()
+            
+        self.user_column += "_code"
+        self.item_column += "_code"
         
         return ratings
 
@@ -205,8 +207,20 @@ class EpinionsDataset(Dataset):
             for user_trust in user_trusts_parse
         ]
         user_trusts = pd.DataFrame(user_trusts_parse)
-        user_trusts = user_trusts.groupby("user")["trust"].apply(list).reset_index(name = "trusts")
-
+        self.user_trusts = user_trusts
+        frequent_trusts = user_trusts["trust"].value_counts()[user_trusts["trust"].value_counts() > 100].keys()
+        user_trusts["frequent_trust"] = np.where(
+            user_trusts["trust"].isin(frequent_trusts),
+            user_trusts["trust"],
+            "others"
+        )
+        user_trusts["others_trust"] = np.where(
+            ~user_trusts["trust"].isin(frequent_trusts),
+            user_trusts["trust"],
+            np.nan
+        )
+        user_trusts = user_trusts.groupby("user")["frequent_trust"].apply(set).reset_index(name = "frequent_trust")
+        
         # Parse users trustbys string to dict
         user_trustedbys_str = tf.extractfile("epinions_data/network_trustedby.txt").read()
         user_trustedbys_str = user_trustedbys_str.decode("UTF-8")
@@ -218,12 +232,22 @@ class EpinionsDataset(Dataset):
             for user_trustedby in user_trustedbys_parse
         ]
         user_trustedbys = pd.DataFrame(user_trustedbys_parse)
-        user_trustedbys = user_trustedbys.groupby("user")["trustedby"].apply(list).reset_index(name = "trustedby")
-
-        users = user_trusts.merge(user_trustedbys, on = "user")
-
+        self.user_trustedbys = user_trustedbys
+        frequent_trustedbys = user_trustedbys["trustedby"].value_counts()[user_trustedbys["trustedby"].value_counts() > 100].keys()
+        user_trustedbys["frequent_trustedby"] = np.where(
+            user_trustedbys["trustedby"].isin(frequent_trustedbys),
+            user_trustedbys["trustedby"],
+            "others"
+        )
+        user_trustedbys["others_trustedby"] = np.where(
+            ~user_trustedbys["trustedby"].isin(frequent_trustedbys),
+            user_trustedbys["trustedby"],
+            np.nan
+        )
+        user_trustedbys = user_trustedbys.groupby("user")["frequent_trustedby"].apply(set).reset_index(name = "frequent_trustedby")
+        
         # Merge (inner join) two users datafarme
-        # users = user_trusts.merge(user_trustedbys, on = "user")
+        users = user_trusts.merge(user_trustedbys, on = "user", how = "inner")
 
         # Warn users regarding absent of item dataset
         # warnings.warn("Epinions dataset does not have items related dataset. Return None instead")

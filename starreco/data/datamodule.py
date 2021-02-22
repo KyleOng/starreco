@@ -1,8 +1,10 @@
 import pytorch_lightning as pl 
+import torch
 from torchvision import transforms
+from sklearn.model_selection import train_test_split
 
 from starreco.data.dataset import *
-from starreco.preprocess.transformer import Transformer
+from starreco.preprocess import Transformer
 
 class DataModule(pl.LightningDataModule):
     datasets = [
@@ -30,23 +32,32 @@ class DataModule(pl.LightningDataModule):
         if self.dataset =="ml-1m":
              # Movielens datasets
             dataset = MovielensDataset()
-        elif self.dataset =="epinions": 
+        elif self.dataset == "epinions": 
              # Epinions dataset
             dataset = EpinionsDataset()
-        elif self.dataset =="book-crossing": 
+        elif self.dataset == "book-crossing": 
             # Book Crossing dataset
             dataset = BookCrossingDataset()
 
         ratings = dataset.prepare_data()
-        print(Transformer().transform(dataset.rated_users, True))
-        print(Transformer().transform(dataset.rated_items, True))
-        return ratings
+        return ratings[[dataset.user_column, dataset.item_column]].values, \
+        ratings[dataset.rating_column].values
 
-    def setup(self, stage = None):
+    def setup(self, stage = None, random_state = 77):
         "Perform data operations"
 
-        df = self.prepare_data()
-        if stage == 'fit' or stage is None:
-            pass
-        if stage == 'test' or stage is None:
-            pass
+        X, y = self.prepare_data()
+
+        # General rule of thumb 60/20/20 train valid test split 
+        X_train, X_test, y_train, y_test = train_test_split(X, 
+                                                            y, 
+                                                            test_size = 0.2, 
+                                                            random_state = random_state) 
+
+        X_valid, X_test, y_valid, y_test = train_test_split(X_test, 
+                                                            y_test, 
+                                                            test_size = 0.5, 
+                                                            random_state = random_state)                                
+        #print(X_train, X_test, y_train, y_test)
+        
+

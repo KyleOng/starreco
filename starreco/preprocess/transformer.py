@@ -2,19 +2,18 @@ import warnings
 
 import pandas as pd
 import numpy as np
+from scipy import sparse
+from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler, MultiLabelBinarizer, OneHotEncoder
 
-class Transformer:
-    class CustomMultiLabelBinarizer(MultiLabelBinarizer):
-        def fit_transform(self, X, y = None):
-            for column in X.columns:
-                if X[column].isnull().values.any():
-                    X[column].loc[X[column].isnull()] = X[column].loc[X[column].isnull()].apply(lambda x: [])
-            return super().fit_transform(X.values.flatten())
+class CustomMultiLabelBinarizer(MultiLabelBinarizer):
+    def fit_transform(self, X, y = None):
+        return super().fit_transform(X)
 
+class Transformer:
     def __init__(self):
         self.categorical_pipeline = Pipeline([
             ("imputer", SimpleImputer(strategy = "constant", fill_value = "missing")),
@@ -26,7 +25,10 @@ class Transformer:
             ("onehot", MinMaxScaler())
         ])
 
-        self.list_pipeline = self.CustomMultiLabelBinarizer(sparse_output=True)
+        self.list_pipeline = Pipeline([
+            ("imputer", SimpleImputer(strategy = "constant", fill_value = {})),
+            ("binarizer", MultiColumnMultiLabelBinarizer(dict(sparse_output = True)))
+        ])
 
     def transform(self, df, return_dataframe = False):
 

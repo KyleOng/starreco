@@ -1,3 +1,3 @@
 from starreco.data import DataModule
-dataset = DataModule("book-crossing")
-dataset.prepare_data()
+dataset = DataModule("epinions")
+dataset.setup()
