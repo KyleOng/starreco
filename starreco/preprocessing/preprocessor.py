@@ -10,15 +10,16 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler, MultiLabelBinarizer, OneHotEncoder
 
 class CustomMultiLabelBinarizer(MultiLabelBinarizer):
+    """
+    Original MultiLabelBinarizer fit_transform() only takes 2 positional arguments. 
+    However, our custom pipeline assumes the MultiLabelBinarizer fit_transform() is defined to take 3 positional arguments.
+    Hence, add an additional argument y to fit_transform() fix the problem.
+    """
     def fit_transform(self, X, y = None):
         """
         Fix original MultiLabelBinarizer fit_transform().
         :param X: X
-        :param y: y (target), set as None
-
-        Original MultiLabelBinarizer fit_transform() which only takes 2 positional arguments.
-        However the pipeline provides 3 positional arguments.
-        Hence, add an additional argument y to fit_transform().
+        :param y: y (target), set as None      
         """
         y = None
         if not isinstance(X, np.ndarray):

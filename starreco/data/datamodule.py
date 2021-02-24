@@ -9,7 +9,7 @@ from starreco.preprocessing import Preprocessor
 class DataModule(pl.LightningDataModule):
     datasets = ["ml-1m", "epinions",  "book-crossing"]
 
-    def __init__(self, dataset = "ml-1m"):
+    def __init__(self, dataset = "ml-1m", batch_size = None):
         """
         Constructor
         """
@@ -18,6 +18,7 @@ class DataModule(pl.LightningDataModule):
             self.dataset = dataset 
         else:
             raise Exception(f"'{dataset}' not include in prefixed dataset. Choose from {self.datasets}.")
+        self.batch_size = batch_size
         super().__init__()
     
     def prepare_data(self):
@@ -60,4 +61,5 @@ class DataModule(pl.LightningDataModule):
                                                             random_state = random_state)                                
         #print(X_train, X_test, y_train, y_test)
         
+
 
