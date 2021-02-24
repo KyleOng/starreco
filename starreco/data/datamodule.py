@@ -7,17 +7,17 @@ from starreco.data.dataset import *
 from starreco.preprocessing import Preprocessor
 
 class DataModule(pl.LightningDataModule):
-    datasets = ["ml-1m", "epinions",  "book-crossing"]
+    options = ["ml-1m", "epinions",  "book-crossing"]
 
-    def __init__(self, dataset = "ml-1m", batch_size = None):
+    def __init__(self, option = "ml-1m", batch_size = None):
         """
         Constructor
         """
         # Validate whether predefined dataset exist
-        if dataset in self.datasets: 
-            self.dataset = dataset 
+        if option in self.options: 
+            self.option = option
         else:
-            raise Exception(f"'{dataset}' not include in prefixed dataset. Choose from {self.datasets}.")
+            raise Exception(f"'{option}' not include in prefixed dataset options. Choose from {self.options}.")
         self.batch_size = batch_size
         super().__init__()
     
@@ -26,20 +26,17 @@ class DataModule(pl.LightningDataModule):
         Prepare and download different dataset based on configuration from constructor
         """
         # Import dataset
-        if self.dataset =="ml-1m":
-             # Movielens datasets
+        # Movielens datasets
+        if self.option =="ml-1m":
             dataset = MovielensDataset()
-        elif self.dataset == "epinions": 
-             # Epinions dataset
+        # Epinions dataset
+        elif self.option == "epinions": 
             dataset = EpinionsDataset()
-        elif self.dataset == "book-crossing": 
-            # Book Crossing dataset
+        # Book Crossing dataset
+        elif self.option == "book-crossing": 
             dataset = BookCrossingDataset()
-
+        self.dataset = dataset
         ratings = dataset.prepare_data()
-
-        #print(Preprocessor().df_to_sparse(ratings, dataset.user_column, dataset.item_column))
-        #print(Preprocessor().transform(dataset.rated_items, return_dataframe = True))
 
         return ratings[[dataset.user_column, dataset.item_column]].values, \
         ratings[dataset.rating_column].values
@@ -58,8 +55,11 @@ class DataModule(pl.LightningDataModule):
         X_valid, X_test, y_valid, y_test = train_test_split(X_test, 
                                                             y_test, 
                                                             test_size = 0.5, 
-                                                            random_state = random_state)                                
-        #print(X_train, X_test, y_train, y_test)
-        
+                                                            random_state = random_state)   
+
+        #print(Preprocessor().ratings_to_sparse(X_train.T[0], X_train.T[1], y_train, self.dataset.num_users, self.dataset.num_items))
+
+ class MatrixDataModule(DataModule):
+     pass       
 
 

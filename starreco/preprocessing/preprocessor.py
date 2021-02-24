@@ -18,8 +18,9 @@ class CustomMultiLabelBinarizer(MultiLabelBinarizer):
     def fit_transform(self, X, y = None):
         """
         Fix original MultiLabelBinarizer fit_transform().
-        :param X: X
-        :param y: y (target), set as None      
+        :param X: X.
+        :param y: y (target), set as None.
+        : return: transformed X.      
         """
         y = None
         if not isinstance(X, np.ndarray):
@@ -27,18 +28,18 @@ class CustomMultiLabelBinarizer(MultiLabelBinarizer):
         return super().fit_transform(X.flatten())
 
 class Preprocessor:
-    def df_to_sparse(self, df, user_column, item_column):
+    def ratings_to_sparse(self, users, items, ratings, num_users, num_items):
         """
-        Transform user-item rating dataframe into sparse matrix.
-        :param df: ratings dataframe.
-        :param user_column: user column name.
-        :param item_column: item column name.
+        Transform user-item ratings dataframe into sparse matrix.
+        :param users: users list.
+        :param items: items list.
+        :param ratings: ratings list.
+        :param num_users: number of users.
+        :param num_items: number of items.
+        :return: sparse rating matrix.
         """
-        num_users = df[user_column].nunique()
-        num_items = df[item_column].nunique()
-
         matrix = lil_matrix((num_users, num_items), dtype = "uint8")
-        for _, user, item, rating in df.itertuples():
+        for user, item, rating in zip(users, items, ratings):
             matrix[user, item] = rating
 
         #breakpoint() # Evaluate matrix

@@ -74,6 +74,10 @@ class Dataset:
         # Rating dataset only focused on three attributes - user, item and rating
         ratings = ratings[[self.user_column, self.item_column, self.rating_column]]
 
+        # Get number of unique users and items
+        self.num_users = ratings[self.user_column].nunique()
+        self.num_items = ratings[self.item_column].nunique()
+
         ratings[self.user_column] = ratings[self.user_column].astype("category")
         user_maps = dict(enumerate(ratings[self.user_column].cat.categories))
         ratings[self.user_column] = ratings[self.user_column].cat.codes
