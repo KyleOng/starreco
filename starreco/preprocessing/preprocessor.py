@@ -12,11 +12,13 @@ from sklearn.preprocessing import MinMaxScaler, MultiLabelBinarizer, OneHotEncod
 class CustomMultiLabelBinarizer(MultiLabelBinarizer):
     def fit_transform(self, X, y = None):
         """
-        Fix original MultiLabelBinarizer fit_transform() which only takes 2 positional arguments.
-        However the pipeline provides 3 positional arguments.
-        Hence, add an additional argument y.
+        Fix original MultiLabelBinarizer fit_transform().
         :param X: X
         :param y: y (target), set as None
+
+        Original MultiLabelBinarizer fit_transform() which only takes 2 positional arguments.
+        However the pipeline provides 3 positional arguments.
+        Hence, add an additional argument y to fit_transform().
         """
         y = None
         if not isinstance(X, np.ndarray):
