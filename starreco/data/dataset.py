@@ -12,9 +12,6 @@ from tqdm import tqdm
 
 class Dataset:
     datasets_path = "starreco/dataset/"
-    
-    def __init__(self):
-        pass
 
     def download_data(self, url:str):
         """
@@ -104,18 +101,19 @@ class Dataset:
                 {self.user_column : self.user_column + "_reversed"},
                 axis = 1
             )
+            users = users.sort_values(by = self.user_column + "_code")
 
             # Left inner join between ratings (left) and users (right)
             rated_users = ratings.merge(users, how = "left", on = self.user_column + "_code")[users.columns]
-            rated_users = rated_users.loc[:, ~rated_users.columns.str.contains(f"^{self.user_column}", case=False)]
+            rated_users = rated_users.loc[:, ~rated_users.columns.str.contains(f"^{self.user_column}", case = False)]
 
             # Set users and rated_users as class property
             self.users = users
             self.rated_users = rated_users
         else:
-            self.users = pd.DataFrame(user_maps, columns = ["user_id_code", "user_id_reversed"])
+            self.users = pd.DataFrame({self.user_column + "_code":user_maps.keys(), self.user_column + "_reversed":user_maps.values()})
             self.rated_users = pd.DataFrame()
-
+            
         # If items dataset exist, factorize item_id in rating dataset and map to item dataset
         if items is not None: 
             items[self.item_column] = items[self.item_column].astype("category")
@@ -126,31 +124,29 @@ class Dataset:
                 {self.item_column : self.item_column + "_reversed"},
                 axis = 1
             )
+            items = items.sort_values(by = self.item_column + "_code")
 
             # Left inner join between ratings (left) and items (right)
             rated_items = ratings.merge(items, how = "left", on = self.item_column + "_code")[items.columns]
-            rated_items = rated_items.loc[:, ~rated_items.columns.str.contains(f"^{self.item_column}", case=False)]
+            rated_items = rated_items.loc[:, ~rated_items.columns.str.contains(f"^{self.item_column}", case = False)]
 
             # Set items and rated_items as class property
             self.items = items
             self.rated_items = rated_items
         else:
-            self.items = pd.DataFrame(item_maps, columns = ["item_id_code", "item_id_reversed"])
+            self.items = pd.DataFrame({self.item_column + "_code":item_maps.keys(), self.item_column + "_reversed":item_maps.values()})
             self.rated_items = pd.DataFrame()
             
         self.user_column += "_code"
         self.item_column += "_code"
-        
-        return ratings
+
+    def __init__(self):
+        self.prepare_data()
 
 class MovielensDataset(Dataset):
     rating_column = "rating"
     user_column = "userId"
     item_column = "movieId"
-
-    def __init__(self, size = "1m"):
-        super().__init__()
-        self.size = size # ** haven't implement for various movielens dataset size **
             
     def import_data(self):
         """
@@ -175,6 +171,10 @@ class MovielensDataset(Dataset):
         items["genre"] = items["genre"].apply(lambda x:set(x.split("|")))
 
         return ratings, users, items
+
+    def __init__(self, size = "1m"):
+        self.size = size # ** haven't implement for various movielens dataset size **
+        super().__init__()
         
 class EpinionsDataset(Dataset):
     rating_column = "stars"

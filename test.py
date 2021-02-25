@@ -1,3 +1,3 @@
-from starreco.data import DataModule
-dataset = DataModule("ml-1m")
-dataset.setup()
+from starreco.data import *
+data = HybridMatrixDataModule("epinions")
+data.setup()

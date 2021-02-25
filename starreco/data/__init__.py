@@ -1,1 +1,1 @@
-from starreco.data.datamodule import DataModule
+from starreco.data.datamodule import *
