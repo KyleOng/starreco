@@ -2,6 +2,7 @@ import pytorch_lightning as pl
 import torch
 from scipy.sparse import hstack
 from torchvision import transforms
+from torch.utils.data import TensorDataset, DataLoader
 from sklearn.model_selection import train_test_split
 
 from starreco.data.dataset import *
@@ -55,6 +56,27 @@ class DataModule(pl.LightningDataModule):
         y = self.dataset.ratings[self.dataset.rating_column].values
 
         self.split(X, y)
+
+    def train_dataloader(self):
+        train_ds = TensorDataset(
+            torch.tensor(self.X_train.toarray()).type(torch.FloatTensor), 
+            torch.tensor(self.y_train.toarray()).type(torch.FloatTensor), 
+        )
+        return DataLoader(train_ds, batch_size=self.batch_size)
+
+    def val_dataloader(self):
+        valid_ds = TensorDataset(
+            torch.tensor(self.X_valid.toarray()).type(torch.FloatTensor), 
+            torch.tensor(self.y_valid.toarray()).type(torch.FloatTensor), 
+        )
+        return DataLoader(valid_ds, batch_size=self.batch_size)
+
+    def test_dataloader(self):
+        test_ds = TensorDataset(
+            torch.tensor(self.X_test.toarray()).type(torch.FloatTensor), 
+            torch.tensor(self.y_test.toarray()).type(torch.FloatTensor), 
+        )
+        return DataLoader(test_ds, batch_size=self.batch_size)
         
 class HybridDataModule(DataModule):
     def setup(self, stage = None):
@@ -67,7 +89,7 @@ class HybridDataModule(DataModule):
         X = hstack([
             X,
             preprocessor.transform(self.dataset.rated_users),
-            preprocessor.transform(self.dataset.rated_items)
+            preprocessor.transform(self.dataset.rated_items) 
         ])
 
         self.split(X, y)
@@ -99,6 +121,10 @@ class MatrixDataModule(DataModule):
             self.X_valid = self.X_valid.T
             self.X_test = self.X_test.T
 
+        self.y_train = self.X_train
+        self.y_valid = self.X_valid
+        self.y_test = self.X_test
+
 class HybridMatrixDataModule(MatrixDataModule):
     def setup(self, stage = None):
         super().setup(stage)
@@ -115,3 +141,7 @@ class HybridMatrixDataModule(MatrixDataModule):
         self.X_train = hstack([self.X_train, side_info])
         self.X_valid = hstack([self.X_valid, side_info])
         self.X_test = hstack([self.X_test, side_info])
+
+        self.y_train = self.X_train
+        self.y_valid = self.X_valid
+        self.y_test = self.X_test

@@ -1,3 +1,4 @@
 from starreco.data import *
-data = HybridMatrixDataModule("epinions")
+data = HybridMatrixDataModule("ml-1m")
 data.setup()
+breakpoint()

@@ -11,7 +11,7 @@ import requests
 from tqdm import tqdm
 
 class Dataset:
-    datasets_path = "starreco/dataset/"
+    datasets_path = "starreco/dataset/" 
 
     def download_data(self, url:str):
         """
@@ -64,84 +64,56 @@ class Dataset:
         # Return dataset path
         return dataset_path
 
-    def prepare_data(self):
+    def preprocessing(self, ratings, objects, column):
+        factorize_column = column + "_fac"
+        original_column = column + "_ori"
+
+        ratings = ratings.rename({column: factorize_column}, axis = 1)
+
+        ratings[factorize_column] = ratings[factorize_column].astype("category")
+        categories = ratings[factorize_column].cat.categories
+        ratings[factorize_column] = ratings[factorize_column].cat.codes
+
+        if objects is not None:
+            objects = objects.rename({column: original_column}, axis = 1)
+
+            objects[original_column] = objects[original_column].astype("category")
+            objects[factorize_column] = objects[original_column].map(
+                dict((original, factorize)
+                for factorize, original in dict(enumerate(categories)).items())
+            )
+
+            if not set(ratings[factorize_column]).issubset(set(objects[factorize_column])):
+                objects = pd.DataFrame({factorize_column: [i for i in range(len(categories))]})\
+                .merge(objects, on = factorize_column, how = "outer")
+
+            rated_objects = ratings.merge(objects, on = factorize_column, how = "left")[objects.columns]
+            rated_objects = rated_objects.loc[:, ~rated_objects.columns.str.contains(f"^{column}", case = False)]
+
+            return ratings, objects, rated_objects
+        else:
+            objects = pd.DataFrame(
+                {factorize_column: [i for i in range(len(categories))], 
+                original_column: categories}
+            )
+
+            return ratings, objects, None
+
+    def __init__(self):
         # Import data
         ratings, users, items = self.import_data()
 
         # Rating dataset only focused on three attributes - user, item and rating
         ratings = ratings[[self.user_column, self.item_column, self.rating_column]]
 
-        # Get number of unique users and items
         self.num_users = ratings[self.user_column].nunique()
         self.num_items = ratings[self.item_column].nunique()
 
-        ratings[self.user_column] = ratings[self.user_column].astype("category")
-        user_maps = dict(enumerate(ratings[self.user_column].cat.categories))
-        ratings[self.user_column] = ratings[self.user_column].cat.codes
-
-        ratings[self.item_column] = ratings[self.item_column].astype("category")
-        item_maps = dict(enumerate(ratings[self.item_column].cat.categories))
-        ratings[self.item_column] = ratings[self.item_column].cat.codes
-
-        ratings = ratings.rename(
-            {self.user_column : self.user_column + "_code",
-             self.item_column : self.item_column + "_code"},
-            axis = 1
-        )
-
-        self.ratings = ratings
-
-        # If users dataset exist, factorize user_id in rating dataset and map to user dataset
-        if users is not None: 
-            users[self.user_column] = users[self.user_column].astype("category")
-            users[self.user_column + "_code"] = users[self.user_column].map(
-                dict((y,x) for x,y in user_maps.items())
-            )
-            users = users.rename(
-                {self.user_column : self.user_column + "_reversed"},
-                axis = 1
-            )
-            users = users.sort_values(by = self.user_column + "_code")
-
-            # Left inner join between ratings (left) and users (right)
-            rated_users = ratings.merge(users, how = "left", on = self.user_column + "_code")[users.columns]
-            rated_users = rated_users.loc[:, ~rated_users.columns.str.contains(f"^{self.user_column}", case = False)]
-
-            # Set users and rated_users as class property
-            self.users = users
-            self.rated_users = rated_users
-        else:
-            self.users = pd.DataFrame({self.user_column + "_code":user_maps.keys(), self.user_column + "_reversed":user_maps.values()})
-            self.rated_users = pd.DataFrame()
-            
-        # If items dataset exist, factorize item_id in rating dataset and map to item dataset
-        if items is not None: 
-            items[self.item_column] = items[self.item_column].astype("category")
-            items[self.item_column + "_code"] = items[self.item_column].map(
-                dict((y,x) for x,y in item_maps.items())
-            )
-            items = items.rename(
-                {self.item_column : self.item_column + "_reversed"},
-                axis = 1
-            )
-            items = items.sort_values(by = self.item_column + "_code")
-
-            # Left inner join between ratings (left) and items (right)
-            rated_items = ratings.merge(items, how = "left", on = self.item_column + "_code")[items.columns]
-            rated_items = rated_items.loc[:, ~rated_items.columns.str.contains(f"^{self.item_column}", case = False)]
-
-            # Set items and rated_items as class property
-            self.items = items
-            self.rated_items = rated_items
-        else:
-            self.items = pd.DataFrame({self.item_column + "_code":item_maps.keys(), self.item_column + "_reversed":item_maps.values()})
-            self.rated_items = pd.DataFrame()
-            
-        self.user_column += "_code"
-        self.item_column += "_code"
-
-    def __init__(self):
-        self.prepare_data()
+        ratings, self.users, self.rated_users = self.preprocessing(ratings, users, self.user_column)
+        self.ratings, self.items, self.rated_items = self.preprocessing(ratings, items, self.item_column)
+        
+        self.user_column = list(set(self.ratings.columns) & set(self.users.columns))[0]
+        self.item_column = list(set(self.ratings.columns) & set(self.items.columns))[0]
 
 class MovielensDataset(Dataset):
     rating_column = "rating"
@@ -268,7 +240,6 @@ class EpinionsDataset(Dataset):
         
         # Merge (inner join) user trusts and user trustbys as a single datafarme
         users = user_trusts.merge(user_trustedbys, on = "user", how = "inner")
-
         # Warn users regarding absent of item dataset
         # warnings.warn("Epinions dataset does not have items related dataset. Return None instead")
         
