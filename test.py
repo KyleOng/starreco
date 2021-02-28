@@ -1,14 +1,14 @@
 from starreco.data import *
 
-dataset = "book-crossing"
+dataset = "ml-1m"
 
 for Class in [
-    DataModule(dataset), HybridDataModule(dataset), AEDataModule(dataset), 
-    HybridAEDataModule(dataset, transpose = True), HybridAEDataModule(dataset, transpose = False)
+    DataModule(dataset), HybridDataModule(dataset), 
+    AEDataModule(dataset), AEDataModule(dataset, transpose = True),
+    HybridAEDataModule(dataset), HybridAEDataModule(dataset, transpose = True)
 ]:
     data = Class
     data.setup()
     data.train_dataloader()
     data.val_dataloader()
     data.test_dataloader()
-    print(data)

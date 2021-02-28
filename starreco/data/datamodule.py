@@ -24,7 +24,7 @@ class DataModule(pl.LightningDataModule):
             elif option == "book-crossing": 
                 self.dataset = BookCrossingDataset()
         else:
-            raise Exception(f"'{option}' ndot include in prefixed dataset options. Choose from {self.options}.")
+            raise Exception(f"'{option}' not include in prefixed dataset options. Choose from {self.options}.")
         self.batch_size = batch_size
         self.preprocessor = Preprocessor()
         super().__init__()
