@@ -2,6 +2,7 @@ import warnings
 
 import pandas as pd
 import numpy as np
+import torch
 from scipy.sparse import lil_matrix
 from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.compose import ColumnTransformer
@@ -45,7 +46,17 @@ class Preprocessor:
         #breakpoint() # Evaluate matrix
         #[[e,i] for e, i in enumerate(matrix[0].toarray()[1]) if i > 0]
 
-        return matrix            
+        return matrix  
+
+    def sparse_coo_to_tensor(self, coo):
+        values = coo.data
+        indices = np.vstack((coo.row, coo.col))
+
+        i = torch.LongTensor(indices)
+        v = torch.FloatTensor(values)
+        shape = coo.shape
+
+        return torch.sparse.FloatTensor(i, v, torch.Size(shape))
 
     def transform(self, df, return_dataframe = False):
         """
@@ -54,6 +65,10 @@ class Preprocessor:
         :param return_dataframe: return dataframe if True, else return sparse matrix. 
         :return: dataframe if return_dataframe set as True, else return sparse matrix.
         """
+        # Return empty array if dataframe is empty
+        if df is None:
+            return None
+
         # Auto defined column types. Column types should be set correctly in Dataset module.
         categorical_columns = df.select_dtypes(["category", "bool"]).columns
         numerical_columns = df.select_dtypes(["int", "float"]).columns
@@ -62,7 +77,7 @@ class Preprocessor:
         # Return empty array if dataframe is empty
         if len(categorical_columns) == 0 and len(numerical_columns) == 0 \
         and len(list_columns) == 0:
-            return []
+            return None
 
         # Dynamic transformer/pipeline construction
         column_transformer = ColumnTransformer([])

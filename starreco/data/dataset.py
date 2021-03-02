@@ -16,6 +16,7 @@ class Dataset:
     def download_data(self, url:str):
         """
         Download dataset from the url
+        :param url: url to download the dataset
         """
         # Obtain the characters after the last "/" as filename
         file_name = url.split("/")[-1]
@@ -64,56 +65,119 @@ class Dataset:
         # Return dataset path
         return dataset_path
 
-    def preprocessing(self, ratings, objects, column):
-        factorize_column = column + "_fac"
-        original_column = column + "_ori"
+    def _reindex(self, ratings:pd.DataFrame, column:str, map_objects:bool = False, 
+                objects:pd.DataFrame = None, outer_join:bool = False):
+        """
+        Reindex/Factorize certain column of the dataframe
+        :param ratings: Ratings dataframe.
+        :param column: Column which to be reindexed/factorized.        
+        :param map_objects: Map the reindexed column from the ratings dataframe to the original column of the object dataframe if set to True, else abort.
+        :param objects: Objects (users or items) dataframe which one of its column is reference to the ratings dataframe.
+        :param outer_join: Perform outer join between ratings and objects dataframe, as the final objects dataframe.
+        :return: Ratings and objects dataframes with reindexed columns if map_objects set to True, else ratings dataframe with reindexed columns only.
+        """
+        # Column to be reindexed/factorized
+        factorize_column = column
+        ratings = ratings.rename({column: factorize_column}, axis = 1) # Rename column
+        
 
-        ratings = ratings.rename({column: factorize_column}, axis = 1)
-
+        # Change dtype to category
         ratings[factorize_column] = ratings[factorize_column].astype("category")
+        # Store original values as respect to reindex values.
         categories = ratings[factorize_column].cat.categories
+        # Reindex column in the ratings dataset.
         ratings[factorize_column] = ratings[factorize_column].cat.codes
+        # Mapping objects dataframe.
+        if map_objects:
+            # Original column will be mapped with reindex values.
+            # Original values will be stored in "_ori" column
+            original_column = column + "_ori"
 
-        if objects is not None:
-            objects = objects.rename({column: original_column}, axis = 1)
+            # Perform mapping if objects dataframe exist.
+            # else return objects dataframe that only maps reindex values to original values.
+            if objects is not None:
+                # Rename column by adding "_ori".
+                # This column will store the original values.
+                objects = objects.rename({column: original_column}, axis = 1)
+                # Change dtype to category.
+                objects[original_column] = objects[original_column].astype("category") 
+                # Map the reindexed column from the ratings dataframe, to the original column of the object dataframe.
+                objects[factorize_column] = objects[original_column].map(
+                    dict((original, factorize)
+                    for factorize, original in dict(enumerate(categories)).items())
+                )
 
-            objects[original_column] = objects[original_column].astype("category")
-            objects[factorize_column] = objects[original_column].map(
-                dict((original, factorize)
-                for factorize, original in dict(enumerate(categories)).items())
-            )
+                if outer_join:
+                    # Perform outer join if the not all column values in the ratings dataframe in objects dataframe.
+                    # Outer join makes sure that all the column values exist in ratings dataframe, also exist in objects dataframe.
+                    if not np.isin(ratings[factorize_column].unique(), 
+                    objects[factorize_column].unique()).all():
+                        objects = pd.DataFrame({factorize_column: [i for i in range(len(categories))]})\
+                        .merge(objects, on = factorize_column, how = "outer")
+            else:
+                # Create and return objects dataframe which store original values as respect to reindex values.
+                objects = pd.DataFrame(
+                    {factorize_column: [i for i in range(len(categories))], 
+                    original_column: categories}
+                )
 
-            if not set(ratings[factorize_column]).issubset(set(objects[factorize_column])):
-                objects = pd.DataFrame({factorize_column: [i for i in range(len(categories))]})\
-                .merge(objects, on = factorize_column, how = "outer")
+            # Sort columns
+            objects = objects.reindex([factorize_column, original_column] + 
+                                    [col for col in objects.columns 
+                                    if col not in [factorize_column, original_column]], 
+                                    axis=1)
 
-            rated_objects = ratings.merge(objects, on = factorize_column, how = "left")[objects.columns]
-            rated_objects = rated_objects.loc[:, ~rated_objects.columns.str.contains(f"^{column}", case = False)]
-
-            return ratings, objects, rated_objects
+            objects = objects.sort_values(column)
+            return ratings, objects
         else:
-            objects = pd.DataFrame(
-                {factorize_column: [i for i in range(len(categories))], 
-                original_column: categories}
-            )
+            return ratings
+    
+    def _merge_ratings(self, ratings:pd.DataFrame, objects:pd.DataFrame, column:str, drop_left_columns:bool = True):
+        if objects is not None:
+            rated_objects = ratings.merge(objects, on = column, how = "left")
+            if drop_left_columns:
+                rated_objects = rated_objects.drop(ratings.columns, axis = 1)
+            return rated_objects
+        else: 
+            return None
 
-            return ratings, objects, None
+    def get_ratings(self):
+        return self._reindex(self._reindex(self.ratings_, self.user_column), 
+        self.item_column)[[self.user_column, self.item_column, self.rating_column]]
+
+    def get_users(self, merge_ratings = False, features_only = True):
+        if merge_ratings:
+            if features_only:   
+                return self._merge_ratings(self.ratings_, self.users_, self.user_column)
+            else:
+                return self._merge_ratings(self.ratings_, self.users_, self.user_column, 
+                drop_left_columns = False)
+        else:
+            _, users = self._reindex(self.ratings_, self.user_column, map_objects = True, 
+            objects = self.users_, outer_join = True)
+            if features_only:  
+                return users.dropna(subset = [self.user_column]).iloc[:, 2:]
+            else:
+                return users
+
+    def get_items(self, merge_ratings = False, features_only = True):
+        if merge_ratings:
+            if features_only:   
+                return self._merge_ratings(self.ratings_, self.items_, self.item_column)
+            else:
+                return self._merge_ratings(self.ratings_, self.items_, self.item_column, 
+                drop_left_columns = False)
+        else:
+            _, items = self._reindex(self.ratings_, self.item_column, map_objects = True, 
+            objects = self.items_, outer_join = True)
+            if features_only:  
+                return items.dropna(subset = [self.item_column]).iloc[:, 2:]
+            else:
+                return items
 
     def __init__(self):
         # Import data
-        ratings, users, items = self.import_data()
-
-        # Rating dataset only focused on three attributes - user, item and rating
-        ratings = ratings[[self.user_column, self.item_column, self.rating_column]]
-
-        self.num_users = ratings[self.user_column].nunique()
-        self.num_items = ratings[self.item_column].nunique()
-
-        ratings, self.users, self.rated_users = self.preprocessing(ratings, users, self.user_column)
-        self.ratings, self.items, self.rated_items = self.preprocessing(ratings, items, self.item_column)
-        
-        self.user_column = list(set(self.ratings.columns) & set(self.users.columns))[0]
-        self.item_column = list(set(self.ratings.columns) & set(self.items.columns))[0]
+        self.ratings_, self.users_, self.items_ = self.import_data()
 
 class MovielensDataset(Dataset):
     rating_column = "rating"
@@ -141,6 +205,7 @@ class MovielensDataset(Dataset):
         items = pd.read_csv(zf.open(f"ml-1m/movies.dat"), delimiter = "::",
         names = ["movieId", "title", "genre"], encoding = "ISO-8859-1", engine = "python")
         items["genre"] = items["genre"].apply(lambda x:set(x.split("|")))
+        items = items.drop(["title"], axis = 1)
 
         return ratings, users, items
 

@@ -17,102 +17,96 @@ class DataModule(pl.LightningDataModule):
         """
         # Validate whether predefined dataset exist
         if option in self.options: 
-            self.option = option
+            if option == "ml-1m":
+                self.dataset = MovielensDataset()
+            elif option == "epinions": 
+                self.dataset = EpinionsDataset()
+            elif option == "book-crossing": 
+                self.dataset = BookCrossingDataset()
         else:
             raise Exception(f"'{option}' ndot include in prefixed dataset options. Choose from {self.options}.")
         self.batch_size = batch_size
+        self.preprocessor = Preprocessor()
         super().__init__()
     
     def prepare_data(self):
-        """
-        Dataset selection
-        """
-        # Movielens datasets
-        if self.option =="ml-1m":
-            self.dataset = MovielensDataset()
-        # Epinions dataset
-        elif self.option == "epinions": 
-            self.dataset = EpinionsDataset()
-        # Book Crossing dataset
-        elif self.option == "book-crossing": 
-            self.dataset = BookCrossingDataset()
+        ratings = self.dataset.get_ratings()
 
-    def split(self, X, y, random_state = 77):
+        self.X = ratings[[self.dataset.user_column, self.dataset.item_column]].values
+        self.y = ratings[self.dataset.rating_column].values
+
+    def to_tensor(self):
+        self.X = torch.tensor(self.X).type(torch.FloatTensor)
+        self.y = torch.tensor(self.y).type(torch.FloatTensor)
+
+    def split(self, random_state = 77):
         # General rule of thumb 60/20/20 train valid test split 
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
-            X, y, test_size = 0.2, random_state = random_state
+            self.X, self.y, stratify = self.y, test_size = 0.2, random_state = random_state
         ) 
         self.X_valid, self.X_test, self.y_valid, self.y_test = train_test_split(
-            self.X_test, self.y_test, test_size = 0.5, random_state = random_state
+            self.X_test, self.y_test, stratify = self.y_test, test_size = 0.5, random_state = random_state
         ) 
 
     def setup(self, stage = None):
-        """
-        Dataset setup: input-output (features-target) variables and train-validation-test split
-        """
         self.prepare_data()
-
-        X = self.dataset.ratings[[self.dataset.user_column, self.dataset.item_column]].values
-        y = self.dataset.ratings[self.dataset.rating_column].values
-
-        self.split(X, y)
+        self.to_tensor()
+        self.split()
 
     def train_dataloader(self):
-        train_ds = TensorDataset(
-            torch.tensor(self.X_train.toarray()).type(torch.FloatTensor), 
-            torch.tensor(self.y_train.toarray()).type(torch.FloatTensor), 
-        )
-        return DataLoader(train_ds, batch_size=self.batch_size)
-
+        train_ds = TensorDataset(self.X_train, self.y_train)
+        return DataLoader(train_ds, batch_size = self.batch_size)
+                          
     def val_dataloader(self):
-        valid_ds = TensorDataset(
-            torch.tensor(self.X_valid.toarray()).type(torch.FloatTensor), 
-            torch.tensor(self.y_valid.toarray()).type(torch.FloatTensor), 
-        )
-        return DataLoader(valid_ds, batch_size=self.batch_size)
+        valid_ds = TensorDataset(self.X_valid, self.y_valid)
+        return DataLoader(valid_ds, batch_size = self.batch_size)
 
     def test_dataloader(self):
-        test_ds = TensorDataset(
-            torch.tensor(self.X_test.toarray()).type(torch.FloatTensor), 
-            torch.tensor(self.y_test.toarray()).type(torch.FloatTensor), 
-        )
-        return DataLoader(test_ds, batch_size=self.batch_size)
+        test_ds = TensorDataset(self.X_test, self.y_test)
+        return DataLoader(test_ds, batch_size = self.batch_size)
         
 class HybridDataModule(DataModule):
-    def setup(self, stage = None):
-        self.prepare_data()
+    def prepare_data(self, stage = None):
+        super().prepare_data()
+        users = self.dataset.get_users(merge_ratings = True)
+        items = self.dataset.get_items(merge_ratings = True)
 
-        X = self.dataset.ratings[[self.dataset.user_column, self.dataset.item_column]].values
-        y = self.dataset.ratings[self.dataset.rating_column].values
-
-        preprocessor = Preprocessor()
-        X = hstack([
-            X,
-            preprocessor.transform(self.dataset.rated_users),
-            preprocessor.transform(self.dataset.rated_items) 
+        self.X = hstack([
+            self.X, 
+            self.preprocessor.transform(users), 
+            self.preprocessor.transform(items)
         ])
 
-        self.split(X, y)
-        
-class MatrixDataModule(DataModule):
+    def to_tensor(self):
+        self.X_train = self.preprocessor.sparse_coo_to_tensor(self.X_train.tocoo())
+        self.X_valid = self.preprocessor.sparse_coo_to_tensor(self.X_valid.tocoo())
+        self.X_test = self.preprocessor.sparse_coo_to_tensor(self.X_test.tocoo())
+        self.y_train = torch.tensor(self.y_train).type(torch.FloatTensor)
+        self.y_valid = torch.tensor(self.y_valid).type(torch.FloatTensor)
+        self.y_test = torch.tensor(self.y_test).type(torch.FloatTensor)
+
+    def setup(self, stage = None):
+        self.prepare_data()
+        self.split()
+        self.to_tensor()
+
+class AEDataModule(DataModule):
     def __init__(self, option = "ml-1m", batch_size = None, transpose = False):
         self.transpose = transpose
         super().__init__(option, batch_size)
 
-    def setup(self, stage = None):
-        super().setup(stage)
-        preprocessor = Preprocessor()
+    def to_matrix(self):
+        ratings = self.dataset.get_ratings()
+        num_users = ratings[self.dataset.user_column].nunique()
+        num_items = ratings[self.dataset.item_column].nunique()
 
-        num_users = self.dataset.num_users
-        num_items = self.dataset.num_items
-
-        self.X_train = preprocessor.ratings_to_sparse(
+        self.X_train = self.preprocessor.ratings_to_sparse(
             self.X_train.T[0], self.X_train.T[1], self.y_train, num_users, num_items
         )
-        self.X_valid = preprocessor.ratings_to_sparse(
+        self.X_valid = self.preprocessor.ratings_to_sparse(
             self.X_valid.T[0], self.X_valid.T[1], self.y_valid, num_users, num_items
         )
-        self.X_test = preprocessor.ratings_to_sparse(
+        self.X_test = self.preprocessor.ratings_to_sparse(
             self.X_test.T[0], self.X_test.T[1], self.y_test, num_users, num_items
         )
 
@@ -121,27 +115,47 @@ class MatrixDataModule(DataModule):
             self.X_valid = self.X_valid.T
             self.X_test = self.X_test.T
 
-        self.y_train = self.X_train
-        self.y_valid = self.X_valid
-        self.y_test = self.X_test
+    def to_tensor(self):
+        self.X_train = self.preprocessor.sparse_coo_to_tensor(self.X_train.tocoo())
+        self.X_valid = self.preprocessor.sparse_coo_to_tensor(self.X_valid.tocoo())
+        self.X_test = self.preprocessor.sparse_coo_to_tensor(self.X_test.tocoo())
 
-class HybridMatrixDataModule(MatrixDataModule):
     def setup(self, stage = None):
-        super().setup(stage)
-        preprocessor = Preprocessor()
+        self.prepare_data()
+        self.split()
+        self.to_matrix()
+        self.to_tensor()
 
+    def train_dataloader(self):
+        train_ds = TensorDataset(self.X_train)
+        return DataLoader(train_ds, batch_size = self.batch_size)
+                          
+    def val_dataloader(self):
+        valid_ds = TensorDataset(self.X_valid)
+        return DataLoader(valid_ds, batch_size = self.batch_size)
+
+    def test_dataloader(self):
+        test_ds = TensorDataset(self.X_test)
+        return DataLoader(test_ds, batch_size = self.batch_size)
+
+class HybridAEDataModule(AEDataModule):
+
+    def add_side_information(self):
+        users = self.dataset.get_users()
+        items = self.dataset.get_items()
+        
         if self.transpose:
-            side_info = self.dataset.items.dropna(subset = [self.dataset.item_column])
-            side_info = side_info[self.dataset.rated_items.columns]
+            side_information = self.preprocessor.transform(items)
         else:
-            side_info = self.dataset.users.dropna(subset = [self.dataset.user_column])
-            side_info = side_info[self.dataset.rated_users.columns]
+            side_information = self.preprocessor.transform(users)
 
-        side_info = preprocessor.transform(side_info)
-        self.X_train = hstack([self.X_train, side_info])
-        self.X_valid = hstack([self.X_valid, side_info])
-        self.X_test = hstack([self.X_test, side_info])
-
-        self.y_train = self.X_train
-        self.y_valid = self.X_valid
-        self.y_test = self.X_test
+        self.X_train = hstack([self.X_train, side_information])
+        self.X_valid = hstack([self.X_valid, side_information])
+        self.X_test = hstack([self.X_test, side_information])
+    
+    def setup(self, stage = None):
+        self.prepare_data()
+        self.split()
+        self.to_matrix()
+        self.add_side_information()
+        self.to_tensor()
