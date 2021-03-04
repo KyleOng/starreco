@@ -10,11 +10,9 @@ from starreco.preprocessing import Preprocessor
 
 class DataModule(pl.LightningDataModule):
     options = ["ml-1m", "epinions",  "book-crossing"]
+    preprocessor = Preprocessor()
 
     def __init__(self, option = "ml-1m", batch_size = None):
-        """
-        Constructor
-        """
         # Validate whether predefined dataset exist
         if option in self.options: 
             if option == "ml-1m":
@@ -26,14 +24,13 @@ class DataModule(pl.LightningDataModule):
         else:
             raise Exception(f"'{option}' not include in prefixed dataset options. Choose from {self.options}.")
         self.batch_size = batch_size
-        self.preprocessor = Preprocessor()
         super().__init__()
     
     def prepare_data(self):
-        ratings = self.dataset.get_ratings()
+        ratings = self.dataset.rating.reindex
 
-        self.X = ratings[[self.dataset.user_column, self.dataset.item_column]].values
-        self.y = ratings[self.dataset.rating_column].values
+        self.X = ratings[[self.dataset.user.column, self.dataset.item.column]].values
+        self.y = ratings[self.dataset.rating.rating_column].values
 
     def to_tensor(self):
         self.X = torch.tensor(self.X).type(torch.FloatTensor)
@@ -68,13 +65,20 @@ class DataModule(pl.LightningDataModule):
 class HybridDataModule(DataModule):
     def prepare_data(self, stage = None):
         super().prepare_data()
-        users = self.dataset.get_users(merge_ratings = True)
-        items = self.dataset.get_items(merge_ratings = True)
-
         self.X = hstack([
             self.X, 
-            self.preprocessor.transform(users), 
-            self.preprocessor.transform(items)
+            self.preprocessor.transform(
+                self.dataset.rating.user_select_related, 
+                cat_columns = self.dataset.user.cat_columns,
+                num_columns = self.dataset.user.num_columns, 
+                set_columns = self.dataset.user.set_columns
+            ), 
+            self.preprocessor.transform(
+                self.dataset.rating.item_select_related, 
+                cat_columns = self.dataset.item.cat_columns,
+                num_columns = self.dataset.item.num_columns, 
+                set_columns = self.dataset.item.set_columns
+            ), 
         ])
 
     def to_tensor(self):
@@ -95,19 +99,18 @@ class AEDataModule(DataModule):
         self.transpose = transpose
         super().__init__(option, batch_size)
 
-    def to_matrix(self):
-        ratings = self.dataset.get_ratings()
-        num_users = ratings[self.dataset.user_column].nunique()
-        num_items = ratings[self.dataset.item_column].nunique()
-
+    def to_matrix(self):        
         self.X_train = self.preprocessor.ratings_to_sparse(
-            self.X_train.T[0], self.X_train.T[1], self.y_train, num_users, num_items
+            self.X_train.T[0], self.X_train.T[1], self.y_train, 
+            self.dataset.rating.num_users, self.dataset.rating.num_items
         )
         self.X_valid = self.preprocessor.ratings_to_sparse(
-            self.X_valid.T[0], self.X_valid.T[1], self.y_valid, num_users, num_items
+            self.X_valid.T[0], self.X_valid.T[1], self.y_valid, 
+            self.dataset.rating.num_users, self.dataset.rating.num_items
         )
         self.X_test = self.preprocessor.ratings_to_sparse(
-            self.X_test.T[0], self.X_test.T[1], self.y_test, num_users, num_items
+            self.X_test.T[0], self.X_test.T[1], self.y_test, 
+            self.dataset.rating.num_users, self.dataset.rating.num_items
         )
 
         if self.transpose:
@@ -139,15 +142,21 @@ class AEDataModule(DataModule):
         return DataLoader(test_ds, batch_size = self.batch_size)
 
 class HybridAEDataModule(AEDataModule):
-
     def add_side_information(self):
-        users = self.dataset.get_users()
-        items = self.dataset.get_items()
-        
         if self.transpose:
-            side_information = self.preprocessor.transform(items)
+            side_information = self.preprocessor.transform(
+                self.dataset.item.map_column(self.dataset.rating.item_map, "left"), 
+                cat_columns = self.dataset.item.cat_columns,
+                num_columns = self.dataset.item.num_columns, 
+                set_columns = self.dataset.item.set_columns
+            )
         else:
-            side_information = self.preprocessor.transform(users)
+            side_information = self.preprocessor.transform(
+                self.dataset.user.map_column(self.dataset.rating.user_map, "left"), 
+                cat_columns = self.dataset.user.cat_columns,
+                num_columns = self.dataset.user.num_columns, 
+                set_columns = self.dataset.user.set_columns
+            )
 
         self.X_train = hstack([self.X_train, side_information])
         self.X_valid = hstack([self.X_valid, side_information])

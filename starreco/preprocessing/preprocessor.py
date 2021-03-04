@@ -58,58 +58,53 @@ class Preprocessor:
 
         return torch.sparse.DoubleTensor(i, v, torch.Size(shape))
 
-    def transform(self, df, return_dataframe = False):
+    def transform(self, df, cat_columns = [], num_columns = [], set_columns = [],
+    return_dataframe = False):
         """
         Transform dataframe into model compatible format.
         :param df: pandas dataframe.
         :param return_dataframe: return dataframe if True, else return sparse matrix. 
         :return: dataframe if return_dataframe set as True, else return sparse matrix.
         """
-        # Return empty array if dataframe is empty
+        # Return None if dataframe is empty
         if df is None:
             return None
 
-        # Auto defined column types. Column types should be set correctly in Dataset module.
-        categorical_columns = df.select_dtypes(["category", "bool"]).columns
-        numerical_columns = df.select_dtypes(["int", "float"]).columns
-        list_columns = df.columns[df.applymap(type).eq(set).any()]
-
-        # Return empty array if dataframe is empty
-        if len(categorical_columns) == 0 and len(numerical_columns) == 0 \
-        and len(list_columns) == 0:
+        # Return None if cat/num/set_columns are empty
+        if len(cat_columns) == 0 and len(num_columns) == 0 and len(set_columns) == 0:
             return None
 
         # Dynamic transformer/pipeline construction
         column_transformer = ColumnTransformer([])
         # Each column type has its own transformation pipeline
         # Categorical transformer: one hot encoder
-        if len(categorical_columns):
+        if len(cat_columns):
             pipe = Pipeline([
                 ("imputer", SimpleImputer(strategy = "constant", fill_value = "missing")),
                 ("onehot", OneHotEncoder(handle_unknown = "ignore"))
             ])
             column_transformer.transformers.append(
-                ("categorical", pipe, categorical_columns)
+                ("categorical", pipe, cat_columns)
             )
         # Numerical transformer: min max scalar
-        if len(numerical_columns):
+        if len(num_columns):
             pipe = Pipeline([
                 ("imputer", SimpleImputer(strategy = "mean")),
                 ("onehot", MinMaxScaler())
             ])
             column_transformer.transformers.append(            
-                ("numerical", pipe, numerical_columns)
+                ("numerical", pipe, num_columns)
             )
-        # List type transformers: multilabel binarizer
-        if len(list_columns):
+        # Set type transformers: multilabel binarizer
+        if len(set_columns):
             # Each column has its own pipeline, because MultilabelBinarizer does not support multi column
-            for list_column in list_columns: 
+            for set_column in set_columns: 
                 pipe = Pipeline([
                     ("imputer", SimpleImputer(strategy = "constant", fill_value = {})),
                     ("binarizer", CustomMultiLabelBinarizer(sparse_output = True))
                 ])
                 column_transformer.transformers.append(
-                    (f"list_{list_column}", pipe, [list_column])
+                    (f"set_{set_column}", pipe, [set_column])
                 )
 
         # Perform transformation/preprocessing
@@ -120,14 +115,14 @@ class Preprocessor:
             try:
                 columns_transform = []
                 # Concatenate new transform columns
-                if len(categorical_columns):
+                if len(cat_columns):
                     columns_transform.append(column_transformer.named_transformers_["categorical"].named_steps["onehot"].get_feature_names(categorical_columns))
-                if len(numerical_columns):
+                if len(num_columns):
                     columns_transform.append(numerical_columns)
-                if len(list_columns):
-                    for list_column in list_columns: 
+                if len(set_columns):
+                    for set_column in set_columns: 
                         columns_transform.append(
-                            f"{list_column}_" + column_transformer.named_transformers_[f"list_{list_column}"].classes_
+                            f"{set_column}_" + column_transformer.named_transformers_[f"set_{set_column}"].classes_
                         )
                 return pd.DataFrame(df_transform.toarray(), columns = np.concatenate(columns_transform))
             except MemoryError as e:
