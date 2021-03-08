@@ -13,15 +13,19 @@ from sklearn.preprocessing import MinMaxScaler, MultiLabelBinarizer, OneHotEncod
 class CustomMultiLabelBinarizer(MultiLabelBinarizer):
     """
     Original MultiLabelBinarizer fit_transform() only takes 2 positional arguments. 
-    However, our custom pipeline assumes the MultiLabelBinarizer fit_transform() is defined to take 3 positional arguments.
-    Hence, add an additional argument y to fit_transform() fix the problem.
+    However, our custom pipeline assumes the MultiLabelBinarizer fit_transform() 
+    is defined to take 3 positional arguments. Hence, adding an additional argument 
+    y to fit_transform() fix the problem.
     """
     def fit_transform(self, X, y = None):
         """
         Fix original MultiLabelBinarizer fit_transform().
+
         :param X: X.
+
         :param y: y (target), set as None.
-        : return: transformed X.      
+
+        :return: transformed X.      
         """
         y = None
         if not isinstance(X, np.ndarray):
@@ -32,11 +36,17 @@ class Preprocessor:
     def ratings_to_sparse(self, users, items, ratings, num_users, num_items):
         """
         Transform user-item ratings dataframe into sparse matrix.
-        :param users: users list.
-        :param items: items list.
-        :param ratings: ratings list.
+
+        :param users: List of users.
+
+        :param items: List of items.
+
+        :param ratings: List of ratings.
+
         :param num_users: number of users.
+
         :param num_items: number of items.
+
         :return: sparse rating matrix.
         """
         matrix = lil_matrix((num_users, num_items), dtype = "uint8")
@@ -49,6 +59,13 @@ class Preprocessor:
         return matrix  
 
     def sparse_coo_to_tensor(self, coo):
+        """
+        Transform scipy sparse coo_matrix to pytorch sprase coo_tensor.
+
+        :param coo: scipy sparse coo_matrix.
+
+        :return: pytorch sparse coo_trensor.
+        """
         values = coo.data
         indices = np.vstack((coo.row, coo.col))
 
@@ -61,9 +78,18 @@ class Preprocessor:
     def transform(self, df, cat_columns = [], num_columns = [], set_columns = [],
     return_dataframe = False):
         """
-        Transform dataframe into model compatible format.
+        Transform dataframe into algorithm compatible format.
+
         :param df: pandas dataframe.
-        :param return_dataframe: return dataframe if True, else return sparse matrix. 
+
+        :param cat_columns: list of categorical columns exists in df.
+
+        :param num_columns: list of numerical/continuous columns exists in df.
+
+        :param set_columns: List of columns exists in df that contain sets.
+
+        :param return_dataframe: If True return dataframe, else return sparse matrix. 
+
         :return: dataframe if return_dataframe set as True, else return sparse matrix.
         """
         # Return None if dataframe is empty
