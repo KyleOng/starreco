@@ -1,7 +1,7 @@
 # star-reco
 <img src="asset/logo.svg" width="250"/>
 
-Star classification is a type of ratings scale commonly used by reviewers to rate certain items such as films, TV shows, restaurants, and hotels. These ratings can directly or indirectly reflect customers' preferences, and businesses are able to utilize them to build rating-based recommendation system. 
+Star classification is a type of ratings scale commonly used by reviewers to rate certain items such as films, TV shows, restaurants, and hotels. Businesses are able to utilize user-item star ratings to build rating-based recommendation system, as these ratings can directly or indirectly reflect customers' preferences.
 
 **star-reco** is a master thesis work + Python module for a series of deep learning rating-based recommendation system. 
 
