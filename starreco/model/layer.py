@@ -112,7 +112,7 @@ class MultilayerPerceptrons(torch.nn.Module):
             # Append linear layer
             input_layer = layers[i]
             output_layer = layers[i+1]            
-            mlp_blocks.append(nn.Linear(input_layer, output_layer))
+            mlp_blocks.append(torch.nn.Linear(input_layer, output_layer))
             # Append activation function
             activation = activations[i].lower()
             if activation != "linear": 
@@ -120,12 +120,12 @@ class MultilayerPerceptrons(torch.nn.Module):
             # Append batch normalization and dropout layers after each layer except output layer
             if batch_normalization:
                 if i != len(activations)-1:
-                    mlp_blocks.append(nn.BatchNorm1d(output_layer))
+                    mlp_blocks.append(torch.nn.BatchNorm1d(output_layer))
             if i != len(activations)-1:
                 if dropouts[i] > 0 and dropouts[i] < 1:
-                    mlp_blocks.append(nn.Dropout(dropouts[i]))
+                    mlp_blocks.append(torch.nn.Dropout(dropouts[i]))
             
-        self.mlp = nn.Sequential(*mlp_blocks)
+        self.mlp = torch.nn.Sequential(*mlp_blocks)
 
     def activation(self, name:str = "relu"):
         """
@@ -164,7 +164,7 @@ class MultilayerPerceptrons(torch.nn.Module):
 
 def weight_init(m):
     # Weight initialization on specific layer
-    if type(m) == nn.Linear:
+    if type(m) == torch.nn.Linear:
         torch.nn.init.xavier_uniform_(m.weight)
     
         if m.bias is not None:
