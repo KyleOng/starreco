@@ -4,4 +4,5 @@ from starreco.model.mf import MatrixFactorization
 from starreco.model.ncf import NeuralCollaborativeFiltering
 from starreco.model.nmf import NeuralMatrixFactorization
 from starreco.model.cncf import ConvolutionalNeuralCollaborativeFiltering
+from starreco.model.cdcf import ConvolutionalDeepCollaborativeFiltering
 
