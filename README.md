@@ -23,7 +23,13 @@ Current supported algorithms/models are:
 |Deep Factorization Machine (DeepFM) * <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/dfm.py)> <[paper](https://arxiv.org/pdf/1703.04247.pdf)>|:heavy_check_mark:|:heavy_check_mark:|||
 |Extreme Deep Factorization Machine (xDeepFM) * <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/xdfm.py)> <[paper](https://arxiv.org/pdf/1803.05170.pdf)>|:heavy_check_mark:|:heavy_check_mark:||:heavy_check_mark:|
 
-Acknowledgement
+Datasets
+---
+- **Movielen 1M Dataset**: A movie rating dataset collected from the Movielens websites by the GroupLensResearch Project  at University of Minnesota. The datasets were collected over various time  periods, depending  on  the  sizes given. 1 Million dataset is chosen as it is famous in the deep-learning recommendation community. Movielen 1M Dataset contains 1,000,209 anonymous ratings of approximately 3,900 movies made by 6,040 MovieLens users who joined MovieLens in 2000.
+
+- **Epinions Dataset**: A product review dataset collected by Paolo Massa  in  5  weeks (November/December  2003)  from Epinions.com  website.Epinions  dataset  is  used  in  many recommendation researches works due toits trust factor for better recommendation accuracy.  The dataset contains two sources of data which are trust data and rating data. In the trustdataset, all trust values are stored and distrust values are discarded. As for the rating data, each item rating is rated in the scale of 1 to 5. Epinions Dataset also contains 49,290 users who rated a total of  139,738 different items at least once, writing 664,824 reviews and 487,181 issued trust statements.
+
+Acknowledgements
 ---
 Special thanks to the following repositories for github code references and model/algorithms understanding.
 - https://github.com/khanhnamle1994/MetaRec
