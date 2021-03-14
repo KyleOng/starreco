@@ -3,9 +3,6 @@
 
 Background
 ---
-
-<img src="asset/19197320.jpg" width = "700"/>
-
 Star classification is a type of ratings scale commonly used by reviewers to rate certain items such as films, TV shows, restaurants, and hotels. Businesses are able to utilize user-item star ratings to build rating-based recommendation system, as these ratings can directly or indirectly reflect customers' preferences. This recommendation technique is also known as the **Collaborative Filtering (CF)** technique which recommendations are generated based on user-item interaction analysis. Correspondingly, various techniques for recommendation generation has been proposed throughout the years, in order to solve previous existing problems (For example, cold start and data sparsity). Hence, the purpose of this research is to recreate and evaluate various SOTA recommendation algorithms in a coherent and unified repository.
 
 Research Models
