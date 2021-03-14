@@ -17,7 +17,7 @@ class DeepFactorizationMachine(Module):
         self.linear = FeaturesLinear(features_dim)
 
         # Pairwise Interaction
-        self.pwi = PairwiseInteraction()
+        self.pwin = PairwiseInteraction()
 
         # Multilayer Perceptrons
         output_layers.insert(0, len(features_dim) * embed_dim)
@@ -29,5 +29,5 @@ class DeepFactorizationMachine(Module):
         embed_x = self.embedding(x)
 
         # Prediction
-        return self.linear(x) + self.pwi(embed_x) + \
+        return self.linear(x) + self.pwin(embed_x) + \
         self.mlp(torch.flatten(embed_x, start_dim = 1)) 

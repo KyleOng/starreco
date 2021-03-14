@@ -162,6 +162,43 @@ class MultilayerPerceptrons(torch.nn.Module):
 
         return self.mlp(x)
 
+class CompressedInteraction(torch.nn.Module):
+    def __init__(self, input_dim, cross_layers, activation = "relu", split_half = True):
+        super().__init__()
+        self.num_layers = len(cross_layers)
+        self.split_half = split_half
+
+        convolution_blocks = []
+        prev_dim, fc_input_dim = input_dim, 0
+        for i in range(self.num_layers):
+            input_channel_size = input_dim * prev_dim
+            output_channel_size = cross_layers[i]
+            convolution_blocks.append(torch.nn.Conv1d(input_channel_size, output_channel_size, 1,
+            stride = 1, dilation = 1, bias = True))
+            if self.split_half and i != self.num_layers - 1:
+                output_channel_size //= 2
+            prev_dim = output_channel_size
+            fc_input_dim += prev_dim
+        convolution_blocks.append(MultilayerPerceptrons.activation(None, activation))
+        self.convolution = torch.nn.Sequential(*convolution_blocks)
+
+        self.fc = torch.nn.Linear(fc_input_dim, 1)
+        
+    def forward(self, x):
+        xs = list()
+        x0, h = x.unsqueeze(2), x
+        for i in range(self.num_layers):
+            x = x0 * h.unsqueeze(1)
+            batch_size, f0_dim, fin_dim, embed_dim = x.shape
+            x = x.view(batch_size, f0_dim * fin_dim, embed_dim)
+            x = self.convolution[i](x)
+            if self.split_half and i != self.num_layers - 1:
+                x, h = torch.split(x, x.shape[1] // 2, dim=1)
+            else:
+                h = x
+            xs.append(x)
+        return self.fc(torch.sum(torch.cat(xs, dim=1), 2))
+
 def weight_init(m):
     # Weight initialization on specific layer
     if type(m) == torch.nn.Linear:

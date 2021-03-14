@@ -16,8 +16,8 @@ class NeuralFactorizationMachine(Module):
         # Linear layer
         self.linear = FeaturesLinear(features_dim)
 
-        # B-interaction layer
-        self.fm = torch.nn.Sequential(
+        # Bi-interaction layer
+        self.bi = torch.nn.Sequential(
             PairwiseInteraction(reduce_sum = False),
             torch.nn.BatchNorm1d(embed_dim),
             torch.nn.Dropout(fm_dropout)
@@ -32,8 +32,8 @@ class NeuralFactorizationMachine(Module):
         # Generate embeddings
         embed_x = self.embedding(x)
 
-        # B-interaction
-        cross_term = self.fm(embed_x)
+        # Bi-interaction
+        cross_term = self.bi(embed_x)
 
         # Prediction
         return self.linear(x) + self.mlp(cross_term)
