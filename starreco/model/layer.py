@@ -19,9 +19,9 @@ class FeaturesEmbedding(torch.nn.Module):
         """
         Perform operations.
 
-        :param x: torch.nn.LongTensor. Contains inputs of size (batch_size, num_features).
+        :param x: torch.LongTensor. Contains inputs of size (batch_size, num_features).
 
-        :return: torch.nn.FloatTensor. Contains embeddings of size (batch_size, num_features, 
+        :return: torch.FloatTensor. Contains embeddings of size (batch_size, num_features, 
         embed_dim).
         """
         x = x + x.new_tensor(self.offsets).unsqueeze(0)
@@ -48,9 +48,9 @@ class FeaturesLinear(torch.nn.Module):
         """
         Perform operations.
 
-        :param x: torch.nn.LongTensor. Contains inputs of size (batch_size, num_features).
+        :param x: torch.LongTensor. Contains inputs of size (batch_size, num_features).
 
-        :return: torch.nn.FloatTensor. Contains linear transformation output of size 
+        :return: torch.FloatTensor. Contains linear transformation output of size 
         (batch_size, num_features, embed_dim).
         """
         x = x + x.new_tensor(self.offsets).unsqueeze(0)
@@ -71,10 +71,10 @@ class PairwiseInteraction(torch.nn.Module):
         """
          Perform operations.
 
-        :param x: torch.nn.FloatTensor. Contains inputs of size (batch_size, num_features,
+        :param x: torch.FloatTensor. Contains inputs of size (batch_size, num_features,
         embed_dim).
 
-        :return: torch.nn.FloatTensor. If reduce_sum is True, return pairwise interaction 
+        :return: torch.FloatTensor. If reduce_sum is True, return pairwise interaction 
         output of size (batch_size, 1), else size (batch_size, embed_dim)
         """
         
@@ -84,6 +84,40 @@ class PairwiseInteraction(torch.nn.Module):
         if self.reduce_sum:
             ix = torch.sum(ix, dim = 1, keepdim = True)
         return 0.5 * ix
+
+class ActivationFunction(torch.nn.Module):
+    def __init__(self, name:str = "relu"):
+        """
+        Convert string values to activation function.
+
+        :param name: str. Name of the activation function. 
+        """
+        super().__init__()
+        
+        if (name == "relu"): self.activation = torch.nn.ReLU()
+        elif (name == "relu_true"): self.activation = torch.nn.ReLU(True)
+        elif (name == "relu6"): self.activation = torch.nn.ReLU6()
+        elif (name == "relu6_true"): self.activation = torch.nn.ReLU6(True)
+        elif (name == "elu"): self.activation = torch.nn.ELU()
+        elif (name == "elu_true"): self.activation = torch.nn.ELU(True)
+        elif (name == "selu"): self.activation = torch.nn.SELU()
+        elif (name == "selu_true"): self.activation = torch.nn.SELU(True)
+        elif (name == "leaky_relu"): self.activation = torch.nn.LeakyReLU()
+        elif (name == "leaky_relu_true"): self.activation = torch.nn.LeakyReLU(True)
+        elif (name == "tanh"): self.activation = torch.nn.Tanh()
+        elif (name == "sigmoid"): self.activation = torch.nn.Sigmoid()
+        elif (name == "softmax"): self.activation = torch.nn.Softmax()
+        else: raise ValueError("Unknown non-linearity type")
+
+    def forward(self, x):
+        """
+        Perform non linear activation function on input
+
+        :param x: torch.nn.Tensor. Input of any sizes.
+
+        :return: torhc.nn.Tensor. Non linear output.
+        """
+        return self.activation(x)
 
 class MultilayerPerceptrons(torch.nn.Module):
     def __init__(self, layers, activations, dropouts, batch_normalization = True):
@@ -116,7 +150,7 @@ class MultilayerPerceptrons(torch.nn.Module):
             # Append activation function
             activation = activations[i].lower()
             if activation != "linear": 
-                mlp_blocks.append(self.activation(activation))
+                mlp_blocks.append(ActivationFunction(activation))
             # Append batch normalization and dropout layers after each layer except output layer
             if batch_normalization:
                 if i != len(activations)-1:
@@ -155,9 +189,9 @@ class MultilayerPerceptrons(torch.nn.Module):
         """
         Perform operations.
 
-        :param x: torch.nn.FloatTensor. Contains inputs of size (batch_size, layers[0]).
+        :param x: torch.FloatTensor. Contains inputs of size (batch_size, layers[0]).
 
-        :return: torch.nn.FloatTensor. Contains embeddings of size (batch_size, layers[-1]), 
+        :return: torch.FloatTensor. Contains embeddings of size (batch_size, layers[-1]), 
         """
 
         return self.mlp(x)
@@ -179,7 +213,7 @@ class CompressedInteraction(torch.nn.Module):
                 output_channel_size //= 2
             prev_dim = output_channel_size
             fc_input_dim += prev_dim
-        convolution_blocks.append(MultilayerPerceptrons.activation(None, activation))
+        convolution_blocks.append(ActivationFunction(activation))
         self.convolution = torch.nn.Sequential(*convolution_blocks)
 
         self.fc = torch.nn.Linear(fc_input_dim, 1)
@@ -198,6 +232,9 @@ class CompressedInteraction(torch.nn.Module):
                 h = x
             xs.append(x)
         return self.fc(torch.sum(torch.cat(xs, dim=1), 2))
+
+class Activation(object):
+    def init
 
 def weight_init(m):
     # Weight initialization on specific layer

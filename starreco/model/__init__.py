@@ -1,5 +1,8 @@
-from starreco.model.layer import FeaturesEmbedding, FeaturesLinear, PairwiseInteraction, MultilayerPerceptrons, CompressedInteraction
+from starreco.model.layer import (FeaturesEmbedding, FeaturesLinear, 
+PairwiseInteraction, ActivationFunction, MultilayerPerceptrons, 
+CompressedInteraction)
 from starreco.model.module import Module
+
 from starreco.model.mf import MatrixFactorization
 from starreco.model.ncf import NeuralCollaborativeFiltering
 from starreco.model.nmf import NeuralMatrixFactorization

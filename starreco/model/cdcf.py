@@ -3,7 +3,7 @@ import math
 import torch
 import torch.nn.functional as F
 
-from starreco.model import FeaturesEmbedding, MultilayerPerceptrons, Module
+from starreco.model import FeaturesEmbedding, ActivationFunction, MultilayerPerceptrons, Module
 
 class ConvolutionalDeepCollaborativeFiltering(Module):
     def __init__(self, features_dim, embed_dim, 
@@ -31,7 +31,7 @@ class ConvolutionalDeepCollaborativeFiltering(Module):
             convolution_blocks.append(torch.nn.Conv2d(input_channel_size, output_channel_size, 
             kernel_size, stride = 2))
             # Activation function
-            convolution_blocks.append(MultilayerPerceptrons.activation(None, convolution_activation))
+            convolution_blocks.append(ActivationFunction(convolution_activation))
             # Batch normalization
             if batch_normalization:
               convolution_blocks.append(torch.nn.BatchNorm2d(output_channel_size))
