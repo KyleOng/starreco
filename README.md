@@ -23,6 +23,14 @@ Current supported algorithms/models are:
 |Deep Factorization Machine (DeepFM) * <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/dfm.py)> <[paper](https://arxiv.org/pdf/1703.04247.pdf)>|:heavy_check_mark:|:heavy_check_mark:|||
 |Extreme Deep Factorization Machine (xDeepFM) * <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/xdfm.py)> <[paper](https://arxiv.org/pdf/1803.05170.pdf)>|:heavy_check_mark:|:heavy_check_mark:||:heavy_check_mark:|
 
+Acknowledgement
+---
+Special thanks to the following repositories for github code references and model/algorithms understanding.
+- https://github.com/khanhnamle1994/MetaRec
+- https://github.com/rixwew/pytorch-fm
+- https://github.com/RaptorMai/Deep-AutoEncoder-Recommendation
+- https://github.com/shenweichen/DeepCTR/blob/master/deepctr/models/fgcnn.py
+
 
 
 
