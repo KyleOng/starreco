@@ -9,7 +9,7 @@ Research Models
 ---
 Current supported algorithms/models are:
 
-<sup> * Code modification for originally CTR models to Rating Prediction Models</sup>
+<sup> * asterisk symbol indicates code modification for originally CTR models to Rating Prediction Models</sup>
 |Research models|Linear|MLP|AE|CNN|
 |-|:-:|:-:|:-:|:-:|
 |Matrix Factorization (MF) <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/mf.py)> <[paper](https://www.inf.unibz.it/~ricci/ISR/papers/ieeecomputer.pdf)>|:heavy_check_mark:||||
