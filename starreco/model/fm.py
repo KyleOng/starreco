@@ -3,7 +3,7 @@ import torch.nn.functional as F
 
 from starreco.model import FeaturesEmbedding, FeaturesLinear, PairwiseInteraction, Module
 
-class FactorizationMachine(Module):
+class FM(Module):
     def __init__(self, features_dim, embed_dim, criterion = F.mse_loss):
         super().__init__()
         self.criterion = criterion

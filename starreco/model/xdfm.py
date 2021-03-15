@@ -3,7 +3,7 @@ import torch.nn.functional as F
 
 from starreco.model import FeaturesEmbedding, FeaturesLinear, MultilayerPerceptrons, CompressedInteraction, Module
 
-class ExtremeDeepFactorizationMachine(Module):
+class XDFM(Module):
     def __init__(self, features_dim, embed_dim, 
                  output_layers, activations, dropouts, 
                  cross_layers, cross_split_half = True,

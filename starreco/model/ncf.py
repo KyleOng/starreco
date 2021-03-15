@@ -3,7 +3,7 @@ import torch.nn.functional as F
 
 from starreco.model import FeaturesEmbedding, MultilayerPerceptrons, Module
 
-class NeuralCollaborativeFiltering(Module):
+class NCF(Module):
     def __init__(self, features_dim, embed_dim,
                  output_layers, activations, dropouts,
                  batch_normalization = True, criterion = F.mse_loss):

@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 from starreco.model import FeaturesEmbedding, ActivationFunction, MultilayerPerceptrons, Module
 
-class ConvolutionalNeuralCollaborativeFiltering(Module):
+class ONCF(Module):
     def __init__(self, features_dim, embed_dim, 
                  channel_size, kernel_size, strides,
                  convolution_activation, fc_activation,

@@ -3,7 +3,7 @@ import torch.nn.functional as F
 
 from starreco.model import FeaturesEmbedding, MultilayerPerceptrons, Module
 
-class NeuralMatrixFactorization(Module):
+class NMF(Module):
     def __init__(self, features_dim, embed_dim,
                  ncf_output_layers, ncf_activations, ncf_dropouts,
                  nmf_output_layers, nmf_activations, nmf_dropouts,

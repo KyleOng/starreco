@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 from starreco.model import FeaturesEmbedding, ActivationFunction, MultilayerPerceptrons, Module
 
-class ConvolutionalDeepCollaborativeFiltering(Module):
+class CNNDCF(Module):
     def __init__(self, features_dim, embed_dim, 
                  channel_size, kernel_size, strides,
                  convolution_activation, fc_activation,

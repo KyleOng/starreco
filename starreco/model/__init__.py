@@ -3,13 +3,13 @@ PairwiseInteraction, ActivationFunction, MultilayerPerceptrons,
 CompressedInteraction)
 from starreco.model.module import Module
 
-from starreco.model.mf import MatrixFactorization
-from starreco.model.ncf import NeuralCollaborativeFiltering
-from starreco.model.nmf import NeuralMatrixFactorization
-from starreco.model.cncf import ConvolutionalNeuralCollaborativeFiltering
-from starreco.model.cdcf import ConvolutionalDeepCollaborativeFiltering
-from starreco.model.fm import FactorizationMachine
-from starreco.model.nfm import NeuralFactorizationMachine
-from starreco.model.wnd import WideAndDeep
-from starreco.model.dfm import DeepFactorizationMachine
-from starreco.model.xdfm import ExtremeDeepFactorizationMachine
+from starreco.model.mf import MF
+from starreco.model.ncf import NCF
+from starreco.model.nmf import NMF
+from starreco.model.oncf import ONCF
+from starreco.model.cnndcf import CNNDCF
+from starreco.model.fm import FM
+from starreco.model.nfm import NFM
+from starreco.model.wdl import WDL
+from starreco.model.dfm import DFM
+from starreco.model.xdfm import XDFM
