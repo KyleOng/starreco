@@ -233,9 +233,6 @@ class CompressedInteraction(torch.nn.Module):
             xs.append(x)
         return self.fc(torch.sum(torch.cat(xs, dim=1), 2))
 
-class Activation(object):
-    def init
-
 def weight_init(m):
     # Weight initialization on specific layer
     if type(m) == torch.nn.Linear:
