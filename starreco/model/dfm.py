@@ -16,10 +16,10 @@ class DFM(Module):
         # Linear layer 
         self.linear = FeaturesLinear(features_dim)
 
-        # Pairwise Interaction
+        # Pairwise interaction
         self.pwin = PairwiseInteraction()
 
-        # Multilayer Perceptrons
+        # Multilayer perceptrons
         output_layers.insert(0, len(features_dim) * embed_dim)
         self.mlp = MultilayerPerceptrons(output_layers, activations, dropouts,
                                          batch_normalization)

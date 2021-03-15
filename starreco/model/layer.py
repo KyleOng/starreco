@@ -161,30 +161,6 @@ class MultilayerPerceptrons(torch.nn.Module):
             
         self.mlp = torch.nn.Sequential(*mlp_blocks)
 
-    def activation(self, name:str = "relu"):
-        """
-        Convert string values to activation function.
-
-        :param name: str. Name of the activation function. 
-
-        :return: torch.nn. Activation function.
-        """
-        
-        if(name == "relu"): return torch.nn.ReLU()
-        elif(name == "relu_true"): return torch.nn.ReLU(True)
-        elif(name == "relu6"): return torch.nn.ReLU6()
-        elif(name == "relu6_true"): return torch.nn.ReLU6(True)
-        elif(name == "elu"): return torch.nn.ELU()
-        elif(name == "elu_true"): return torch.nn.ELU(True)
-        elif(name == "selu"): return torch.nn.SELU()
-        elif(name == "selu_true"): return torch.nn.SELU(True)
-        elif(name == "leaky_relu"): return torch.nn.LeakyReLU()
-        elif(name == "leaky_relu_true"): return torch.nn.LeakyReLU(True)
-        elif(name == "tanh"): return torch.nn.Tanh()
-        elif(name == "sigmoid"): return torch.nn.Sigmoid()
-        elif(name == "softmax"): return torch.nn.Softmax()
-        else: raise ValueError("Unknown non-linearity type")
-
     def forward(self, x):
         """
         Perform operations.
@@ -232,6 +208,30 @@ class CompressedInteraction(torch.nn.Module):
                 h = x
             xs.append(x)
         return self.fc(torch.sum(torch.cat(xs, dim=1), 2))
+
+class InnerProduct(torch.nn.Module):
+    def __init__(self, reduce_sum = True):
+        super().__init__()
+        self.reduce_sum = reduce_sum
+
+    def forward(self, x):
+        embed_list = x
+        row = []
+        col = []
+        num_inputs = len(embed_list)
+
+        for i in range(num_inputs - 1):
+            for j in range(i + 1, num_inputs):
+                row.append(i)
+                col.append(j)
+
+        p = torch.cat([embed_list[idx] for idx in row], dim=1)
+        q = torch.cat([embed_list[idx] for idx in col], dim=1)
+
+        inner_product = p * q
+        if self.reduce_sum:
+            inner_product = torch.sum(inner_product, dim = 2, keepdim = True)
+        return inner_product
 
 def weight_init(m):
     # Weight initialization on specific layer

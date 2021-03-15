@@ -1,6 +1,6 @@
 from starreco.model.layer import (FeaturesEmbedding, FeaturesLinear, 
 PairwiseInteraction, ActivationFunction, MultilayerPerceptrons, 
-CompressedInteraction)
+CompressedInteraction, InnerProduct)
 from starreco.model.module import Module
 
 from starreco.model.mf import MF
@@ -13,3 +13,4 @@ from starreco.model.nfm import NFM
 from starreco.model.wdl import WDL
 from starreco.model.dfm import DFM
 from starreco.model.xdfm import XDFM
+from starreco.model.fgcnn import FGCNN
