@@ -6,7 +6,7 @@ class FeaturesEmbedding(torch.nn.Module):
         """
         Embedd Features.
 
-        :param feature_dims: list. List of feature dimension. Each feature contains
+        :param feature_dims (list): List of feature dimension. Each feature contains
         a total number of unique values.
 
         :param embed_dim: int. Embedding dimension.
@@ -32,7 +32,7 @@ class FeaturesLinear(torch.nn.Module):
         """
         Linear transformation.
 
-        :param feature_dims: list. List of feature dimension. Each feature contains
+        :param feature_dims (list): List of feature dimension. Each feature contains
         a total number of unique values.
 
         :param output_dim: int. Embedding dimension.
@@ -120,24 +120,21 @@ class ActivationFunction(torch.nn.Module):
         return self.activation(x)
 
 class MultilayerPerceptrons(torch.nn.Module):
-    def __init__(self, layers, activations, dropouts, batch_norm = True):
+    def __init__(self, layers:list, activations:list, dropouts:list):
         """
         Multilayer Perceptrons.
 
-        :param layers: list. List of number of nodes which the 1st element refers to 
+        :param layers (list): List of number of nodes which the 1st element refers to 
         the number of nodes for the input layer, while the last element refers to 
         the number of nodes for the output layer. The rest refers to the hidden
         layers.
 
-        :param activations: list. List of activation function for each layer. The number 
-        of activation functions = the number of layers - 1.
+        :param activations (list): List of activation function for each layer. 
+        Number of activation functions = len(layers) - 1.
 
-        :param dropouts: list. List of dropout values. Dropout will not be applied after
-        the output layer. The number of dropout values = the number of layers - 2.
-
-        :param batch_norm: bool. If True, apply batch normalization on each layer 
-        (after activation function is applied). Batch normalization will not be 
-        applied after the output layer.
+        :param dropouts (list): List of dropout values. Dropout will not be applied after
+        the output layer. 
+        Number of dropout = len(layers) - 2.
         """
         super().__init__()
 
@@ -151,10 +148,7 @@ class MultilayerPerceptrons(torch.nn.Module):
             activation = activations[i].lower()
             if activation != "linear": 
                 mlp_blocks.append(ActivationFunction(activation))
-            # Append batch normalization and dropout layers after each layer except output layer
-            if batch_norm:
-                if i != len(activations)-1:
-                    mlp_blocks.append(torch.nn.BatchNorm1d(output_layer))
+            # Append dropout layers after each layer except output layer
             if i != len(activations)-1:
                 if dropouts[i] > 0 and dropouts[i] < 1:
                     mlp_blocks.append(torch.nn.Dropout(dropouts[i]))

@@ -1,3 +1,5 @@
+from typing import Union
+
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -13,10 +15,16 @@ class CMF(Module):
     Convolutional Matrix Factorization.
     """
     def __init__(self, user_features_dim:int, vocab_size:int, max_len:int,
-                 user_embed_dim:int = 200, word_embed_dim:int = 200, 
-                 conv_filter_size:int = 100, conv_kernel_size:int = 3, conv_activation:str = "relu",
-                 fc_hidden_layers:list = [200], fc_activation:str = "tanh", fc_dropouts:list = [0.2],
-                 batch_norm:bool = True, criterion:F = F.mse_loss):
+                 user_embed_dim:int = 200, 
+                 word_embed_dim:int = 200, 
+                 conv_filter_size:int = 100, 
+                 conv_kernel_size:int = 3, 
+                 conv_activation:str = "relu",
+                 batch_norm:bool = True, 
+                 fc_hidden_layers:list = [200], 
+                 fc_activation:Union[str, list] = "tanh", 
+                 fc_dropouts:Union[float, list] = 0.2,
+                 criterion:F = F.mse_loss):
         """
         Explicit parameter settings.
 
@@ -40,18 +48,20 @@ class CMF(Module):
         :fc_hidden_layers (list): List of number of nodes of the hidden layers (located
         between the input layer and output layer) for the fully connected layers. The 
         number of node for the input and output layer will be automatically defined. 
-        The number of input nodes = conv_filter_size
-        The number of output nodes = user_embed_dim
+        Number of input nodes = conv_filter_size.
+        Number of output nodes = user_embed_dim.
         Default: [200]
 
-        :fc_activation (str): Name of the activation function for fully connected layers.
-        The number of activation functions will be later repeated based on the length of 
-        fc_hidden_layers.
-        Default: tanh.
+        :fc_activation (str/list): List of activation function names for the fully connect
+        layers. If type int, then the activation function names will be repeated based on 
+        the number of fc_hidden_layers.
+        Number of activations = 2 + len(fc_hidden_layers) - 1.
+        Default: tanh
 
-        :fc_dropouts (list): List of dropouts for the fully connected layer.
-        The number of dropouts = len(fc_hidden_layers)
-        Default: [0.2]
+        :fc_dropouts (float/list): List of dropouts for the fully connected layer. If type
+        str, then the dropouts will be repeated based on the number of fc_hidden_layers.
+        Number of dropouts = 2 + len(fc_hidden_layers) - 2.
+        Default: 0.2
 
         :batch_normm (bool): Batch normalization on convolution and fully-connected layers.
         If True, perform batch normalization after activation function for convolution and
@@ -77,23 +87,31 @@ class CMF(Module):
                                           (conv_kernel_size, word_embed_dim)))
         # Activation function
         cnn_blocks.append(ActivationFunction(conv_activation))
-        # Batch normalization
-        if batch_norm:
-            cnn_blocks.append(torch.nn.BatchNorm2d(output_channel_size))
         # Max pooling: to address the problem of varying sentence lengths
         cnn_blocks.append(torch.nn.MaxPool2d((max_len - conv_kernel_size + 1, 1)))
         cnn_blocks.append(torch.nn.Flatten())
+        # Batch normalization
+        if batch_norm:
+            cnn_blocks.append(torch.nn.BatchNorm2d(output_channel_size))
         # Fully connected layer
         fc_hidden_layers.insert(0, conv_filter_size)
         fc_hidden_layers.append(user_embed_dim)
-        fc = MultilayerPerceptrons(fc_hidden_layers, 
-                                   np.tile([fc_activation], len(fc_hidden_layers) - 1), 
-                                   fc_dropouts, 
-                                   batch_norm)
+        if type(fc_activations) == str:
+            fc_activations = np.tile([fc_activations], len(fc_hidden_layers) - 1)
+        if type(fc_dropouts) == float:
+            fc_dropouts = np.tile([fc_dropouts], len(fc_hidden_layers) -2)
+        fc = MultilayerPerceptrons(fc_hidden_layers, fc_activations, fc_dropouts)
         cnn_blocks.append(fc)
         self.cnn = torch.nn.Sequential(*cnn_blocks)
 
     def forward(self, x):
+        """
+        Perform operations.
+
+        :x (torch.tensor): Input tensors of shape (batch_size, 1 + max_len)
+
+        :return (torch.tensor): Output prediction tensors of shape (batch_size, 1)
+        """
         # Generate user embeddings from 1st layer
         embed_user = self.user_embedding(x[:, 0])
         embed_user = embed_user.squeeze(0)

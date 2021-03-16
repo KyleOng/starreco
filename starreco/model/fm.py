@@ -1,10 +1,25 @@
 import torch
 import torch.nn.functional as F
 
-from starreco.model import FeaturesEmbedding, FeaturesLinear, PairwiseInteraction, Module
+from starreco.model import (FeaturesEmbedding, 
+                            FeaturesLinear, 
+                            PairwiseInteraction, 
+                            Module)
 
 class FM(Module):
-    def __init__(self, features_dim, embed_dim, criterion = F.mse_loss):
+    """
+    Factorization Machine
+    """
+    def __init__(self, features_dim:list, 
+                 embed_dim:int = 8, 
+                 criterion:F = F.mse_loss):
+        """
+        Explicit parameter settings.
+
+        :param features_dim (list): List of feature dimensions. 
+
+        :param embed_dim (int): Embeddings dimensions. Default 8
+        """
         super().__init__()
         self.criterion = criterion
 
@@ -18,6 +33,13 @@ class FM(Module):
         self.pairwise_interaction = PairwiseInteraction()
 
     def forward(self, x):
+        """
+        Perform operations.
+
+        :x (torch.tensor): Input tensors of shape (batch_size, num_features)
+
+        :return (torch.tensor): Output prediction tensors of shape (batch_size, 1)
+        """
         # Generate embeddings
         embed_x = self.embedding(x)
 
