@@ -9,13 +9,16 @@ from starreco.model import (FeaturesEmbedding,
 
 
 class CMF(Module):
+    """
+    Convolutional Matrix Factorization.
+    """
     def __init__(self, user_features_dim:int, vocab_size:int, max_len:int,
                  user_embed_dim:int = 200, word_embed_dim:int = 200, 
                  conv_filter_size:int = 100, conv_kernel_size:int = 3, conv_activation:str = "relu",
                  fc_hidden_layers:list = [200], fc_activation:str = "tanh", fc_dropouts:list = [0.2],
                  batch_norm:bool = True, criterion:F = F.mse_loss):
         """
-        Convolutional Matrix Factorization with explicit parameter settings.
+        Explicit parameter settings.
 
         :param user_features_dim (int): Number of unique user features.
 
@@ -23,13 +26,13 @@ class CMF(Module):
 
         :param max_len (int): Maximum sentence length.
 
-        :user_embed_dim (int): User embeddings size. Default: 200.
+        :user_embed_dim (int): User embeddings size. Default: 200
 
-        :word_embed_dim (int): Word embeddings size. Default: 200.
+        :word_embed_dim (int): Word embeddings size. Default: 200
 
-        :conv_filter_size (int): Convolution filter/depth/channel size. Default: 100.
+        :conv_filter_size (int): Convolution filter/depth/channel size. Default: 100
 
-        :conv_kernel_size (int): Convolution kernel/window size. Default: 3.
+        :conv_kernel_size (int): Convolution kernel/window size. Default: 3
 
         :conv_activation (str): Name of the activation function for convolution layer. 
         Default: relu.
@@ -49,6 +52,12 @@ class CMF(Module):
         :fc_dropouts (list): List of dropouts for the fully connected layer.
         The number of dropouts = len(fc_hidden_layers)
         Default: [0.2]
+
+        :batch_normm (bool): Batch normalization on convolution and fully-connected layers.
+        If True, perform batch normalization after activation function for convolution and
+        fully connected layers. Default: True
+
+        :criterion (F): Objective function. Default: F.mse_loss
         """
         super().__init__()
         self.criterion = criterion
