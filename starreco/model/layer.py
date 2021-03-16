@@ -120,7 +120,7 @@ class ActivationFunction(torch.nn.Module):
         return self.activation(x)
 
 class MultilayerPerceptrons(torch.nn.Module):
-    def __init__(self, layers, activations, dropouts, batch_normalization = True):
+    def __init__(self, layers, activations, dropouts, batch_norm = True):
         """
         Multilayer Perceptrons.
 
@@ -135,7 +135,7 @@ class MultilayerPerceptrons(torch.nn.Module):
         :param dropouts: list. List of dropout values. Dropout will not be applied after
         the output layer. The number of dropout values = the number of layers - 2.
 
-        :param batch_normalization: bool. If True, apply batch normalization on each layer 
+        :param batch_norm: bool. If True, apply batch normalization on each layer 
         (after activation function is applied). Batch normalization will not be 
         applied after the output layer.
         """
@@ -152,7 +152,7 @@ class MultilayerPerceptrons(torch.nn.Module):
             if activation != "linear": 
                 mlp_blocks.append(ActivationFunction(activation))
             # Append batch normalization and dropout layers after each layer except output layer
-            if batch_normalization:
+            if batch_norm:
                 if i != len(activations)-1:
                     mlp_blocks.append(torch.nn.BatchNorm1d(output_layer))
             if i != len(activations)-1:

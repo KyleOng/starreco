@@ -9,7 +9,7 @@ class ONCF(Module):
     def __init__(self, features_dim, embed_dim, 
                  channel_size, kernel_size, strides,
                  convolution_activation, fc_activation,
-                 batch_normalization = True, criterion = F.mse_loss):
+                 batch_norm = True, criterion = F.mse_loss):
         super().__init__()
         self.criterion = criterion
 
@@ -27,7 +27,7 @@ class ONCF(Module):
             # Activation function
             convolution_blocks.append(ActivationFunction(convolution_activation))
             # Batch normalization
-            if batch_normalization:
+            if batch_norm:
               convolution_blocks.append(torch.nn.BatchNorm2d(output_channel_size))
         # Flatten
         convolution_blocks.append(torch.nn.Flatten())

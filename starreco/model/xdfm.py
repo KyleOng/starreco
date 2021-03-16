@@ -7,7 +7,7 @@ class XDFM(Module):
     def __init__(self, features_dim, embed_dim, 
                  output_layers, activations, dropouts, 
                  cross_layers, cross_split_half = True,
-                 batch_normalization = True, criterion = F.mse_loss):
+                 batch_norm = True, criterion = F.mse_loss):
         super().__init__()
         self.criterion = criterion
 
@@ -24,7 +24,7 @@ class XDFM(Module):
         # Multilayer Perceptrons
         output_layers.insert(0, len(features_dim) * embed_dim)
         self.mlp = MultilayerPerceptrons(output_layers, activations, dropouts,
-                                        batch_normalization)
+                                        batch_norm)
         
     def forward(self, x):
         # Generate embeddings

@@ -18,7 +18,8 @@ class FGCNN(Module):
                  output_layers, activations, dropouts,
                  multivalent_function = "sum", 
                  cnn_activation = "tanh", recbm_activation = "tanh", 
-                 batch_normalization = True, criterion = F.mse_loss):
+                 cnn_batch_norm = True, mlp_batch_norm = True, 
+                 criterion = F.mse_loss):
         super().__init__()
         self.criterion = criterion
         self.vis = vis
@@ -49,8 +50,10 @@ class FGCNN(Module):
             v_pad = int((v_pad - (v_pad - kernel_size + 1))/ 2)
             convolution = torch.nn.Conv2d(input_channel_size, output_channel_size, 
                                           (kernel_size, 1), padding = (v_pad, 0))
-            self.convolutions.append(torch.nn.Sequential(convolution, 
-                                                         ActivationFunction(cnn_activation)))
+            sequential_blocks = [convolution, ActivationFunction(cnn_activation)]
+            if cnn_batch_norm:
+                sequential_blocks.append(torch.nn.BatchNorm2d(output_channel_size))
+            self.convolutions.append(torch.nn.Sequential(*sequential_blocks))
             h = ((h + 2 * convolution.padding[0] - convolution.dilation[0]
                   * (convolution.kernel_size[0] - 1) - 1)/ convolution.stride[0])+1
             w = ((w + 2 * convolution.padding[1] - convolution.dilation[1]
@@ -85,7 +88,7 @@ class FGCNN(Module):
         # Multilayer perceptrons
         output_layers.insert(0, mlp_input_size)
         self.mlp = MultilayerPerceptrons(output_layers, activations, dropouts,
-                                         batch_normalization)
+                                         mlp_batch_norm)
 
     def forward(self, x):
         # Generate embeddings

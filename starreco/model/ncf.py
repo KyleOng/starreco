@@ -6,7 +6,7 @@ from starreco.model import FeaturesEmbedding, MultilayerPerceptrons, Module
 class NCF(Module):
     def __init__(self, features_dim, embed_dim,
                  output_layers, activations, dropouts,
-                 batch_normalization = True, criterion = F.mse_loss):
+                 batch_norm = True, criterion = F.mse_loss):
         super().__init__()
         self.criterion = criterion
 
@@ -16,7 +16,7 @@ class NCF(Module):
         # MLP layers
         output_layers.insert(0, embed_dim * 2)
         self.mlp = MultilayerPerceptrons(output_layers, activations, dropouts,
-                                         batch_normalization)
+                                         batch_norm)
 
     def forward(self, x):
         # Generate embeddings

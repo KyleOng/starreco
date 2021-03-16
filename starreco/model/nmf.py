@@ -7,7 +7,7 @@ class NMF(Module):
     def __init__(self, features_dim, embed_dim,
                  ncf_output_layers, ncf_activations, ncf_dropouts,
                  nmf_output_layers, nmf_activations, nmf_dropouts,
-                 ncf_batch_normalization = True, nmf_batch_normalization = True, 
+                 ncf_batch_norm = True, nmf_batch_norm = True, 
                  criterion = F.mse_loss):
         super().__init__()
         self.criterion = criterion
@@ -20,7 +20,7 @@ class NMF(Module):
         self.ncf_mlp = MultilayerPerceptrons(ncf_output_layers, 
                                              ncf_activations, 
                                              ncf_dropouts,
-                                             ncf_batch_normalization)
+                                             ncf_batch_norm)
 
         # NMF NML layers
         # Number of NMF's input nodes = number of NCF's output nodes + 1
@@ -28,7 +28,7 @@ class NMF(Module):
         self.nmf_mlp = MultilayerPerceptrons(nmf_output_layers, 
                                              nmf_activations, 
                                              nmf_dropouts,
-                                             nmf_batch_normalization)
+                                             nmf_batch_norm)
 
     def forward(self, x):
         # Generate embeddings

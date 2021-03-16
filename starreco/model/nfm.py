@@ -6,7 +6,7 @@ from starreco.model import FeaturesEmbedding, FeaturesLinear, PairwiseInteractio
 class NFM(Module):
     def __init__(self, features_dim, embed_dim, 
                  output_layers, activations, dropouts, 
-                 fm_dropout = 0, batch_normalization = True, criterion = F.mse_loss):
+                 fm_dropout = 0, batch_norm = True, criterion = F.mse_loss):
         super().__init__()
         self.criterion = criterion
 
@@ -26,7 +26,7 @@ class NFM(Module):
 
         # Multilayer Perceptrons
         self.mlp = MultilayerPerceptrons(output_layers, activations, dropouts,
-                                         batch_normalization)
+                                         batch_norm)
         
     def forward(self, x):
         # Generate embeddings
