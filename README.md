@@ -23,7 +23,8 @@ Current supported algorithms/models are:
 |Neural Matrix Factorization (NMF) <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/nmf.py)> <[paper](https://www.comp.nus.edu.sg/~xiangnan/papers/ncf.pdf)>|:heavy_check_mark:|:heavy_check_mark:|||
 |Neural Factorization Machine (NFM) * <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/nfm.py)> <[paper](https://arxiv.org/pdf/1708.05027&ie=utf-8&sc_us=6917339300733978278.pdf)>|:heavy_check_mark:|:heavy_check_mark:|||
 |Deep Factorization Machine (DeepFM) * <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/dfm.py)> <[paper](https://arxiv.org/pdf/1703.04247.pdf)>|:heavy_check_mark:|:heavy_check_mark:|||
-|Extreme Deep Factorization Machine (xDeepFM) * <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/xdfm.py)> <[paper](https://arxiv.org/pdf/1803.05170.pdf)>|:heavy_check_mark:|:heavy_check_mark:||:heavy_check_mark:|
+|Extreme Deep Factorization Machine (xDeepFM) * <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/xdfm.py)> <[paper](https://arxiv.org/pdf/1803.05170.pdf)>|:heavy_check_mark:|:heavy_check_mark:||:heavy_check_mark:|\
+|Feature Generation by Convolutional Neural Network (FGCNN) * <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/fgcnn.py)> <[paper](https://arxiv.org/pdf/1904.04447.pdf)>|:heavy_check_mark:|:heavy_check_mark:||:heavy_check_mark:|
 
 Datasets
 ---
