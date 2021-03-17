@@ -16,6 +16,8 @@ class MF(Module):
         :param features_dim (list): List of feature dimensions. 
 
         :param embed_dim (int): Embeddings dimensions. Default 8
+
+        :param criterion (F): Objective function. Default: F.mse_loss
         """
         super().__init__()
         self.criterion = criterion

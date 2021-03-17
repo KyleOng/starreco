@@ -60,7 +60,7 @@ class NCF(Module):
         """
         Perform operations.
 
-        :x (torch.tensor): Input tensors of shape (batch_size, num_features).
+        :x (torch.tensor): Input tensors of shape (batch_size, len(features_dim)).
 
         :return (torch.tensor): Output prediction tensors of shape (batch_size, 1)
         """

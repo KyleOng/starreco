@@ -19,6 +19,8 @@ class FM(Module):
         :param features_dim (list): List of feature dimensions. 
 
         :param embed_dim (int): Embeddings dimensions. Default 8
+
+        :param criterion (F): Objective function. Default: F.mse_loss
         """
         super().__init__()
         self.criterion = criterion
@@ -36,7 +38,7 @@ class FM(Module):
         """
         Perform operations.
 
-        :x (torch.tensor): Input tensors of shape (batch_size, num_features)
+        :x (torch.tensor): Input tensors of shape (batch_size, len(features_dim))
 
         :return (torch.tensor): Output prediction tensors of shape (batch_size, 1)
         """

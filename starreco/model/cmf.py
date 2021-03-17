@@ -15,18 +15,22 @@ class CMF(Module):
     Convolutional Matrix Factorization.
     """
     def __init__(self, user_features_dim:int, vocab_size:int, max_len:int,
-                 user_embed_dim:int = 200, 
+                 user_embed_dim:int = 50, 
                  word_embed_dim:int = 200, 
                  conv_filter_size:int = 100, 
                  conv_kernel_size:int = 3, 
                  conv_activation:str = "relu",
                  batch_norm:bool = True, 
                  fc_hidden_layers:list = [200], 
-                 fc_activation:Union[str, list] = "tanh", 
+                 fc_activations:Union[str, list] = "tanh", 
                  fc_dropouts:Union[float, list] = 0.2,
                  criterion:F = F.mse_loss):
         """
-        Explicit parameter settings.
+        Explicit parameter settings. 
+        
+        The number of convolution layers (+ pooling) is 1, as CNN is used to address the 
+        problem of  varying sentences length by taking the maximum (pooling) of the convoluted 
+        sentence embeddings.
 
         :param user_features_dim (int): Number of unique user features.
 
@@ -34,41 +38,43 @@ class CMF(Module):
 
         :param max_len (int): Maximum sentence length.
 
-        :user_embed_dim (int): User embeddings size. Default: 200
+        :param user_embed_dim (int): User embeddings size. Default: 200
 
-        :word_embed_dim (int): Word embeddings size. Default: 200
+        :param word_embed_dim (int): Word embeddings size. Default: 200
 
-        :conv_filter_size (int): Convolution filter/depth/channel size. Default: 100
+        :param conv_filter_size (int): Convolution filter/depth/channel size. Default: 100
 
-        :conv_kernel_size (int): Convolution kernel/window size. Default: 3
+        :param conv_kernel_size (int): Convolution kernel/window size. Default: 3
 
-        :conv_activation (str): Name of the activation function for convolution layer. 
+        :param conv_activation (str): Name of the activation function for convolution layer. 
         Default: relu.
 
-        :fc_hidden_layers (list): List of number of nodes of the hidden layers (located
-        between the input layer and output layer) for the fully connected layers. The 
-        number of node for the input and output layer will be automatically defined. 
-        Number of input nodes = conv_filter_size.
-        Number of output nodes = user_embed_dim.
+        :param fc_hidden_layers (list): List of number of nodes of the hidden layers (located
+        between the input layer and output layer) for the FC layers. The number of node for 
+        the input and output layer will be automatically defined. 
+        Number of input nodes = conv_filter_size. convolution
+        Number of output nodes = user_embed_dim
         Default: [200]
 
-        :fc_activation (str/list): List of activation function names for the fully connect
-        layers. If type int, then the activation function names will be repeated based on 
+        :param fc_activation (str/list): List of activation function names for the FC layers.
+        If type int, then the activation function names will be repeated based on 
         the number of fc_hidden_layers.
-        Number of activations = 2 + len(fc_hidden_layers) - 1.
-        Default: tanh
+        Number of activations = 2 + len(fc_hidden_layers) - 1
+        Default: tanh 
 
-        :fc_dropouts (float/list): List of dropouts for the fully connected layer. If type
+        :param fc_dropouts (float/list): List of dropouts for the FC layers. If type
         str, then the dropouts will be repeated based on the number of fc_hidden_layers.
-        Number of dropouts = 2 + len(fc_hidden_layers) - 2.
+        Number of dropouts = 2 + len(fc_hidden_layers) - 2
         Default: 0.2
 
-        :batch_normm (bool): Batch normalization on convolution and fully-connected layers.
-        If True, perform batch normalization after activation function for convolution and
-        fully connected layers. Default: True
+        :param batch_normm (bool): Batch normalization on CNN, placed after the last pooling layer
+        and before FC. Default: True
 
-        :criterion (F): Objective function. Default: F.mse_loss
+        :param criterion (F): Objective function. Default: F.mse_loss
         """
+        # Make a copy for mutable object to solve the problem of "Mutable Default Argument".
+        # For more info: https://stackoverflow.com/a/13518071/9837978
+        fc_hidden_layers = fc_hidden_layers.copy()
         super().__init__()
         self.criterion = criterion
 
@@ -78,7 +84,7 @@ class CMF(Module):
         # Word embedding layer   
         self.word_embedding = FeaturesEmbedding([vocab_size], word_embed_dim)  
 
-        # Convolutional neural network
+        # CNN
         cnn_blocks = []
         input_channel_size = 1
         output_channel_size = conv_filter_size
@@ -89,11 +95,12 @@ class CMF(Module):
         cnn_blocks.append(ActivationFunction(conv_activation))
         # Max pooling: to address the problem of varying sentence lengths
         cnn_blocks.append(torch.nn.MaxPool2d((max_len - conv_kernel_size + 1, 1)))
-        cnn_blocks.append(torch.nn.Flatten())
         # Batch normalization
         if batch_norm:
             cnn_blocks.append(torch.nn.BatchNorm2d(output_channel_size))
-        # Fully connected layer
+        # Flatten
+        cnn_blocks.append(torch.nn.Flatten())
+        # FC layer
         fc_hidden_layers.insert(0, conv_filter_size)
         fc_hidden_layers.append(user_embed_dim)
         if type(fc_activations) == str:
