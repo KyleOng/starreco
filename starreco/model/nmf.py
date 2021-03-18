@@ -1,34 +1,68 @@
+from typing import Union
+
+import numpy as np
 import torch
 import torch.nn.functional as F
 
-from starreco.model import FeaturesEmbedding, MultilayerPerceptrons, Module
+from starreco.model import (FeaturesEmbedding, 
+                            MultilayerPerceptrons, 
+                            Module)
 
 class NMF(Module):
-    def __init__(self, features_dim, embed_dim,
-                 ncf_output_layers, ncf_activations, ncf_dropouts,
-                 nmf_output_layers, nmf_activations, nmf_dropouts,
-                 ncf_batch_norm = True, nmf_batch_norm = True, 
-                 criterion = F.mse_loss):
-        super().__init__()
-        self.criterion = criterion
+    """
+    Neural Matrix Factorization
+    """
+    def __init__(self, features_dim, 
+                 embed_dim:int = 8,
+                 hidden_dims:list = [32, 16, 8], 
+                 activations:Union[str, list] = "relu", 
+                 dropouts:Union[float, list] = 0.5, 
+                 batch_norm:bool = True,
+                 lr:float = 1e-3,
+                 weight_decay:float = 1e-3,
+                 criterion:F  = F.mse_loss):
+        """
+        Hyperparamters setting.
+
+        :param features_dim (list): List of feature dimensions. 
+
+        :param embed_dim (int): Embeddings dimensions. Default: 8
+
+        :param hidden_dims (list): List of number of hidden nodes. Default: [32, 16, 18]
+
+        :param activations (str/list): List of activation functions. If type str, then the activation will be repeated len(hidden_dims) times in a list. Default: "relu"
+
+        :param dropouts (float/list): List of dropouts. If type float, then the dropout will be repeated len(hidden_dims) times in a list. Default: 0.5
+
+        :batch_norm (bool): If True, apply batch normalization on every hidden layer except the combination layer. Default: True
+
+        :param lr (float): Learning rate. Default: 1e-3
+
+        :param weight_decay (float): L2 regularization weight decap: Default: 1e-3
+
+        :param criterion (F): Objective function. Default: F.mse_loss
+        """
+
+        super().__init__(lr, weight_decay, criterion)
 
         # Embedding layer
         self.embedding = FeaturesEmbedding(features_dim, embed_dim)
 
-        # NCF MLP layers
-        ncf_output_layers.insert(0, embed_dim * 2)
-        self.ncf_mlp = MultilayerPerceptrons(ncf_output_layers, 
-                                             ncf_activations, 
-                                             ncf_dropouts,
-                                             ncf_batch_norm)
+        # Neural Collaborative Filtering
+        """if type(activations) == str: # Redundant, as this has been taken care in MultilayerPerceptrons()
+            activations = np.tile([activations], len(hidden_dims))
+        if type(dropouts) == float:
+            dropouts = np.tile([dropouts], len(hidden_dims))"""
+        # Number of nodes in the input layers = embed_dim * 2
+        self.ncf = MultilayerPerceptrons(embed_dim * 2, 
+                                         hidden_dims, 
+                                         activations, 
+                                         dropouts,
+                                         output_layer = None)
 
-        # NMF NML layers
-        # Number of NMF's input nodes = number of NCF's output nodes + 1
-        nmf_output_layers.insert(0, ncf_output_layers[-1] + 1)
-        self.nmf_mlp = MultilayerPerceptrons(nmf_output_layers, 
-                                             nmf_activations, 
-                                             nmf_dropouts,
-                                             nmf_batch_norm)
+        # Combine layer with 1 layer of Multilayer Perceptrons
+        self.nmf = MultilayerPerceptrons(hidden_dims[-1] + 1, 
+                                         output_layer = "relu")
 
     def forward(self, x):
         # Generate embeddings
@@ -48,10 +82,10 @@ class NMF(Module):
         # Concatenate embeddings 
         concat = torch.flatten(x, start_dim = 1)
         # NCF prediction
-        ncf = self.ncf_mlp(concat)
+        ncf = self.ncf(concat)
 
         # Neural Matrix Factorization
         # Concatenate result from MF and NCF
         combine = torch.cat((mf, ncf), 1)
-        # NMF prediction
-        return self.nmf_mlp(combine)
+        # Prediction
+        return self.nmf(combine)

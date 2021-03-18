@@ -3,11 +3,14 @@ import math
 import torch
 import torch.nn.functional as F
 
-from starreco.model import FeaturesEmbedding, ActivationFunction, MultilayerPerceptrons, Module
+from starreco.model import (FeaturesEmbedding, 
+                            ActivationFunction, 
+                            MultilayerPerceptrons, 
+                            Module)
 
 class CNNDCF(Module):
     """
-    ConvolutionalNeural Networks based Deep Collaborative Filtering model
+    ConvolutionalNeural Networks based Deep Collaborative Filtering model.
     """
     def __init__(self, features_dim:list, 
                  embed_dim:int = 32, #or 64
@@ -15,48 +18,46 @@ class CNNDCF(Module):
                  conv_kernel_size:int = 2, 
                  conv_activation:str = "relu", 
                  conv_stride:int = 2,
-                 fc_activation:str = "relu",
                  batch_norm:bool = True, 
+                 lr:float = 1e-3,
+                 weight_decay:float = 1e-3,
                  criterion:F = F.mse_loss):
         """
-        Explicit parameter settings. 
+        Hyperparameters setting.      
         
-        Similar to ONCF, the author specified that there is only 2 layers (input and output 
-        layers) in the FC layer, as 1 layer MLP in NCF has more parameters than several 
-        layers of convolution in ONCF, which makes it more stable and generalizable than MLP 
-        in NCF.
-
         :param features_dim (list): List of feature dimensions.
 
-        :param embed_dim (int): Embedding size. Default = 32 or 64
+        :param embed_dim (int): Embedding size. Default: 32 or 64
 
-        :param conv_filter_size (int): Convolution filter/depth/channel size. Default = 32
+        :param conv_filter_size (int): Convolution filter/depth/channel size. Default: 32 or 64
 
-        :param conv_kernel_size (int): Convolution kernel/window size. Default = 2
+        :param conv_kernel_size (int): Convolution kernel/window size. Default: 2
 
-        :param conv_activation (str): Name of the activation function for convolution layers
-        All convolution layer will use the same activation function. Default = 2
+        :param conv_activation (str): Convolution activation function. Default: "relu"
 
-        :param fc_activation (str): Activation function name for the FC layer. Default = relu
+        :param conv_stride (int): Convolution stride size. Default: 2
 
-        :param batch_norm (bool): Batch normalization on CNN, placed after the last pooling layer
-        and before FC. Default: True
+        :param batch_norm (bool): If True, apply batch normalization on every hidden layer. Default: True
 
-        :param criterin (F): Objective function. Default = F.mse_lose
+        :param lr (float): Learning rate. Default: 1e-3
+
+        :param weight_decay (float): L2 regularization weight decap: Default: 1e-3
+
+        :param criterion (F): Objective function. Default: F.mse_loss
         """
-        super().__init__()
-        self.criterion = criterion
+        super().__init__(lr, weight_decay, criterion)
 
         # Embedding layer
         self.embedding = FeaturesEmbedding(features_dim, embed_dim)
 
         # 1 fully connected layer before residual connection
-        self.fc_rc = MultilayerPerceptrons([embed_dim ** 2, embed_dim ** 2], 
-                                          [fc_activation], 
-                                          [])
+        self.fc_rc = MultilayerPerceptrons(embed_dim ** 2,
+                                           [embed_dim ** 2],
+                                           output_layer = None)
 
         # Convolution neural network
         cnn_blocks = [torch.nn.LayerNorm(embed_dim)]
+        # The number of convolution = math.ceil(math.log(embed_dim, conv_kernel_size))
         for i in range(math.ceil(math.log(embed_dim, conv_kernel_size))):
             input_channel_size = conv_filter_size if i else 1
             output_channel_size = conv_filter_size
@@ -64,16 +65,20 @@ class CNNDCF(Module):
             cnn_blocks.append(torch.nn.Conv2d(input_channel_size, 
                                               output_channel_size, 
                                               conv_kernel_size, 
-                                              stride = 2))
+                                              stride = conv_stride))
+            # Batch normalization
+            if batch_norm:
+                cnn_blocks.append(torch.nn.BatchNorm2d(output_channel_size))
             # Activation function
             cnn_blocks.append(ActivationFunction(conv_activation))
-        # Batch normalization
-        if batch_norm:
-            cnn_blocks.append(torch.nn.BatchNorm2d(output_channel_size))
         # Flatten
         cnn_blocks.append(torch.nn.Flatten())
         # 1 fully connected layer
-        fc = MultilayerPerceptrons([conv_filter_size,1], [fc_activation], [])
+        """
+        Similar to ONCF, the author specified that there are only 2 layers (input and output layers) in the FC layer, as 1 layer MLP in NCF has more parameters than several layers of convolution in ONCF, which makes it more stable and generalizable than MLP in NCF.
+        """
+        fc = MultilayerPerceptrons(conv_filter_size,
+                                   output_layer = "relu")
         cnn_blocks.append(fc)
         self.cnn = torch.nn.Sequential(*cnn_blocks)
 

@@ -12,18 +12,23 @@ class FM(Module):
     """
     def __init__(self, features_dim:list, 
                  embed_dim:int = 8, 
+                 lr:float = 1e-3,
+                 weight_decay:float = 1e-3,
                  criterion:F = F.mse_loss):
         """
-        Explicit parameter settings.
+        Hyperparameters setting.
 
         :param features_dim (list): List of feature dimensions. 
 
-        :param embed_dim (int): Embeddings dimensions. Default 8
+        :param embed_dim (int): Embeddings dimensions. Default: 8
+
+        :param lr (float): Learning rate. Default: 1e-3
+
+        :param weight_decay (float): L2 regularization weight decap: Default: 1e-3
 
         :param criterion (F): Objective function. Default: F.mse_loss
         """
-        super().__init__()
-        self.criterion = criterion
+        super().__init__(lr, weight_decay, criterion)
 
         # Embedding layer
         self.embedding = FeaturesEmbedding(features_dim, embed_dim)

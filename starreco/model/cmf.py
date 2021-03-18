@@ -20,17 +20,15 @@ class CMF(Module):
                  conv_filter_size:int = 100, 
                  conv_kernel_size:int = 3, 
                  conv_activation:str = "relu",
-                 batch_norm:bool = True, 
-                 fc_hidden_layers:list = [200], 
+                 fc_hidden_dims:list = [200], 
                  fc_activations:Union[str, list] = "tanh", 
                  fc_dropouts:Union[float, list] = 0.2,
+                 batch_norm:bool = True, 
+                 lr:float = 1e-3,
+                 weight_decay:float = 1e-3,
                  criterion:F = F.mse_loss):
         """
-        Explicit parameter settings. 
-        
-        The number of convolution layers (+ pooling) is 1, as CNN is used to address the 
-        problem of  varying sentences length by taking the maximum (pooling) of the convoluted 
-        sentence embeddings.
+        Hyperparameters setting. 
 
         :param user_features_dim (int): Number of unique user features.
 
@@ -46,37 +44,26 @@ class CMF(Module):
 
         :param conv_kernel_size (int): Convolution kernel/window size. Default: 3
 
-        :param conv_activation (str): Name of the activation function for convolution layer. 
-        Default: relu.
+        :param conv_activation (str): Convolution activation function. Default: "relu".
 
-        :param fc_hidden_layers (list): List of number of nodes of the hidden layers (located
-        between the input layer and output layer) for the FC layers. The number of node for 
-        the input and output layer will be automatically defined. 
-        Number of input nodes = conv_filter_size. convolution
-        Number of output nodes = user_embed_dim
-        Default: [200]
+        :param fc_hidden_dims (list): List of number of hidden nodes. Default: [200]
 
-        :param fc_activation (str/list): List of activation function names for the FC layers.
-        If type int, then the activation function names will be repeated based on 
-        the number of fc_hidden_layers.
-        Number of activations = 2 + len(fc_hidden_layers) - 1
-        Default: tanh 
+        :param fc_activations (str/list): List of activation functions. If type str, then the activation will be repeated len(fc_hidden_dims) times in a list. Default: "tanh" 
 
-        :param fc_dropouts (float/list): List of dropouts for the FC layers. If type
-        str, then the dropouts will be repeated based on the number of fc_hidden_layers.
-        Number of dropouts = 2 + len(fc_hidden_layers) - 2
-        Default: 0.2
+        :param fc_dropouts (float/list): List of dropouts. If type float, then the dropout will be repeated len(fc_hidden_dims) times in a list. Default: 0.2
 
-        :param batch_normm (bool): Batch normalization on CNN, placed after the last pooling layer
-        and before FC. Default: True
+        :param batch_norm (bool): If True, apply batch normalization on every hidden layer. Default: True
+
+        :param lr (float): Learning rate. Default: 1e-3
+
+        :param weight_decay (float): L2 regularization weight decap: Default: 1e-3
 
         :param criterion (F): Objective function. Default: F.mse_loss
         """
         # Make a copy for mutable object to solve the problem of "Mutable Default Argument".
         # For more info: https://stackoverflow.com/a/13518071/9837978
-        fc_hidden_layers = fc_hidden_layers.copy()
-        super().__init__()
-        self.criterion = criterion
+        fc_hidden_dims = fc_hidden_dims.copy()
+        super().__init__(lr, weight_decay, criterion)
 
         # Embedding layer
         self.user_embedding = FeaturesEmbedding([user_features_dim], user_embed_dim)  
@@ -89,25 +76,34 @@ class CMF(Module):
         input_channel_size = 1
         output_channel_size = conv_filter_size
         # Convolution layer
+        """
+        The number of convolution layers (+ pooling) is 1, as CNN is used to address the 
+        problem of  varying sentences length by taking the maximum (pooling) of the convoluted 
+        sentence embeddings.
+        """
         cnn_blocks.append(torch.nn.Conv2d(input_channel_size, output_channel_size, 
                                           (conv_kernel_size, word_embed_dim)))
+        # Batch normalization
+        if batch_norm:
+            cnn_blocks.append(torch.nn.BatchNorm2d(output_channel_size))
         # Activation function
         cnn_blocks.append(ActivationFunction(conv_activation))
         # Max pooling: to address the problem of varying sentence lengths
         cnn_blocks.append(torch.nn.MaxPool2d((max_len - conv_kernel_size + 1, 1)))
-        # Batch normalization
-        if batch_norm:
-            cnn_blocks.append(torch.nn.BatchNorm2d(output_channel_size))
         # Flatten
         cnn_blocks.append(torch.nn.Flatten())
         # FC layer
-        fc_hidden_layers.insert(0, conv_filter_size)
-        fc_hidden_layers.append(user_embed_dim)
-        if type(fc_activations) == str:
-            fc_activations = np.tile([fc_activations], len(fc_hidden_layers) - 1)
+        fc_hidden_dims.append(user_embed_dim)
+        """if type(fc_activations) == str: # Redundant, as this has been taken care in MultilayerPerceptrons()
+            fc_activations = np.tile([fc_activations], len(fc_hidden_dims))
         if type(fc_dropouts) == float:
-            fc_dropouts = np.tile([fc_dropouts], len(fc_hidden_layers) -2)
-        fc = MultilayerPerceptrons(fc_hidden_layers, fc_activations, fc_dropouts)
+            fc_dropouts = np.tile([fc_dropouts], len(fc_hidden_dims))"""
+        fc = MultilayerPerceptrons(conv_filter_size, 
+                                   fc_hidden_dims, 
+                                   fc_activations, 
+                                   fc_dropouts,
+                                   None, 
+                                   batch_norm)
         cnn_blocks.append(fc)
         self.cnn = torch.nn.Sequential(*cnn_blocks)
 

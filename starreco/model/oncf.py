@@ -6,37 +6,82 @@ import torch.nn.functional as F
 from starreco.model import FeaturesEmbedding, ActivationFunction, MultilayerPerceptrons, Module
 
 class ONCF(Module):
-    def __init__(self, features_dim, embed_dim, 
-                 channel_size, kernel_size, strides,
-                 convolution_activation, fc_activation,
-                 batch_norm = True, criterion = F.mse_loss):
-        super().__init__()
-        self.criterion = criterion
+    """
+    Outer Product-based Neural Collaborative Filtering
+    """
+    def __init__(self, features_dim:list, 
+                 embed_dim:int = 32, #or 64
+                 conv_filter_size:int = 32, #or 64
+                 conv_kernel_size:int = 2, 
+                 conv_activation:str = "relu", 
+                 conv_stride:int = 2,
+                 batch_norm:bool = True, 
+                 lr:float = 1e-3,
+                 weight_decay:float = 1e-3,
+                 criterion:F = F.mse_loss):
+        """
+        Hyperparameters setting.      
+        
+        :param features_dim (list): List of feature dimensions.
+
+        :param embed_dim (int): Embedding size. Default: 32 or 64
+
+        :param conv_filter_size (int): Convolution filter/depth/channel size. Default: 32 or 64
+
+        :param conv_kernel_size (int): Convolution kernel/window size. Default: 2
+
+        :param conv_activation (str): Convolution activation function. Default: "relu"
+
+        :param conv_stride (int): Convolution stride size. Default: 2
+
+        :param batch_norm (bool): If True, apply batch normalization on every hidden layer. Default: True
+
+        :param lr (float): Learning rate. Default: 1e-3
+
+        :param weight_decay (float): L2 regularization weight decap: Default: 1e-3
+
+        :param criterion (F): Objective function. Default: F.mse_loss
+        """
+        super().__init__(lr, weight_decay, criterion)
 
         # Embedding layer
         self.embedding = FeaturesEmbedding(features_dim, embed_dim)
 
-        # Convolution layers
-        convolution_blocks = []
-        for i in range(math.ceil(math.log(embed_dim, kernel_size))):
-            input_channel_size = channel_size if i else 1
-            output_channel_size = channel_size
+        # Convolution neural network
+        cnn_blocks = [torch.nn.LayerNorm(embed_dim)]
+        # The number of convolution = math.ceil(math.log(embed_dim, conv_kernel_size))
+        for i in range(math.ceil(math.log(embed_dim, conv_kernel_size))):
+            input_channel_size = conv_filter_size if i else 1
+            output_channel_size = conv_filter_size
             # Convolution 
-            convolution_blocks.append(torch.nn.Conv2d(input_channel_size, output_channel_size, 
-                                        kernel_size, stride = 2))
-            # Activation function
-            convolution_blocks.append(ActivationFunction(convolution_activation))
+            cnn_blocks.append(torch.nn.Conv2d(input_channel_size, 
+                                              output_channel_size, 
+                                              conv_kernel_size, 
+                                              stride = conv_stride))
             # Batch normalization
             if batch_norm:
-              convolution_blocks.append(torch.nn.BatchNorm2d(output_channel_size))
+                cnn_blocks.append(torch.nn.BatchNorm2d(output_channel_size))
+            # Activation function
+            cnn_blocks.append(ActivationFunction(conv_activation))
         # Flatten
-        convolution_blocks.append(torch.nn.Flatten())
-        self.convolution = torch.nn.Sequential(*convolution_blocks)
-
-        # Fully connected layer (strictly one layer)
-        self.fc = MultilayerPerceptrons([channel_size,1], [fc_activation], [])
+        cnn_blocks.append(torch.nn.Flatten())
+        # 1 fully connected layer
+        """
+        The author specified that there are only 2 layers (input and output layers) in the FC layer, as 1 layer MLP in NCF has more parameters than several layers of convolution in ONCF, which makes it more stable and generalizable than MLP in NCF.
+        """
+        fc = MultilayerPerceptrons(conv_filter_size,
+                                   output_layer = "relu")
+        cnn_blocks.append(fc)
+        self.cnn = torch.nn.Sequential(*cnn_blocks)
         
     def forward(self, x):
+        """
+        Perform operations.
+
+        :x (torch.tensor): Input tensors of shape (batch_size, 2)
+
+        :return (torch.tensor): Output prediction tensors of shape (batch_size, 1)
+        """
         # Generate embeddings
         x = self.embedding(x)
         user_embedding = x[:, 0]
@@ -47,7 +92,6 @@ class ONCF(Module):
 
         # Convolution on outer products
         outer_product = torch.unsqueeze(outer_product, 1)
-        feature_map = self.convolution(outer_product)
 
         # Prediction
-        return self.fc(feature_map)
+        return self.cnn(outer_product)
