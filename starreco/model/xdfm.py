@@ -4,7 +4,11 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from starreco.model import FeaturesEmbedding, FeaturesLinear, MultilayerPerceptrons, CompressedInteraction, Module
+from starreco.model import (FeaturesEmbedding, 
+                            FeaturesLinear, 
+                            MultilayerPerceptrons, 
+                            CompressedInteraction, 
+                            Module)
 
 class XDFM(Module):
     """

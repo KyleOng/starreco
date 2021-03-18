@@ -1,7 +1,8 @@
 import torch
 import torch.nn.functional as F
 
-from starreco.model import FeaturesEmbedding, Module
+from starreco.model import (FeaturesEmbedding, 
+                            Module)
 
 class MF(Module):
     """

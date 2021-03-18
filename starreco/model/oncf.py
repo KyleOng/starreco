@@ -3,7 +3,10 @@ import math
 import torch
 import torch.nn.functional as F
 
-from starreco.model import FeaturesEmbedding, ActivationFunction, MultilayerPerceptrons, Module
+from starreco.model import (FeaturesEmbedding, 
+                            ActivationFunction, 
+                            MultilayerPerceptrons, 
+                            Module)
 
 class ONCF(Module):
     """

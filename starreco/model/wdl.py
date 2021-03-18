@@ -3,7 +3,10 @@ from typing import Union
 import torch
 import torch.nn.functional as F
 
-from starreco.model import FeaturesEmbedding, FeaturesLinear, MultilayerPerceptrons, Module
+from starreco.model import (FeaturesEmbedding, 
+                            FeaturesLinear, 
+                            MultilayerPerceptrons, 
+                            Module)
 
 class WDL(Module):
     """
