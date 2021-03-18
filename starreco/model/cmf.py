@@ -73,19 +73,17 @@ class CMF(Module):
 
         # CNN
         cnn_blocks = []
-        input_channel_size = 1
-        output_channel_size = conv_filter_size
         # Convolution layer
         """
         The number of convolution layers (+ pooling) is 1, as CNN is used to address the 
         problem of  varying sentences length by taking the maximum (pooling) of the convoluted 
         sentence embeddings.
         """
-        cnn_blocks.append(torch.nn.Conv2d(input_channel_size, output_channel_size, 
+        cnn_blocks.append(torch.nn.Conv2d(1, conv_filter_size, 
                                           (conv_kernel_size, word_embed_dim)))
         # Batch normalization
         if batch_norm:
-            cnn_blocks.append(torch.nn.BatchNorm2d(output_channel_size))
+            cnn_blocks.append(torch.nn.BatchNorm2d(conv_filter_size))
         # Activation function
         cnn_blocks.append(ActivationFunction(conv_activation))
         # Max pooling: to address the problem of varying sentence lengths
