@@ -25,7 +25,7 @@ class FGCNN(Module):
                  conv_activations:str = "tanh", 
                  recbm_filter_size:int = 3,  
                  recbm_activations:str = "tanh",
-                 nn_hidden_dims:list = [2048, 1024, 512, 256, 128, 1], 
+                 nn_hidden_dims:list = [2048, 1024, 512, 256, 128], 
                  nn_activations:list = "relu", 
                  nn_dropouts:list = 0.5, 
                  batch_norm:bool = True, 
