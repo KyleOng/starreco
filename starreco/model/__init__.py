@@ -15,5 +15,5 @@ from starreco.model.dfm import DFM
 from starreco.model.xdfm import XDFM
 from starreco.model.fgcnn import FGCNN
 from starreco.model.cmf import CMF
-from starreco.model.dar import DAR
+from starreco.model.dar import DAR, HDAR
 from starreco.model.ar import AR

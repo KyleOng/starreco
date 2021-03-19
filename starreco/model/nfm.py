@@ -14,7 +14,7 @@ class NFM(Module):
     """
     Neural Factorization Machine
     """
-    def __init__(self, features_dim:list, 
+    def __init__(self, feature_dims:list, 
                  embed_dim:int = 64, 
                  hidden_dims:list = [1024, 512, 256], 
                  activations:Union[str, list]  = "relu", 
@@ -22,11 +22,11 @@ class NFM(Module):
                  batch_norm:bool = True, 
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
-                 criterion:F  = F.mse_loss):
+                 criterion:F = F.mse_loss):
         """
         Hyperparameters setting.
 
-        :param features_dim (list): List of feature dimensions. 
+        :param feature_dims (list): List of feature dimensions. 
 
         :param embed_dim (int): Embeddings dimensions. Default: 8
 
@@ -47,10 +47,10 @@ class NFM(Module):
         super().__init__(lr, weight_decay, criterion)
 
         # Embedding layer
-        self.embedding = FeaturesEmbedding(features_dim, embed_dim)
+        self.embedding = FeaturesEmbedding(feature_dims, embed_dim)
 
         # Linear layer
-        self.linear = FeaturesLinear(features_dim)
+        self.linear = FeaturesLinear(feature_dims)
 
         # Bi-interaction layer
         if type(dropouts) == float or type(dropouts) == int:

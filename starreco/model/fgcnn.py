@@ -16,7 +16,7 @@ class FGCNN(Module):
     """
     Feature Generation Convolutional Neurak Network
     """
-    def __init__(self, features_dim:list, multivalent_fields:list, 
+    def __init__(self, feature_dims:list, multivalent_fields:list, 
                  multivalent_function:str = "sum", 
                  embed_dim:int = 40, 
                  conv_filter_sizes:list = [6, 8, 10, 12], 
@@ -35,9 +35,9 @@ class FGCNN(Module):
         """
         Hyperparameters setting.      
         
-        :param features_dim (list): List of feature dimensions.
+        :param feature_dims (list): List of feature dimensions.
 
-        :param multivalent_fields (list): List of multivalent fields range, where 1 = univalent and >1 = multivalent, maps to features_dim and later combine using the multivalent_function. The sum(multivalent_field) = len(feature_sdim) 
+        :param multivalent_fields (list): List of multivalent fields range, where 1 = univalent and >1 = multivalent, maps to feature_dims and later combine using the multivalent_function. The sum(multivalent_field) = len(feature_sdim) 
 
         :param multivalent_function (str): Function which to combine multivalent fields. Option: ["sum", "avg"]. Default: "sum"
 
@@ -73,7 +73,7 @@ class FGCNN(Module):
         self.multivalent_fields = multivalent_fields
 
         # Embedding layer
-        self.embedding = FeaturesEmbedding(features_dim, embed_dim)
+        self.embedding = FeaturesEmbedding(feature_dims, embed_dim)
 
         # Choose multivalent function operation function
         if multivalent_function == "sum":
@@ -145,7 +145,7 @@ class FGCNN(Module):
         """
         Perform operations.
 
-        :x (torch.tensor): Input tensors of shape (batch_size, len(features_dim)).
+        :x (torch.tensor): Input tensors of shape (batch_size, len(feature_dims)).
 
         :return (torch.tensor): Output prediction tensors of shape (batch_size, 1)
         """

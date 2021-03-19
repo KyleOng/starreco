@@ -8,7 +8,7 @@ class MF(Module):
     """
     Matrix Factorization
     """
-    def __init__(self, features_dim:list, 
+    def __init__(self, feature_dims:list, 
                  embed_dim:int = 8, 
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
@@ -16,7 +16,7 @@ class MF(Module):
         """
         Hyperparameters setting.
 
-        :param features_dim (list): List of feature dimensions. 
+        :param feature_dims (list): List of feature dimensions. 
 
         :param embed_dim (int): Embeddings dimensions. Default: 8
 
@@ -29,7 +29,7 @@ class MF(Module):
         super().__init__(lr, weight_decay, criterion)
 
         # Embedding layer
-        self.embedding = FeaturesEmbedding(features_dim, embed_dim)
+        self.embedding = FeaturesEmbedding(feature_dims, embed_dim)
 
     def forward(self, x):
         """

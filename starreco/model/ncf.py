@@ -12,7 +12,7 @@ class NCF(Module):
     """
     Neural Collaborative Filtering
     """
-    def __init__(self, features_dim:list, 
+    def __init__(self, feature_dims:list, 
                  embed_dim:int = 8,
                  hidden_dims:list = [32, 16, 8], 
                  activations:Union[str, list] = "relu", 
@@ -24,7 +24,7 @@ class NCF(Module):
         """
         Hyperparamters setting.
 
-        :param features_dim (list): List of feature dimensions. 
+        :param feature_dims (list): List of feature dimensions. 
 
         :param embed_dim (int): Embeddings dimensions. Default: 8
 
@@ -45,7 +45,7 @@ class NCF(Module):
         super().__init__(lr, weight_decay, criterion)
 
         # Embedding layer
-        self.embedding = FeaturesEmbedding(features_dim, embed_dim)
+        self.embedding = FeaturesEmbedding(feature_dims, embed_dim)
 
         # Multilayer perceptrons
         """if type(activations) == str: # Redundant, as this has been taken care in MultilayerPerceptrons()
@@ -63,7 +63,7 @@ class NCF(Module):
         """
         Perform operations.
 
-        :x (torch.tensor): Input tensors of shape (batch_size, len(features_dim)).
+        :x (torch.tensor): Input tensors of shape (batch_size, len(feature_dims)).
 
         :return (torch.tensor): Output prediction tensors of shape (batch_size, 1)
         """

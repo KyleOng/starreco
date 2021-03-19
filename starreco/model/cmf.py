@@ -14,7 +14,7 @@ class CMF(Module):
     """
     Convolutional Matrix Factorization.
     """
-    def __init__(self, user_features_dim:int, vocab_size:int, max_len:int,
+    def __init__(self, users_dim:int, vocab_size:int, max_len:int,
                  user_embed_dim:int = 50, 
                  word_embed_dim:int = 200, 
                  conv_filter_size:int = 100, 
@@ -30,7 +30,7 @@ class CMF(Module):
         """
         Hyperparameters setting. 
 
-        :param user_features_dim (int): Number of unique user features.
+        :param users_dim (int): Number of unique user features.
 
         :param vocal_size (int): Vocabulary size.
 
@@ -63,7 +63,7 @@ class CMF(Module):
         super().__init__(lr, weight_decay, criterion)
 
         # Embedding layer
-        self.user_embedding = FeaturesEmbedding([user_features_dim], user_embed_dim)  
+        self.user_embedding = FeaturesEmbedding([users_dim], user_embed_dim)  
 
         # Word embedding layer   
         self.word_embedding = FeaturesEmbedding([vocab_size], word_embed_dim)  

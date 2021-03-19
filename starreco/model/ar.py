@@ -15,7 +15,7 @@ class AR(DAR):
                  dense_refeeding = 1,
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
-                 criterion:F  = F.mse_loss):
+                 criterion:F = F.mse_loss):
         """
         Hyperparameters setting.
 

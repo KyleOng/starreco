@@ -12,7 +12,7 @@ class WDL(Module):
     """
     Wide & Deep Learning
     """
-    def __init__(self, features_dim:list, 
+    def __init__(self, feature_dims:list, 
                  embed_dim:int = 32, 
                  hidden_dims:list = [400,400,400], 
                  activations:Union[str, list] = "relu", 
@@ -20,11 +20,11 @@ class WDL(Module):
                  batch_norm:bool = True,
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
-                 criterion:F  = F.mse_loss):
+                 criterion:F = F.mse_loss):
         """
         Hyperparameters setting.
 
-        :param features_dim (list): List of feature dimensions.
+        :param feature_dims (list): List of feature dimensions.
 
         :param embed_dim (int): Embedding size. Default 10
 
@@ -45,13 +45,13 @@ class WDL(Module):
         super().__init__(lr, weight_decay, criterion)
 
         # Embedding layer
-        self.embedding = FeaturesEmbedding(features_dim, embed_dim)
+        self.embedding = FeaturesEmbedding(feature_dims, embed_dim)
 
         # Linear layer 
-        self.linear = FeaturesLinear(features_dim)
+        self.linear = FeaturesLinear(feature_dims)
 
         # Multilayer Perceptrons
-        self.mlp = MultilayerPerceptrons(len(features_dim) * embed_dim,
+        self.mlp = MultilayerPerceptrons(len(feature_dims) * embed_dim,
                                          hidden_dims, 
                                          activations, 
                                          dropouts,

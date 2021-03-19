@@ -12,7 +12,7 @@ class NMF(Module):
     """
     Neural Matrix Factorization
     """
-    def __init__(self, features_dim, 
+    def __init__(self, feature_dims, 
                  embed_dim:int = 8,
                  hidden_dims:list = [32, 16, 8], 
                  activations:Union[str, list] = "relu", 
@@ -20,11 +20,11 @@ class NMF(Module):
                  batch_norm:bool = True,
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
-                 criterion:F  = F.mse_loss):
+                 criterion:F = F.mse_loss):
         """
         Hyperparamters setting.
 
-        :param features_dim (list): List of feature dimensions. 
+        :param feature_dims (list): List of feature dimensions. 
 
         :param embed_dim (int): Embeddings dimensions. Default: 8
 
@@ -46,7 +46,7 @@ class NMF(Module):
         super().__init__(lr, weight_decay, criterion)
 
         # Embedding layer
-        self.embedding = FeaturesEmbedding(features_dim, embed_dim)
+        self.embedding = FeaturesEmbedding(feature_dims, embed_dim)
 
         # Neural Collaborative Filtering
         """if type(activations) == str: # Redundant, as this has been taken care in MultilayerPerceptrons()

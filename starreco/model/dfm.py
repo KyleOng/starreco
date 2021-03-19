@@ -14,7 +14,7 @@ class DFM(Module):
     """
     Deep Factorization Machine.
     """
-    def __init__(self, features_dim:list, 
+    def __init__(self, feature_dims:list, 
                  embed_dim:int = 10, 
                  hidden_dims:list = [400,400,400], 
                  activations:Union[str, list] = "relu", 
@@ -26,7 +26,7 @@ class DFM(Module):
         """
         Hyperparameters setting.
 
-        :param features_dim (list): List of feature dimensions.
+        :param feature_dims (list): List of feature dimensions.
 
         :param embed_dim (int): Embedding size. Default 10
 
@@ -47,10 +47,10 @@ class DFM(Module):
         super().__init__(lr, weight_decay, criterion)
 
         # Embedding layer
-        self.embedding = FeaturesEmbedding(features_dim, embed_dim)
+        self.embedding = FeaturesEmbedding(feature_dims, embed_dim)
 
         # Linear layer 
-        self.linear = FeaturesLinear(features_dim)
+        self.linear = FeaturesLinear(feature_dims)
 
         # Pairwise interaction
         self.pwin = PairwiseInteraction()
@@ -60,7 +60,7 @@ class DFM(Module):
             activations = np.tile([activations], len(hidden_dims))
         if type(dropouts) == float or type(dropouts) == int:
             dropouts = np.tile([dropouts], len(hidden_dims))"""
-        self.mlp = MultilayerPerceptrons(len(features_dim) * embed_dim,
+        self.mlp = MultilayerPerceptrons(len(feature_dims) * embed_dim,
                                          hidden_dims, 
                                          activations, 
                                          dropouts,
@@ -71,7 +71,7 @@ class DFM(Module):
         """
         Perform operations.
 
-        :x (torch.tensor): Input tensors of shape (batch_size, len(features_dim))
+        :x (torch.tensor): Input tensors of shape (batch_size, len(feature_dims))
 
         :return (torch.tensor): Output prediction tensors of shape (batch_size, 1)
         """
