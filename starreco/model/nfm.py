@@ -53,7 +53,7 @@ class NFM(Module):
         self.linear = FeaturesLinear(features_dim)
 
         # Bi-interaction layer
-        if type(dropouts) == float:
+        if type(dropouts) == float or type(dropouts) == int:
             dropouts = np.tile([dropouts], len(hidden_dims) + 1)
         self.bi = torch.nn.Sequential(
             PairwiseInteraction(reduce_sum = False),

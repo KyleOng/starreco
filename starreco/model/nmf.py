@@ -51,7 +51,7 @@ class NMF(Module):
         # Neural Collaborative Filtering
         """if type(activations) == str: # Redundant, as this has been taken care in MultilayerPerceptrons()
             activations = np.tile([activations], len(hidden_dims))
-        if type(dropouts) == float:
+        if type(dropouts) == float or type(dropouts) == int:
             dropouts = np.tile([dropouts], len(hidden_dims))"""
         # Number of nodes in the input layers = embed_dim * 2
         self.ncf = MultilayerPerceptrons(embed_dim * 2, 

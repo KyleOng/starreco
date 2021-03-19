@@ -60,9 +60,6 @@ class CMF(Module):
 
         :param criterion (F): Objective function. Default: F.mse_loss
         """
-        # Make a copy for mutable object to solve the problem of "Mutable Default Argument".
-        # For more info: https://stackoverflow.com/a/13518071/9837978
-        fc_hidden_dims = fc_hidden_dims.copy()
         super().__init__(lr, weight_decay, criterion)
 
         # Embedding layer
@@ -91,13 +88,12 @@ class CMF(Module):
         # Flatten
         cnn_blocks.append(torch.nn.Flatten())
         # FC layer
-        fc_hidden_dims.append(user_embed_dim)
         """if type(fc_activations) == str: # Redundant, as this has been taken care in MultilayerPerceptrons()
             fc_activations = np.tile([fc_activations], len(fc_hidden_dims))
         if type(fc_dropouts) == float:
             fc_dropouts = np.tile([fc_dropouts], len(fc_hidden_dims))"""
         fc = MultilayerPerceptrons(conv_filter_size, 
-                                   fc_hidden_dims, 
+                                   [*fc_hidden_dims, user_embed_dim], 
                                    fc_activations, 
                                    fc_dropouts,
                                    None, 
