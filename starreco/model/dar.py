@@ -13,11 +13,9 @@ class DAR(Module):
     def __init__(self, io_dim: int,
                  hidden_dims:list = [512, 256, 128], 
                  e_activations:Union[str, list] = "relu", 
-                 e_dropouts:Union[float, list] = 0,
                  d_activations:Union[str, list] = "relu", 
-                 d_dropouts:Union[float, list] = 0,
-                 latent_dropout: int = 0.5,
-                 dense_refeeding = 1,
+                 dropout:float = 0.5,
+                 dense_refeeding:int = 1,
                  batch_norm:bool = True,
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
@@ -27,13 +25,17 @@ class DAR(Module):
 
         :param io_dim (int): Input/Output dimension.
 
-        :param hidden_dims (list): List of number of hidden nodes for encoder and decoder (in reverse). For example, hidden_dims [200, 100, 50] = encoder [200, 100, 50], decoder [50, 100, 200]. Default: [400, 400, 400]
+        :param hidden_dims (list): List of number of hidden nodes for encoder and decoder (in reverse). For example, hidden_dims [200, 100, 50] = encoder [io_dim, 200, 100, 50], decoder [50, 100, 200, io_dim]. Default: [512, 256, 128]
 
-        :param activations (str/list): List of activation functions. If type str, then the activation will be repeated len(hidden_dims) times in a list. Default: "relu"
+        :param e_activations (str/list): List of activation functions for encoder layer. If type str, then the activation will be repeated len(hidden_dims) times in a list. Default: "relu"
 
-        :param dropouts (float/list): List of dropouts. If type float, then the dropout will be repeated len(hidden_dims) times in a list. Default: 0.5
+        :param d_activations (str/list): List of activation functions for decoder layer. If type str, then the activation will be repeated len(hidden_dims) times in a list. Default: "relu"
 
-        :batch_norm (bool): If True, apply batch normalization on every hidden layer. Default: True
+        :param dropout (float): Dropout within latent space. Default: 0.5
+
+        :param dense_refeeding (int): Number of dense refeeding: Default: 1
+
+        :param batch_norm (bool): If True, apply batch normalization on every hidden layer. Default: True
 
         :param lr (float): Learning rate. Default: 1e-3
 
@@ -48,18 +50,18 @@ class DAR(Module):
         self.encoder = MultilayerPerceptrons(io_dim,
                                              hidden_dims, 
                                              e_activations, 
-                                             e_dropouts,
+                                             0,
                                              None,
                                              batch_norm)
 
         # Dropout layer in latent space
-        self.dropout = torch.nn.Dropout(latent_dropout)
+        self.dropout = torch.nn.Dropout(dropout)
 
         # Decoder layer 
         self.decoder = MultilayerPerceptrons(hidden_dims[-1],
                                              [*hidden_dims[:-1][::-1], io_dim], 
                                              d_activations, 
-                                             d_dropouts,
+                                             0,
                                              None,
                                              batch_norm)
                                             

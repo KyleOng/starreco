@@ -36,7 +36,7 @@ class DFM(Module):
 
         :param dropouts (float/list): List of dropouts. If type float, then the dropout will be repeated len(hidden_dims) times in a list. Default: 0.5
 
-        :batch_norm (bool): If True, apply batch normalization on every hidden layer. Default: True
+        :param batch_norm (bool): If True, apply batch normalization on every hidden layer. Default: True
 
         :param lr (float): Learning rate. Default: 1e-3
 

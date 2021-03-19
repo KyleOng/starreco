@@ -166,7 +166,7 @@ class MultilayerPerceptrons(torch.nn.Module):
             # Append dropout layers
             # Dropout will not be applied to the last hidden layer (output layer is None)
             if output_layer is None and i != len(hidden_dims) -1 and \
-            dropouts[i] >= 0 and dropouts[i] <= 1:
+            dropouts[i] > 0 and dropouts[i] <= 1:
                 mlp_blocks.append(torch.nn.Dropout(dropouts[i]))
             input_dim = hidden_dim
         
