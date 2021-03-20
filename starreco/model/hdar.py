@@ -6,11 +6,11 @@ import torch.nn.functional as F
 from starreco.model import (MultilayerPerceptrons, 
                             Module)
 
-class DAR(Module):
+class HDAR(Module):
     """
-    Deep AutoRec
+    Hybrid Deep AutoRec
     """
-    def __init__(self, io_dim:int,
+    def __init__(self, io_dim:int, feature_dim:int,
                  hidden_dims:list = [512, 256, 128], 
                  e_activations:Union[str, list] = "relu", 
                  d_activations:Union[str, list] = "relu", 
@@ -24,6 +24,8 @@ class DAR(Module):
         Hyperparameters setting.
 
         :param io_dim (int): Input/Output dimension.
+
+        :param feature_dim (int): Feature dimension.
 
         :param hidden_dims (list): List of number of hidden nodes for encoder and decoder (in reverse). For example, hidden_dims [200, 100, 50] = encoder [io_dim, 200, 100, 50], decoder [50, 100, 200, io_dim]. Default: [512, 256, 128]
 
@@ -53,7 +55,9 @@ class DAR(Module):
                                              e_activations, 
                                              0,
                                              None,
-                                             batch_norm)
+                                             batch_norm,
+                                             extra_nodes_in = feature_dim,
+                                             module_type = "modulelist")
 
         # Dropout layer in latent space
         self.dropout = torch.nn.Dropout(dropout)
@@ -64,10 +68,26 @@ class DAR(Module):
                                              d_activations, 
                                              0,
                                              None,
-                                             batch_norm)
+                                             batch_norm,
+                                             extra_nodes_in = feature_dim,
+                                             module_type = "modulelist")        
                                             
     def forward(self, x):
+        content = x[:, :self.feature_dim]
+        x = x[:, self.feature_dim:]
+
         for i in range(self.dense_refeeding):
-            x = self.decoder(self.dropout(self.encoder(x)))
+            for module in self.encoder.mlp:
+                if type(module) == torch.nn.Linear:
+                    x = module(torch.cat([x, content], dim = 1))
+                else:
+                    x = module(x)
+
+            x = self.dropout(x)
+            for module in self.decoder.mlp:
+                if type(module) == torch.nn.Linear:
+                    x = module(torch.cat([x, content], dim = 1))
+                else:
+                    x = module(x)
 
         return x

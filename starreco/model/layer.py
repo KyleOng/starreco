@@ -128,7 +128,10 @@ class MultilayerPerceptrons(torch.nn.Module):
                  activations:Union[str, list] = "relu",
                  dropouts:Union[float, list] = 0.5,
                  output_layer:str = "linear",
-                 batch_norm: bool = True):
+                 batch_norm:bool = True,
+                 extra_nodes_in:Union[int,list] = 0,
+                 extra_nodes_out:Union[int,list] = 0,
+                 module_type:str = "sequential"):
         """
         Multilayer Perceptrons. Default, shallow network.
 
@@ -140,20 +143,28 @@ class MultilayerPerceptrons(torch.nn.Module):
 
         :param dropouts (float/list): List of dropouts. If type float, then the dropout will be repeated len(hidden_dims) times in a list. If output_layer is None, then dropout will not be applied at the last hidden layer. Default: 0.5
         
-        :param output_layer (str): If None, then the last hidden layer will be the output layer, else an additional output layer along with a defined activation function will be inserted. Default: linear
+        :param output_layer (str): Add an additional output layer along with a defined activation function at the end. If None, then the last hidden layer will be the output layer. Default: linear
 
         :param batch_norm (bool): If True, apply 1D batch normalization on every hidden layer before the activation function. If output_layer is None, then batch normalization will not be applied at the last hidden layer. Default: True
+
+        :param module_type(str): Return module type. Option ["sequential", "modulelist"]. Default: "sequential"
         """
         super().__init__()
+        assert module_type in ["sequential", "modulelist"], "type must be 'sequential' or 'modulelist'"
 
         if type(activations) == str:
             activations = np.tile([activations], len(hidden_dims))
         if type(dropouts) == float or type(dropouts) == int:
             dropouts = np.tile([dropouts], len(hidden_dims))
+        if type(extra_nodes_in) == int:
+            extra_nodes_in = np.tile([extra_nodes_in], len(hidden_dims))
+        if type(extra_nodes_out) == int:
+            extra_nodes_out = np.tile([extra_nodes_out], len(hidden_dims))
         mlp_blocks = []
         for i, hidden_dim in enumerate(hidden_dims):
             # Append linear layer         
-            mlp_blocks.append(torch.nn.Linear(input_dim, hidden_dim))
+            mlp_blocks.append(torch.nn.Linear(input_dim + extra_nodes_in[i], 
+                                              hidden_dim + extra_nodes_out[i]))
             # Append batch normalization
             # Batch normalization will not be applied to the last hidden layer (output layer is None)
             if output_layer is None and i != len(hidden_dims) - 1 and \
@@ -175,7 +186,10 @@ class MultilayerPerceptrons(torch.nn.Module):
             if output_layer != "linear":
                 mlp_blocks.append(ActivationFunction(output_layer))
             
-        self.mlp = torch.nn.Sequential(*mlp_blocks)
+        if module_type == "sequential":
+            self.mlp = torch.nn.Sequential(*mlp_blocks) 
+        elif module_type == "modulelist":
+            self.mlp = torch.nn.ModuleList(mlp_blocks)
 
     def forward(self, x):
         """
