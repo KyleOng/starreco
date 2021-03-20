@@ -7,6 +7,7 @@ class HAR(HDAR):
     Hybrid AutoRec
     """
     def __init__(self, io_dim:int, feature_dim:int,
+                 feature_concat_all:bool = True,
                  latent_dim: int = 20, 
                  e_activations:str = "relu", 
                  d_activations:str = "relu", 
@@ -16,12 +17,14 @@ class HAR(HDAR):
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
                  criterion:F = F.mse_loss):
-        """
+        """s
         Hyperparameters setting.
 
         :param io_dim (int): Input/Output dimension.
 
         :param feature_dim (int): Feature dimension.
+
+        :param feature_concat_all (bool): If True concat feature on input layer and hidden layer, else concat feature on input layer only. Default: True
 
         :param latent_dim (list): Latent space dimension.
 
@@ -42,4 +45,4 @@ class HAR(HDAR):
         :param criterion (F): Objective function. Default: F.mse_loss
         """
 
-        super().__init__(io_dim, feature_dim, [latent_dim], e_activations, d_activations, dropout, dense_refeeding, batch_norm, lr, weight_decay, criterion) 
+        super().__init__(io_dim, feature_dim, feature_concat_all, [latent_dim], e_activations, d_activations, dropout, dense_refeeding, batch_norm, lr, weight_decay, criterion) 

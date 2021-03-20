@@ -1,5 +1,6 @@
 from typing import Union
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -11,6 +12,7 @@ class HDAR(Module):
     Hybrid Deep AutoRec
     """
     def __init__(self, io_dim:int, feature_dim:int,
+                 feature_concat_all:bool = True,
                  hidden_dims:list = [512, 256, 128], 
                  e_activations:Union[str, list] = "relu", 
                  d_activations:Union[str, list] = "relu", 
@@ -25,7 +27,9 @@ class HDAR(Module):
 
         :param io_dim (int): Input/Output dimension.
 
-        :param feature_dim (int): Feature dimension.
+        :param feature_dim (int): Feature (side information) dimension.
+
+        :param feature_concat_all (bool): If True concat feature on input layer and all hidden layers, else concat feature on input layer only. Default: True
 
         :param hidden_dims (list): List of number of hidden nodes for encoder and decoder (in reverse). For example, hidden_dims [200, 100, 50] = encoder [io_dim, 200, 100, 50], decoder [50, 100, 200, io_dim]. Default: [512, 256, 128]
 
@@ -50,17 +54,25 @@ class HDAR(Module):
         self.dense_refeeding = dense_refeeding
 
         # Encoder layer
+        if feature_concat_all:
+            extra_node_in = feature_dim
+        else:
+            extra_node_in = np.concatenate([[feature_dim], np.tile([0], len(hidden_dims))])
+        
         self.encoder = MultilayerPerceptrons(io_dim,
                                              hidden_dims, 
                                              e_activations, 
                                              0,
                                              None,
                                              batch_norm,
-                                             extra_nodes_in = feature_dim,
+                                             extra_nodes_in = extra_node_in,
                                              module_type = "modulelist")
 
         # Dropout layer in latent space
         self.dropout = torch.nn.Dropout(dropout)
+
+        if not feature_concat_all:
+            extra_node_in = 0
 
         # Decoder layer 
         self.decoder = MultilayerPerceptrons(hidden_dims[-1],
@@ -69,7 +81,7 @@ class HDAR(Module):
                                              0,
                                              None,
                                              batch_norm,
-                                             extra_nodes_in = feature_dim,
+                                             extra_nodes_in = extra_node_in,
                                              module_type = "modulelist")        
                                             
     def forward(self, x):

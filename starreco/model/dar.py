@@ -44,7 +44,6 @@ class DAR(Module):
         :param criterion (F): Objective function. Default: F.mse_loss
         """
         super().__init__(lr, weight_decay, criterion)
-        self.feature_dim = feature_dim
         self.dense_refeeding = dense_refeeding
 
         # Encoder layer
