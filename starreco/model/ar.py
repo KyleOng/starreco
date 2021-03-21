@@ -33,7 +33,7 @@ class AR(DAR):
 
         :param batch_norm (bool): If True, apply batch normalization on every hidden layer. Default: True
 
-        :param lr (float): Learning rate. Default: 1e-3
+        :param lr (float): Learning rate. Default: 1e-3  
 
         :param weight_decay (float): L2 regularization weight decap: Default: 1e-3
 
