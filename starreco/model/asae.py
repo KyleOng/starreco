@@ -1,15 +1,14 @@
 from typing import Union
 
-import numpy as np
 import torch
 import torch.nn.functional as F
 
-from starreco.model import (MultilayerPerceptrons, 
-                            Module)
+from .hdar import HDAR
+from starreco.model import MultilayerPerceptrons
 
-class HDAR(Module):
+class ASAE(HDAR):
     """
-    Hybrid Deep AutoRec
+    Additional Stacked/Deep Autoencoder
     """
     def __init__(self, io_dim:int, feature_dim:int,
                  feature_concat_all:bool = True,
@@ -49,55 +48,47 @@ class HDAR(Module):
 
         :param criterion (F): Objective function. Default: F.mse_loss
         """
-        super().__init__(lr, weight_decay, criterion)
-        self.feature_dim = feature_dim
-        self.dense_refeeding = dense_refeeding
 
-        # Encoder layer
-        if feature_concat_all:
-            extra_node_in = feature_dim
-        else:
-            extra_node_in = np.concatenate([[feature_dim], np.tile([0], len(hidden_dims))])
-        
-        self.encoder = MultilayerPerceptrons(input_dim = io_dim,
-                                             hidden_dims = hidden_dims, 
-                                             activations = e_activations, 
-                                             dropouts = 0,
-                                             output_layer = None,
-                                             batch_norm = batch_norm,
-                                             extra_nodes_in = extra_node_in,
-                                             module_type = "modulelist")
-
-        # Dropout layer in latent space
-        self.dropout = torch.nn.Dropout(dropout)
+        super().__init__(io_dim, feature_dim, feature_concat_all, hidden_dims, e_activations, d_activations, dropout, dense_refeeding, batch_norm, lr, weight_decay, criterion) 
 
         if not feature_concat_all:
-            extra_node_in = 0
+            extra_nodes_in = 0
+        else:
+            extra_nodes_in = feature_dim
 
         # Decoder layer 
         self.decoder = MultilayerPerceptrons(input_dim = hidden_dims[-1],
-                                             hidden_dims = [*hidden_dims[:-1][::-1], io_dim], 
+                                             hidden_dims = [*hidden_dims[:-1][::-1]], 
                                              activations = d_activations, 
                                              dropouts = 0,
-                                             apply_last_hidden = False,
+                                             apply_last_hidden = True,
                                              output_layer = None,
                                              batch_norm = batch_norm,
-                                             extra_nodes_in = extra_node_in,
-                                             module_type = "modulelist")        
+                                             extra_nodes_in = extra_nodes_in,
+                                             module_type = "modulelist")  
 
-    def encode(self, x, feature):
-        for module in self.encoder.mlp:
-            if type(module) == torch.nn.Linear:
-                x = module(torch.cat([x, feature], dim = 1))
-            else:
-                x = module(x)
-        return x
+        self.decoder_x1 = MultilayerPerceptrons(input_dim = hidden_dims[0],
+                                                hidden_dims = [io_dim],
+                                                activations = d_activations,
+                                                dropouts = 0,
+                                                apply_last_hidden = False,
+                                                output_layer = None,
+                                                batch_norm = batch_norm,
+                                                extra_nodes_in = extra_nodes_in)
+
+        self.decoder_x2 = MultilayerPerceptrons(input_dim = hidden_dims[0],
+                                                hidden_dims = [feature_dim],
+                                                activations = d_activations,
+                                                dropouts = 0,
+                                                apply_last_hidden = False,
+                                                output_layer = None,
+                                                batch_norm = batch_norm,
+                                                extra_nodes_in = extra_nodes_in)        
 
     def forward(self, x):
-        feature = x[:, :self.feature_dim]
-        x = x[:, self.feature_dim:]
-
         for i in range(self.dense_refeeding):
+            feature = x[:, :self.feature_dim]
+            x = x[:, self.feature_dim:]
             x = self.encode(x, feature)    
             x = self.dropout(x)
             for module in self.decoder.mlp:
@@ -105,5 +96,14 @@ class HDAR(Module):
                     x = module(torch.cat([x, feature], dim = 1))
                 else:
                     x = module(x)
+            x1 = self.decoder_x1(torch.cat([x, feature], dim = 1))
+            x2 = self.decoder_x2(torch.cat([x, feature], dim = 1))
+            x = torch.cat([x1, x2], dim = 1)
 
         return x
+
+
+
+
+
+        
