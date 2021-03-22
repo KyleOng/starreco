@@ -51,8 +51,9 @@ class CNNDCF(Module):
         self.embedding = FeaturesEmbedding(feature_dims, embed_dim)
 
         # 1 fully connected layer before residual connection
-        self.fc_rc = MultilayerPerceptrons(embed_dim ** 2,
-                                           [embed_dim ** 2],
+        self.fc_rc = MultilayerPerceptrons(input_dim = embed_dim ** 2,
+                                           hidden_dims = [embed_dim ** 2],
+                                           apply_last_hidden = False,
                                            output_layer = None)
 
         # Convolution neural network
@@ -77,7 +78,7 @@ class CNNDCF(Module):
         """
         Similar to ONCF, the author specified that there are only 2 layers (input and output layers) in the FC layer, as 1 layer MLP in NCF has more parameters than several layers of convolution in ONCF, which makes it more stable and generalizable than MLP in NCF.
         """
-        fc = MultilayerPerceptrons(conv_filter_size,
+        fc = MultilayerPerceptrons(input_dim = conv_filter_size,
                                    output_layer = "relu")
         cnn_blocks.append(fc)
         self.cnn = torch.nn.Sequential(*cnn_blocks)

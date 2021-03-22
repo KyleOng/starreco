@@ -47,23 +47,24 @@ class DAR(Module):
         self.dense_refeeding = dense_refeeding
 
         # Encoder layer
-        self.encoder = MultilayerPerceptrons(io_dim,
-                                             hidden_dims, 
-                                             e_activations, 
-                                             0,
-                                             None,
-                                             batch_norm)
+        self.encoder = MultilayerPerceptrons(input_dim = io_dim,
+                                             hidden_dims = hidden_dims, 
+                                             activations = e_activations, 
+                                             dropouts = 0,
+                                             output_layer = None,
+                                             batch_norm = batch_norm)
 
         # Dropout layer in latent space
         self.dropout = torch.nn.Dropout(dropout)
 
         # Decoder layer 
-        self.decoder = MultilayerPerceptrons(hidden_dims[-1],
-                                             [*hidden_dims[:-1][::-1], io_dim], 
-                                             d_activations, 
-                                             0,
-                                             None,
-                                             batch_norm)
+        self.decoder = MultilayerPerceptrons(input_dim = hidden_dims[-1],
+                                             hidden_dims = [*hidden_dims[:-1][::-1], io_dim], 
+                                             activations = d_activations, 
+                                             dropouts = 0,
+                                             apply_last_hidden = False,
+                                             output_layer = None,
+                                             batch_norm = batch_norm)
 
     def encoder(self, x):
         return self.encoder(x)

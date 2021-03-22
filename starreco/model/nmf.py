@@ -51,14 +51,15 @@ class NMF(Module):
         # Neural Collaborative Filtering
         
         # Number of nodes in the input layers = embed_dim * 2
-        self.ncf = MultilayerPerceptrons(embed_dim * 2, 
-                                         hidden_dims, 
-                                         activations, 
-                                         dropouts,
+        self.ncf = MultilayerPerceptrons(input_dim = embed_dim * 2, 
+                                         hidden_dims = hidden_dims, 
+                                         activations = activations, 
+                                         dropouts = dropouts,
+                                         apply_last_hidden = False, # Check result
                                          output_layer = None)
 
         # Combine layer with 1 layer of Multilayer Perceptrons
-        self.nmf = MultilayerPerceptrons(hidden_dims[-1] + 1, 
+        self.nmf = MultilayerPerceptrons(input_dim = hidden_dims[-1] + 1, 
                                          output_layer = "relu")
 
     def forward(self, x):

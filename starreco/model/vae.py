@@ -1,5 +1,6 @@
 from typing import Union
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -11,7 +12,9 @@ class VAE(Module):
     Variational Autoencoder
     """
     def __init__(self, io_dim:int,
-                 hidden_dims:list = [512, 256, 128], 
+                 hidden_dims:list = [512, 256, 64], 
+                 e_mean:int = 128,
+                 e_std:int = 128,
                  e_activations:Union[str, list] = "relu", 
                  d_activations:Union[str, list] = "relu", 
                  dropout:float = 0.5,
@@ -25,7 +28,7 @@ class VAE(Module):
 
         :param io_dim (int): Input/Output dimension.
 
-        :param hidden_dims (list): List of number of hidden nodes for encoder and decoder (in reverse). For example, hidden_dims [200, 100, 50] = encoder [io_dim, 200, 100, 50], decoder [50, 100, 200, io_dim]. Default: [512, 256, 128]
+        :param hidden_dims (list): List of number of hidden nodes for encoder and decoder (in reverse). Reparameterize will be applied before latent space. For example, hidden_dims [200, 100, 50] = encoder [io_dim, 200, 100, 50], decoder [50, 100, 200, io_dim]. Default: [512, 256, 128]
 
         :param e_activations (str/list): List of activation functions for encoder layer. If type str, then the activation will be repeated len(hidden_dims) times in a list. Default: "relu"
 
@@ -44,6 +47,7 @@ class VAE(Module):
         :param criterion (F): Objective function. Default: F.mse_loss
         """
         super().__init__(lr, weight_decay, criterion)
+        self.reparameterize_index = len(hidden_dims) - 2
         self.dense_refeeding = dense_refeeding
 
         # Encoder layer
@@ -52,7 +56,25 @@ class VAE(Module):
                                              e_activations, 
                                              0,
                                              None,
-                                             batch_norm)
+                                             batch_norm,
+                                             module_type = "modulelist")
+
+        # Encoder mean layer
+        self.encoder_mean =  MultilayerPerceptrons(hidden_dims[-2],
+                                                   [e_mean, hidden_dims[-1]], 
+                                                   e_activations, 
+                                                   0,
+                                                   None,
+                                                   batch_norm)
+
+        # Encoder std layer
+        self.encoder_std =  MultilayerPerceptrons(hidden_dims[-2],
+                                                  [e_std, hidden_dims[-1]], 
+                                                  e_activations, 
+                                                  0,
+                                                  None,
+                                                  batch_norm)
+
 
         # Dropout layer in latent space
         self.dropout = torch.nn.Dropout(dropout)
@@ -63,10 +85,21 @@ class VAE(Module):
                                              d_activations, 
                                              0,
                                              None,
-                                             batch_norm)
-                                            
+                                             batch_norm,
+                                             module_type = "sequential")        
+
+    def encode(self, x):
+        i = 0
+        for module in self.encoder.mlp:
+            if type(module) == torch.nn.Linear:
+                i += 1
+            x = module(x)
+        return x
+
     def forward(self, x):
         for i in range(self.dense_refeeding):
-            x = self.decoder(self.dropout(self.encoder(x)))
+            x = self.encode(x)    
+            x = self.dropout(x)
+            x = self.decoder(x)
 
         return x

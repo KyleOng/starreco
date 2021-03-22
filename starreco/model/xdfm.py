@@ -64,12 +64,12 @@ class XDFM(Module):
 
         # Multilayer perceptrons
         
-        self.mlp = MultilayerPerceptrons(len(feature_dims) * embed_dim,
-                                         hidden_dims, 
-                                         activations, 
-                                         dropouts,
-                                         "relu",
-                                         batch_norm)
+        self.mlp = MultilayerPerceptrons(input_dim = len(feature_dims) * embed_dim,
+                                         hidden_dims = hidden_dims, 
+                                         activations = activations, 
+                                         dropouts = dropouts,
+                                         output_layer = "relu",
+                                         batch_norm = batch_norm)
         
     def forward(self, x):
         """

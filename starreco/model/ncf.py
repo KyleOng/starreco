@@ -50,10 +50,10 @@ class NCF(Module):
         # Multilayer perceptrons
         
         # Number of nodes in the input layers = embed_dim * 2
-        self.mlp = MultilayerPerceptrons(embed_dim * 2, 
-                                         hidden_dims, 
-                                         activations, 
-                                         dropouts,
+        self.mlp = MultilayerPerceptrons(input_dim = embed_dim * 2, 
+                                         hidden_dims = hidden_dims, 
+                                         activations = activations, 
+                                         dropouts = dropouts,
                                          output_layer = "relu")
 
     def forward(self, x):

@@ -134,12 +134,12 @@ class FGCNN(Module):
         self.ip = InnerProduct(False)
 
         # Multilayer perceptrons
-        self.nn = MultilayerPerceptrons(nn_input_size,
-                                          nn_hidden_dims, 
-                                          nn_activations, 
-                                          nn_dropouts,
-                                          "relu",
-                                          batch_norm)
+        self.nn = MultilayerPerceptrons(input_dim = nn_input_size,
+                                        hidden_dims = nn_hidden_dims, 
+                                        activations = nn_activations, 
+                                        dropouts = nn_dropouts,
+                                        output_layer = "relu",
+                                        batch_norm = batch_norm)
 
     def forward(self, x):
         """

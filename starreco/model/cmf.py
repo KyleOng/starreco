@@ -88,12 +88,13 @@ class CMF(Module):
         # Flatten
         cnn_blocks.append(torch.nn.Flatten())
         # FC layer
-        fc = MultilayerPerceptrons(conv_filter_size, 
-                                   [*fc_hidden_dims, user_embed_dim], 
-                                   fc_activations, 
-                                   fc_dropouts,
-                                   None, 
-                                   batch_norm)
+        fc = MultilayerPerceptrons(input_dim = conv_filter_size, 
+                                   hidden_dims = [*fc_hidden_dims, user_embed_dim], 
+                                   activations = fc_activations, 
+                                   dropouts = fc_dropouts,
+                                   apply_last_hidden = True, # Check result
+                                   output_layer = None, 
+                                   batch_norm = batch_norm)
         cnn_blocks.append(fc)
         self.cnn = torch.nn.Sequential(*cnn_blocks)
 

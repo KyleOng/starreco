@@ -62,12 +62,12 @@ class NFM(Module):
         )
 
         # Multilayer Perceptrons
-        self.mlp = MultilayerPerceptrons(embed_dim,
-                                         hidden_dims, 
-                                         activations, 
-                                         dropouts[1:],
-                                         "relu",
-                                         batch_norm)
+        self.mlp = MultilayerPerceptrons(input_dim = embed_dim,
+                                         hidden_dims = hidden_dims, 
+                                         activations = activations, 
+                                         dropouts = dropouts[1:],
+                                         output_layer = "relu",
+                                         batch_norm = batch_norm)
         
     def forward(self, x):
         """
