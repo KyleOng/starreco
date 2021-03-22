@@ -19,3 +19,4 @@ from starreco.model.dar import DAR
 from starreco.model.ar import AR
 from starreco.model.hdar import HDAR
 from starreco.model.har import HAR
+from starreco.model.vae import VAE
