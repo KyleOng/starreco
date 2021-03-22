@@ -63,10 +63,7 @@ class XDFM(Module):
                                          split_half = True)
 
         # Multilayer perceptrons
-        """if type(activations) == str: # Redundant, as this has been taken care in MultilayerPerceptrons()
-            activations = np.tile([activations], len(hidden_dims))
-        if type(dropouts) == float or type(dropouts) == int:
-            dropouts = np.tile([dropouts], len(hidden_dims))"""
+        
         self.mlp = MultilayerPerceptrons(len(feature_dims) * embed_dim,
                                          hidden_dims, 
                                          activations, 

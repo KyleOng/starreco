@@ -88,10 +88,6 @@ class CMF(Module):
         # Flatten
         cnn_blocks.append(torch.nn.Flatten())
         # FC layer
-        """if type(fc_activations) == str: # Redundant, as this has been taken care in MultilayerPerceptrons()
-            fc_activations = np.tile([fc_activations], len(fc_hidden_dims))
-        if type(fc_dropouts) == float:
-            fc_dropouts = np.tile([fc_dropouts], len(fc_hidden_dims))"""
         fc = MultilayerPerceptrons(conv_filter_size, 
                                    [*fc_hidden_dims, user_embed_dim], 
                                    fc_activations, 
