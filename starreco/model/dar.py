@@ -39,7 +39,7 @@ class DAR(Module):
 
         :param lr (float): Learning rate. Default: 1e-3
 
-        :param weight_decay (float): L2 regularization weight decay: Default: 1e-3
+        :param weight_decay (float): L2 regularization weight decap: Default: 1e-3
 
         :param criterion (F): Objective function. Default: F.mse_loss
         """
@@ -64,9 +64,12 @@ class DAR(Module):
                                              0,
                                              None,
                                              batch_norm)
-                                            
+
+    def encoder(self, x):
+        return self.encoder(x)
+
     def forward(self, x):
         for i in range(self.dense_refeeding):
-            x = self.decoder(self.dropout(self.encoder(x)))
+            x = self.decoder(self.dropout(self.encode(x)))
 
         return x

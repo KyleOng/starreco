@@ -83,18 +83,21 @@ class HDAR(Module):
                                              batch_norm,
                                              extra_nodes_in = extra_node_in,
                                              module_type = "modulelist")        
-                                            
+
+    def encode(self: x):
+        for module in self.encoder.mlp:
+            if type(module) == torch.nn.Linear:
+                x = module(torch.cat([x, content], dim = 1))
+            else:
+                x = module(x)
+        return x
+
     def forward(self, x):
         content = x[:, :self.feature_dim]
         x = x[:, self.feature_dim:]
 
         for i in range(self.dense_refeeding):
-            for module in self.encoder.mlp:
-                if type(module) == torch.nn.Linear:
-                    x = module(torch.cat([x, content], dim = 1))
-                else:
-                    x = module(x)
-
+            x = self.encode(x)    
             x = self.dropout(x)
             for module in self.decoder.mlp:
                 if type(module) == torch.nn.Linear:
