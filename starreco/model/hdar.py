@@ -45,7 +45,7 @@ class HDAR(Module):
 
         :param lr (float): Learning rate. Default: 1e-3
 
-        :param weight_decay (float): L2 regularization weight decap: Default: 1e-3
+        :param weight_decay (float): L2 regularization weight decay: Default: 1e-3
 
         :param criterion (F): Objective function. Default: F.mse_loss
         """
