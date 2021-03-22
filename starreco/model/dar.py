@@ -66,7 +66,7 @@ class DAR(Module):
                                              output_layer = None,
                                              batch_norm = batch_norm)
 
-    def encoder(self, x):
+    def encode(self, x):
         return self.encoder(x)
 
     def forward(self, x):

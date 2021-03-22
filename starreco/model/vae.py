@@ -1,6 +1,6 @@
 from typing import Union
+import copy
 
-import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -13,8 +13,6 @@ class VAE(Module):
     """
     def __init__(self, io_dim:int,
                  hidden_dims:list = [512, 256, 64], 
-                 e_mean:int = 128,
-                 e_std:int = 128,
                  e_activations:Union[str, list] = "relu", 
                  d_activations:Union[str, list] = "relu", 
                  dropout:float = 0.5,
@@ -28,7 +26,7 @@ class VAE(Module):
 
         :param io_dim (int): Input/Output dimension.
 
-        :param hidden_dims (list): List of number of hidden nodes for encoder and decoder (in reverse). Reparameterize will be applied before latent space. For example, hidden_dims [200, 100, 50] = encoder [io_dim, 200, 100, 50], decoder [50, 100, 200, io_dim]. Default: [512, 256, 128]
+        :param hidden_dims (list): List of number of hidden nodes for encoder and decoder (in reverse). For example, hidden_dims [200, 100, 50] = encoder [io_dim, 200, 100, 50], decoder [50, 100, 200, io_dim]. Default: [512, 256, 128]
 
         :param e_activations (str/list): List of activation functions for encoder layer. If type str, then the activation will be repeated len(hidden_dims) times in a list. Default: "relu"
 
@@ -42,64 +40,54 @@ class VAE(Module):
 
         :param lr (float): Learning rate. Default: 1e-3
 
-        :param weight_decay (float): L2 regularization weight decay: Default: 1e-3
+        :param weight_decay (float): L2 regularization weight decap: Default: 1e-3
 
         :param criterion (F): Objective function. Default: F.mse_loss
         """
         super().__init__(lr, weight_decay, criterion)
-        self.reparameterize_index = len(hidden_dims) - 2
         self.dense_refeeding = dense_refeeding
 
         # Encoder layer
-        self.encoder = MultilayerPerceptrons(io_dim,
-                                             hidden_dims, 
-                                             e_activations, 
-                                             0,
-                                             None,
-                                             batch_norm,
-                                             module_type = "modulelist")
-
-        # Encoder mean layer
-        self.encoder_mean =  MultilayerPerceptrons(hidden_dims[-2],
-                                                   [e_mean, hidden_dims[-1]], 
-                                                   e_activations, 
-                                                   0,
-                                                   None,
-                                                   batch_norm)
-
-        # Encoder std layer
-        self.encoder_std =  MultilayerPerceptrons(hidden_dims[-2],
-                                                  [e_std, hidden_dims[-1]], 
-                                                  e_activations, 
-                                                  0,
-                                                  None,
-                                                  batch_norm)
-
+        self.encoder = MultilayerPerceptrons(input_dim = io_dim,
+                                             hidden_dims = hidden_dims[:-1], 
+                                             activations = e_activations, 
+                                             dropouts = 0,
+                                             output_layer = None,
+                                             batch_norm = batch_norm)
+        self.mean = MultilayerPerceptrons(input_dim = hidden_dims[-2],
+                                          hidden_dims = [hidden_dims[-1]],
+                                          activations = e_activations, 
+                                          dropouts = 0,
+                                          output_layer = None,
+                                          batch_norm = batch_norm)
+        self.std = copy.deepcopy(self.mean)
 
         # Dropout layer in latent space
         self.dropout = torch.nn.Dropout(dropout)
 
         # Decoder layer 
-        self.decoder = MultilayerPerceptrons(hidden_dims[-1],
-                                             [*hidden_dims[:-1][::-1], io_dim], 
-                                             d_activations, 
-                                             0,
-                                             None,
-                                             batch_norm,
-                                             module_type = "sequential")        
+        self.decoder = MultilayerPerceptrons(input_dim = hidden_dims[-1],
+                                             hidden_dims = [*hidden_dims[:-1][::-1], io_dim], 
+                                             activations = d_activations, 
+                                             dropouts = 0,
+                                             apply_last_hidden = False,
+                                             output_layer = None,
+                                             batch_norm = batch_norm)
+
+    def reparameterize(self, mu, logvar):
+        std = torch.exp(0.5*logvar)
+        eps = torch.randn_like(std)
+        return mu + eps * std
 
     def encode(self, x):
-        i = 0
-        for module in self.encoder.mlp:
-            if type(module) == torch.nn.Linear:
-                i += 1
-            x = module(x)
-        return x
+        x = self.encoder(x)
+        mu, logvar = self.mean(x), self.std(x)
+        x = self.reparameterize(mu, logvar) 
+        return x, mu, logvar
 
     def forward(self, x):
         for i in range(self.dense_refeeding):
-            x = self.encode(x)    
-            x = self.dropout(x)
-            x = self.decoder(x)
+            x, _, _ = self.encode(x)
+            x = self.decoder(self.dropout(x))
 
         return x
