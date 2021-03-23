@@ -3,4 +3,5 @@ env
 *.ipynb
 starreco/dataset/*
 *.pyc
+backup
 checkpoints

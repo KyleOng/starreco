@@ -10,7 +10,7 @@ from starreco.model import (FeaturesEmbedding,
 
 class CNNDCF(Module):
     """
-    ConvolutionalNeural Networks based Deep Collaborative Filtering model.
+    Convolutional Neural Networks based Deep Collaborative Filtering model.
     """
     def __init__(self, feature_dims:list, 
                  embed_dim:int = 32, #or 64
