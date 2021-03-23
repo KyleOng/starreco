@@ -3,10 +3,10 @@ from typing import Union
 import torch
 import torch.nn.functional as F
 
-from .hdar import HDAR
+from .hdae import HDAE
 from starreco.model import MultilayerPerceptrons
 
-class ASAE(HDAR):
+class ASAE(HDAE):
     """
     Additional Stacked/Deep Autoencoder
     """

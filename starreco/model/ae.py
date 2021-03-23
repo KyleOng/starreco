@@ -1,8 +1,8 @@
 import torch.nn.functional as F
 
-from .dar import DAR
+from .dae import DAE
 
-class AR(DAR):
+class AE(DAE):
     """
     AutoRec
     """

@@ -15,9 +15,10 @@ from starreco.model.dfm import DFM
 from starreco.model.xdfm import XDFM
 from starreco.model.fgcnn import FGCNN
 from starreco.model.cmf import CMF
-from starreco.model.dar import DAR
-from starreco.model.ar import AR
-from starreco.model.hdar import HDAR
-from starreco.model.har import HAR
+from starreco.model.dae import DAE
+from starreco.model.ae import AE
+from starreco.model.hdae import HDAE
+from starreco.model.hae import HAE
 from starreco.model.asae import ASAE
 from starreco.model.vae import VAE
+#from starreco.model.ccae import CCAE

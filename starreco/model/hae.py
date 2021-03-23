@@ -1,8 +1,8 @@
 import torch.nn.functional as F
 
-from .hdar import HDAR
+from .hdae import HDAE
 
-class HAR(HDAR):
+class HAE(HDAE):
     """
     Hybrid AutoRec
     """
