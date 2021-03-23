@@ -1,5 +1,5 @@
 # star-reco :star: :robot:
-A Pytorch and lightning implementation for a series of deep learning rating-based recommendation systems. This work also acts as a part of the master thesis work's literature review.
+A Pytorch and lightning implementation for a series of deep learning **star** or rating-based **reco**mmendation systems. This work also acts as a part of the master thesis work's literature review.
 
 Background
 ---
