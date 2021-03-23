@@ -1,7 +1,5 @@
 # star-reco :star: :robot:
-**star-reco** is a master thesis work + Python implementation for a series of deep learning rating-based recommendation system. **star-reco** is built on top of Pytorch and Pytorch-lightning for reproducing and developing various SOTA rating-based recommendation algorithms. 
-
-This work also acts as a part of the master thesis work's literature review.
+A Pytorch and lightning implementation for a series of deep learning rating-based recommendation systems. This work also acts as a part of the master thesis work's literature review.
 
 Background
 ---
