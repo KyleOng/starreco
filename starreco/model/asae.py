@@ -86,7 +86,13 @@ class ASAE(HDAE):
                                                 extra_nodes_in = extra_nodes_in)        
 
     def forward(self, x):
-        for i in range(self.dense_refeeding):
+        # Perform dense refeeding N times in training mode, else feed only once
+        if self.training:
+            dense_refeeding = self.dense_refeeding
+        else:
+            dense_refeeding = 1
+
+        for i in range(dense_refeeding):
             feature = x[:, :self.feature_dim]
             x = x[:, self.feature_dim:]
             x = self.encode(x, feature)    

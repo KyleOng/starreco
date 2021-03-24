@@ -97,7 +97,13 @@ class HDAE(Module):
         feature = x[:, :self.feature_dim]
         x = x[:, self.feature_dim:]
 
-        for i in range(self.dense_refeeding):
+        # Perform dense refeeding N times in training mode, else feed only once
+        if self.training:
+            dense_refeeding = self.dense_refeeding
+        else:
+            dense_refeeding = 1
+
+        for i in range(dense_refeeding):
             x = self.encode(x, feature)    
             x = self.dropout(x)
             for module in self.decoder.mlp:

@@ -99,7 +99,13 @@ class CCAE(Module):
 
     def forward(self, x):
         actual_length = x.shape[-1]
-        for i in range(self.dense_refeeding):
+        # Perform dense refeeding N times in training mode, else feed only once
+        if self.training:
+            dense_refeeding = self.dense_refeeding
+        else:
+            dense_refeeding = 1
+
+        for i in range(dense_refeeding):
             x = self.decoder(self.encode(x))
             x = x[:, :actual_length]
 

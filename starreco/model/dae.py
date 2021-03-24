@@ -70,7 +70,13 @@ class DAE(Module):
         return self.encoder(x)
 
     def forward(self, x):
-        for i in range(self.dense_refeeding):
+        # Perform dense refeeding N times in training mode, else feed only once
+        if self.training:
+            dense_refeeding = self.dense_refeeding
+        else:
+            dense_refeeding = 1
+
+        for i in range(dense_refeeding):
             x = self.decoder(self.dropout(self.encode(x)))
 
         return x

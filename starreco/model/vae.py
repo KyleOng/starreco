@@ -86,7 +86,13 @@ class VAE(Module):
         return x, mu, logvar
 
     def forward(self, x):
-        for i in range(self.dense_refeeding):
+        # Perform dense refeeding N times in training mode, else feed only once
+        if self.training:
+            dense_refeeding = self.dense_refeeding
+        else:
+            dense_refeeding = 1
+
+        for i in range(dense_refeeding):
             x, _, _ = self.encode(x)
             x = self.decoder(self.dropout(x))
 
