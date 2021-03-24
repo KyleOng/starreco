@@ -6,6 +6,7 @@ import torch
 import torch.nn.functional as F
 
 from starreco.model import (MultilayerPerceptrons,
+                            ActivationFunction,
                             Module)
 
 class CCAE(Module):
@@ -16,8 +17,8 @@ class CCAE(Module):
                  conv_filter_sizes:list = [16, 8], 
                  conv_kernel_size:int = 3, 
                  conv_pooling_size:int = 2, 
-                 e_conv_activations:str = "tanh", 
-                 d_conv_activations:str = "tanh", 
+                 e_conv_activation:str = "relu", 
+                 de_conv_activation:str = "relu", 
                  dense_refeeding:int = 1,
                  batch_norm:bool = True,
                  lr:float = 1e-3,
@@ -60,6 +61,9 @@ class CCAE(Module):
             h = ((h + 2 * pooling.padding - pooling.dilation
                   * (pooling.kernel_size[0] - 1) - 1)/ pooling.stride[0])+1
             cnn_blocks.append(convolution)
+            if batch_norm:
+                cnn_blocks.append(torch.nn.BatchNorm2d(output_channel_size))
+            cnn_blocks.append(ActivationFunction(e_conv_activation))
             cnn_blocks.append(pooling)
         self.encoder = torch.nn.Sequential(*cnn_blocks)
 
@@ -73,6 +77,9 @@ class CCAE(Module):
                                                      conv_kernel_size, padding = 1)
             up_sampling = torch.nn.Upsample((hs[i], math.ceil(math.sqrt(io_dim))))
             decnn_blocks.append(deconvolution)
+            if batch_norm:
+                decnn_blocks.append(torch.nn.BatchNorm2d(output_channel_size))
+            decnn_blocks.append(ActivationFunction(de_conv_activation))
             decnn_blocks.append(up_sampling)
         decnn_blocks.append(torch.nn.Flatten())
 

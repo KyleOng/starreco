@@ -10,8 +10,8 @@ class MF(Module):
     """
     def __init__(self, feature_dims:list, 
                  embed_dim:int = 8, 
-                 lr:float = 1e-3,
-                 weight_decay:float = 1e-3,
+                 lr:float = 1e-2,
+                 weight_decay:float = 1e-6,
                  criterion:F = F.mse_loss):
         """
         Hyperparameters setting.

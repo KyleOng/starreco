@@ -12,7 +12,7 @@ class DataModule(pl.LightningDataModule):
     options = ["ml-1m", "epinions",  "book-crossing"]
     preprocessor = Preprocessor()
 
-    def __init__(self, option = "ml-1m", batch_size = None):
+    def __init__(self, option = "ml-1m", batch_size = 256):
         # Validate whether predefined dataset exist
         if option in self.options: 
             if option == "ml-1m":
@@ -33,7 +33,7 @@ class DataModule(pl.LightningDataModule):
         self.y = ratings[self.dataset.rating.rating_column].values
 
     def to_tensor(self):
-        self.X = torch.tensor(self.X).type(torch.FloatTensor)
+        self.X = torch.tensor(self.X).type(torch.LongTensor)
         self.y = torch.tensor(self.y).type(torch.FloatTensor)
 
     def split(self, random_state = 77):
@@ -95,7 +95,7 @@ class HybridDataModule(DataModule):
         self.to_tensor()
 
 class AEDataModule(DataModule):
-    def __init__(self, option = "ml-1m", batch_size = None, transpose = False):
+    def __init__(self, option = "ml-1m", batch_size = 256, transpose = False):
         self.transpose = transpose
         super().__init__(option, batch_size)
 
@@ -130,15 +130,15 @@ class AEDataModule(DataModule):
         self.to_tensor()
 
     def train_dataloader(self):
-        train_ds = TensorDataset(self.X_train)
+        train_ds = TensorDataset(self.X_train, self.X_train)
         return DataLoader(train_ds, batch_size = self.batch_size)
                           
     def val_dataloader(self):
-        valid_ds = TensorDataset(self.X_valid)
+        valid_ds = TensorDataset(self.X_valid, self.X_valid)
         return DataLoader(valid_ds, batch_size = self.batch_size)
 
     def test_dataloader(self):
-        test_ds = TensorDataset(self.X_test)
+        test_ds = TensorDataset(self.X_test, self.X_test)
         return DataLoader(test_ds, batch_size = self.batch_size)
 
 class HybridAEDataModule(AEDataModule):

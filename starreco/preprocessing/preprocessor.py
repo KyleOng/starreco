@@ -70,10 +70,10 @@ class Preprocessor:
         indices = np.vstack((coo.row, coo.col))
 
         i = torch.LongTensor(indices)
-        v = torch.DoubleTensor(values)
+        v = torch.FloatTensor(values)
         shape = coo.shape
 
-        return torch.sparse.DoubleTensor(i, v, torch.Size(shape))
+        return torch.sparse.FloatTensor(i, v, torch.Size(shape))
 
     def transform(self, df, cat_columns = [], num_columns = [], set_columns = [],
     return_dataframe = False):

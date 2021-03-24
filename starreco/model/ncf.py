@@ -13,13 +13,13 @@ class NCF(Module):
     Neural Collaborative Filtering
     """
     def __init__(self, feature_dims:list, 
-                 embed_dim:int = 8,
+                 embed_dim:int = 16,
                  hidden_dims:list = [32, 16, 8], 
                  activations:Union[str, list] = "relu", 
                  dropouts:Union[float, list] = 0.5, 
                  batch_norm:bool = True,
                  lr:float = 1e-3,
-                 weight_decay:float = 1e-3,
+                 weight_decay:float = 1e-6,
                  criterion:F = F.mse_loss):
         """
         Hyperparamters setting.
