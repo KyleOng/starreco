@@ -22,3 +22,4 @@ from starreco.model.hae import HAE
 from starreco.model.asae import ASAE
 from starreco.model.vae import VAE
 from starreco.model.ccae import CCAE
+from starreco.model.mda import mDA
