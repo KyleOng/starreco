@@ -77,7 +77,7 @@ class mDA(Module):
     
     def cost_function(self, y, x):
         """
-        Custom cost/objective function
+        Custom cost/objective function. Define in class Module instead of Evaluator, because need to access the weights
         """
         z = self.encode(x)
         
