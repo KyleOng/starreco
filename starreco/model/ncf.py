@@ -48,13 +48,13 @@ class NCF(Module):
         self.embedding = FeaturesEmbedding(feature_dims, embed_dim)
 
         # Multilayer perceptrons
-        
         # Number of nodes in the input layers = embed_dim * 2
         self.mlp = MultilayerPerceptrons(input_dim = embed_dim * 2, 
                                          hidden_dims = hidden_dims, 
                                          activations = activations, 
                                          dropouts = dropouts,
-                                         output_layer = "relu")
+                                         output_layer = "relu",
+                                         batch_norm = batch_norm)
 
     def forward(self, x):
         """

@@ -26,11 +26,11 @@ class mDACF(Module):
         self.item_mda.decoder[0].bias.requires_grad = False
 
     def forward(self, x):
-        user_embedding = self.user_mda.encode(x[:, :self.user_dim])
-        item_embedding = self.item_mda.encode(x[:, -self.item_dim:])
+        user_latent = self.user_mda.encode(x[:, :self.user_dim])
+        item_latent = self.item_mda.encode(x[:, -self.item_dim:])
 
         # Dot product between embeddings
-        matrix = torch.mm(user_embedding, item_embedding.T)
+        matrix = torch.mm(user_latent, item_latent.T)
 
         # Obtain diagonal part of the outer product result
         diagonal = matrix.diag()

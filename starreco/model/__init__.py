@@ -4,6 +4,7 @@ CompressedInteraction, InnerProduct)
 from starreco.model.module import Module
 
 from starreco.model.mf import MF
+from starreco.model.gmf import GMF
 from starreco.model.ncf import NCF
 from starreco.model.nmf import NMF
 from starreco.model.oncf import ONCF
@@ -24,3 +25,4 @@ from starreco.model.vae import VAE
 from starreco.model.ccae import CCAE
 from starreco.model.mda import mDA
 from starreco.model.mdacf import mDACF
+from starreco.model.gmfpp import GMFpp
