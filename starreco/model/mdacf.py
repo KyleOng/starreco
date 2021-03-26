@@ -7,7 +7,7 @@ from .mda import mDA
 class mDACF(Module):
     def __init__(self, user_mda:mDA, item_mda:mDA,
                  lr:float = 1e-3,
-                 weight_decay:float = 1e-3,
+                 weight_decay:float = 0,
                  criterion:F = F.mse_loss):
 
         super().__init__(lr, weight_decay, criterion)
@@ -37,17 +37,3 @@ class mDACF(Module):
 
         # Reshape to match evaluation shape
         return diagonal.view(diagonal.shape[0], -1)        
-
-"""
-Example:
->> X = torch.FloatTensor(1000000,17).random_(0, 5)
->> y = torch.FloatTensor(1000000).random_(1,6)
->> train_ds = TensorDataset(X,y)
->> train_dl = DataLoader(train_ds, batch_size = 1024, num_workers = 8)
->>
->> umda = mDA(7, 5)
->> imda = mDA(10, 5)
->> mdacf = mDACF(umda, imda)
->>
->> pl.Trainer(gpus = 1, max_epochs = 20, progress_bar_refresh_rate = 50, logger = False).fit(mdacf, train_dl)
-"""
