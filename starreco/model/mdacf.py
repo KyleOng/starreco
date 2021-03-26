@@ -1,0 +1,53 @@
+import torch
+import torch.nn.functional as F
+
+from starreco.model import (Module)
+from .mda import mDA
+
+class mDACF(Module):
+    def __init__(self, user_mda:mDA, item_mda:mDA,
+                 lr:float = 1e-3,
+                 weight_decay:float = 1e-3,
+                 criterion:F = F.mse_loss):
+
+        super().__init__(lr, weight_decay, criterion)
+
+        # Use mDA encoder weights for weights update (learning).
+        # Freeze mDA decoder weights and bias.
+        # User latent features
+        self.user_mda = user_mda
+        self.user_dim = self.user_mda.encoder[0].weight.shape[0]
+        self.user_mda.decoder[0].weight.requires_grad = False
+        self.user_mda.decoder[0].bias.requires_grad = False
+        # Item latent features
+        self.item_mda = item_mda
+        self.item_dim = self.item_mda.encoder[0].weight.shape[0]
+        self.item_mda.decoder[0].weight.requires_grad = False
+        self.item_mda.decoder[0].bias.requires_grad = False
+
+    def forward(self, x):
+        user_embedding = self.user_mda.encode(x[:, :self.user_dim])
+        item_embedding = self.item_mda.encode(x[:, -self.item_dim:])
+
+        # Dot product between embeddings
+        matrix = torch.mm(user_embedding, item_embedding.T)
+
+        # Obtain diagonal part of the outer product result
+        diagonal = matrix.diag()
+
+        # Reshape to match evaluation shape
+        return diagonal.view(diagonal.shape[0], -1)        
+
+"""
+Example:
+>> X = torch.FloatTensor(1000000,17).random_(0, 5)
+>> y = torch.FloatTensor(1000000).random_(1,6)
+>> train_ds = TensorDataset(X,y)
+>> train_dl = DataLoader(train_ds, batch_size = 1024, num_workers = 8)
+>>
+>> umda = mDA(7, 5)
+>> imda = mDA(10, 5)
+>> mdacf = mDACF(umda, imda)
+>>
+>> pl.Trainer(gpus = 1, max_epochs = 20, progress_bar_refresh_rate = 50, logger = False).fit(mdacf, train_dl)
+"""

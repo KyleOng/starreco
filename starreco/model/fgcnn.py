@@ -190,3 +190,9 @@ class FGCNN(Module):
         
         # Prediction
         return self.nn(nn_input)
+
+"""
+fgcnn = FGCNN(np.tile([1000], 10), np.tile([1], 10),
+        conv_filter_sizes = [6, 8],
+        nn_hidden_dims = [256])
+"""
