@@ -50,7 +50,7 @@ class mDA(Module):
                  e_activation = "relu",
                  d_activation = "relu",
                  lr:float = 1e-3,
-                 weight_decay:float = 1e-6,
+                 weight_decay:float = 0,
                  criterion:F = None):
         super().__init__(lr, weight_decay, criterion)
         self.noise_rate = noise_rate
@@ -91,10 +91,9 @@ class mDA(Module):
         W = self.W.to(self.device)
         W_ = self.W_.to(self.device)
         # 2 * ∑w_^2 * (z(1-z)w)^2  
+        # df_x_2 = torch.matmul(dz * dz, torch.matmul(W_ * W_ * 2, W * W))
         df_x_2 = torch.matmul(torch.matmul(dz * dz, W_ * W_ * 2), W * W)
-        
         L2 = self.noise_rate * self.noise_rate * torch.mean(torch.sum(df_x_2, axis = 1))
-        
         cost = L + 0.5 * L2
         
         return cost
