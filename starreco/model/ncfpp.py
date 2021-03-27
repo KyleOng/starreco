@@ -59,11 +59,9 @@ class NCFpp(Module):
         # Multilayer perceptrons
         # Number of nodes in the input layers = latent_dim * 2
         self.mlp = MultilayerPerceptrons(input_dim = latent_dim * 2, 
-                                         hidden_dims = hidden_dims, 
-                                         activations = activations, 
-                                         dropouts = dropouts,
-                                         output_layer = "relu",
-                                         batch_norm = batch_norm)
+                                         activations = activation, 
+                                         dropouts = dropout,
+                                         output_layer = "relu")
 
     def forward(self, x):
         """
@@ -78,7 +76,7 @@ class NCFpp(Module):
         item_latent = self.item_ae.encode(x[:, -self.item_dim:])
 
         # Concatenate embeddings
-        concat = torch.concat([user_latent, item_latent], dim = 1)
+        concat = torch.cat([user_latent, item_latent], dim = 1)
 
         # Prediction
         return self.mlp(concat)

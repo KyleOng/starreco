@@ -26,3 +26,4 @@ from starreco.model.ccae import CCAE
 from starreco.model.mda import mDA
 from starreco.model.mdacf import mDACF
 from starreco.model.gmfpp import GMFpp
+from starreco.model.ncfpp import NCFpp
