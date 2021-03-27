@@ -9,7 +9,7 @@ from starreco.model import (FeaturesEmbedding,
 from .ae import AE
 from .dae import DAE
 
-class GMFpp(Module):
+class NCFpp(Module):
     """
     Generalized Matrix Factorization plus plus
     """
@@ -57,24 +57,28 @@ class GMFpp(Module):
                 self.item_dim = self.item_ae.decoder.mlp[i].weight.shape[0]
 
         # Multilayer perceptrons
-        self.mlp = MultilayerPerceptrons(input_dim = latent_dim, 
-                                         activations = activation, 
-                                         dropouts = dropout,
-                                         output_layer = "relu")
+        # Number of nodes in the input layers = latent_dim * 2
+        self.mlp = MultilayerPerceptrons(input_dim = latent_dim * 2, 
+                                         hidden_dims = hidden_dims, 
+                                         activations = activations, 
+                                         dropouts = dropouts,
+                                         output_layer = "relu",
+                                         batch_norm = batch_norm)
 
     def forward(self, x):
         """
         Perform operations.
 
-        :x (torch.tensor): Input tensors of shape (batch_size, user_ae.io_dim + item_ae.io_dim).
+        :x (torch.tensor): Input tensors of shape (batch_size, len(feature_dims)).
 
         :return (torch.tensor): Output prediction tensors of shape (batch_size, 1)
         """
+        # Generate embeddings
         user_latent = self.user_ae.encode(x[:, :self.user_dim])
         item_latent = self.item_ae.encode(x[:, -self.item_dim:])
 
-        # Element wise product between embeddings
-        product = user_latent * item_latent
+        # Concatenate embeddings
+        concat = torch.concat([user_latent, item_latent], dim = 1)
 
         # Prediction
-        return self.mlp(product)
+        return self.mlp(concat)

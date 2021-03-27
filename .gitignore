@@ -1,8 +1,4 @@
 env
-.ipynb_checkpoints
-experiment.ipynb
-experiment1.ipynb
+notebook
 starreco/dataset/*
-*.pyc
 backup
-checkpoints
