@@ -2,3 +2,4 @@ env
 notebook
 starreco/dataset/*
 backup
+*.pyc
