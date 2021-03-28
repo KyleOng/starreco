@@ -13,7 +13,7 @@ class MLPpp(Module):
     """
     Multilayer Perceptrons plus plus
     """
-    def __init__(self, user_ae:Union[AE, DAE], item_ae:Union[AE, DAE], 
+    def __init__(self, user_lookup:torch.Tensor, item_lookup:torch.Tensor, user_ae:Union[AE, DAE], item_ae:Union[AE, DAE], 
                  activation:str = "relu",
                  dropout = 0.5,
                  lr:float = 1e-2,
@@ -35,6 +35,8 @@ class MLPpp(Module):
         :param criterion (F): Objective function. Default: F.mse_loss
         """
         super().__init__(lr, weight_decay, criterion)
+        self.user_lookup = user_lookup
+        self.item_lookup = item_lookup
 
         self.user_ae = user_ae
         for i, module in enumerate(self.user_ae.decoder.mlp):
@@ -47,14 +49,12 @@ class MLPpp(Module):
                     pass
                 self.user_ae.decoder.mlp[i].weight.requires_grad = False
                 self.user_ae.decoder.mlp[i].bias.requires_grad = False
-                self.user_dim = self.user_ae.decoder.mlp[i].weight.shape[0]
 
         self.item_ae = item_ae
         for i, module in enumerate(self.item_ae.decoder.mlp):
             if type(module) == torch.nn.Linear:
                 self.item_ae.decoder.mlp[i].weight.requires_grad = False
                 self.item_ae.decoder.mlp[i].bias.requires_grad = False
-                self.item_dim = self.item_ae.decoder.mlp[i].weight.shape[0]
 
         # Multilayer perceptrons
         # Number of nodes in the input layers = latent_dim * 2
@@ -67,13 +67,16 @@ class MLPpp(Module):
         """
         Perform operations.
 
-        :x (torch.tensor): Input tensors of shape (batch_size, len(feature_dims)).
+        :x (torch.tensor): Input tensors of shape (batch_size, 2).
 
         :return (torch.tensor): Output prediction tensors of shape (batch_size, 1)
         """
-        # Generate embeddings
-        user_latent = self.user_ae.encode(x[:, :self.user_dim])
-        item_latent = self.item_ae.encode(x[:, -self.item_dim:])
+        # Device is determined during training
+        user_x = torch.index_select(self.user_lookup.to(self.device), 0, x[:, 0])
+        item_x = torch.index_select(self.item_lookup.to(self.device), 0, x[:, 1])
+
+        user_latent = self.user_ae.encode(user_x)
+        item_latent = self.item_ae.encode(item_x)
 
         # Concatenate embeddings
         concat = torch.cat([user_latent, item_latent], dim = 1)
