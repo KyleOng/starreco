@@ -9,9 +9,9 @@ from starreco.model import (FeaturesEmbedding,
 from .ae import AE
 from .dae import DAE
 
-class NCFpp(Module):
+class MLPpp(Module):
     """
-    Generalized Matrix Factorization plus plus
+    Multilayer Perceptrons plus plus
     """
     def __init__(self, user_ae:Union[AE, DAE], item_ae:Union[AE, DAE], 
                  activation:str = "relu",
