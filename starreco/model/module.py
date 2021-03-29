@@ -18,11 +18,9 @@ class Module(pl.LightningModule):
         x, y = batch
 
         # Convert sparse tensor into dense
-        try:
+        if x.layout == torch.sparse_coo:
             x = x.to_dense()
             y = y.to_dense()
-        except:
-            pass
 
         x = x.view(x.shape[0], -1)
         y = y.view(y.shape[0], -1)
@@ -37,11 +35,9 @@ class Module(pl.LightningModule):
         x, y = batch
         
         # Convert sparse tensor into dense
-        try:
+        if x.layout == torch.sparse_coo:
             x = x.to_dense()
             y = y.to_dense()
-        except:
-            pass
             
         x = x.view(x.shape[0], -1)
         y = y.view(y.shape[0], -1)
@@ -56,11 +52,9 @@ class Module(pl.LightningModule):
         x, y = batch
 
         # Convert sparse tensor into dense
-        try:
+        if x.layout == torch.sparse_coo:
             x = x.to_dense()
             y = y.to_dense()
-        except:
-            pass
 
         x = x.view(x.shape[0], -1)
         y = y.view(y.shape[0], -1)

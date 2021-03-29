@@ -8,7 +8,7 @@ import requests
 from tqdm import tqdm
 
 class Dataset:
-    datasets_path = "starreco/dataset/" 
+    datasets_path = os.path.realpath(__file__).replace("data/dataset/dataset.py", "dataset/")
 
     def download_data(self, url:str):
         """
