@@ -39,8 +39,9 @@ class GMF(Module):
         self.mlp = MultilayerPerceptrons(input_dim = embed_dim, 
                                          activations = activation, 
                                          output_layer = "relu")
-    
 
+        self.save_hyperparameters()
+    
     def forward(self, x):
         """
         Perform operations.

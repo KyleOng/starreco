@@ -31,6 +31,8 @@ class MF(Module):
         # Embedding layer
         self.embedding = FeaturesEmbedding(feature_dims, embed_dim)
 
+        self.save_hyperparameters()
+
     def forward(self, x):
         """
         Perform operations.

@@ -55,6 +55,8 @@ class NCF(Module):
                                          dropouts = dropouts,
                                          output_layer = "relu",
                                          batch_norm = batch_norm)
+        
+        self.save_hyperparameters()
 
     def forward(self, x):
         """
