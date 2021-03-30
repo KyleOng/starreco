@@ -76,6 +76,8 @@ class ONCF(Module):
                                    output_layer = "relu")
         cnn_blocks.append(fc)
         self.cnn = torch.nn.Sequential(*cnn_blocks)
+
+        self.save_hyperparameters()
         
     def forward(self, x):
         """

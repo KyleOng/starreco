@@ -19,7 +19,7 @@ class NMF(Module):
                  dropouts:Union[float, list] = 0.5, 
                  batch_norm:bool = True,
                  lr:float = 1e-3,
-                 weight_decay:float = 1e-3,
+                 weight_decay:float = 1e-6,
                  criterion:F = F.mse_loss):
         """
         Hyperparamters setting.
@@ -60,7 +60,9 @@ class NMF(Module):
 
         # Combine layer with 1 layer of Multilayer Perceptrons
         self.nmf = MultilayerPerceptrons(input_dim = hidden_dims[-1] + 1, 
-                                         output_layer = "relu")
+                                         output_layer = "relu")     
+
+        self.save_hyperparameters()
 
     def forward(self, x):
         # Generate embeddings
