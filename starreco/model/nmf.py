@@ -59,7 +59,7 @@ class NMF(Module):
                                          output_layer = None)
 
         # Combine layer with 1 layer of Multilayer Perceptrons
-        self.nmf = MultilayerPerceptrons(input_dim = hidden_dims[-1] + 1, 
+        self.nmf = MultilayerPerceptrons(input_dim = embed_dim * 2, 
                                          output_layer = "relu")     
 
         self.save_hyperparameters()
@@ -67,16 +67,13 @@ class NMF(Module):
     def forward(self, x):
         # Generate embeddings
         x = self.embedding(x)
+
         user_embedding = x[:, 0]
         item_embedding = x[:, 1]
 
-        # Matrix Factorization
-        # Dot product between embedding
-        matrix = torch.mm(user_embedding, item_embedding.T)
-        # Obtain diagonal part of the outer product result
-        diagonal = matrix.diag()
-        # Reshape
-        mf = diagonal.view(diagonal.shape[0], -1)
+        # Generalized Matrix Factorization
+        # Element wise product between embeddings
+        gmf = user_embedding * item_embedding
 
         # Neural Collaborative Filtering
         # Concatenate embeddings 
@@ -85,7 +82,7 @@ class NMF(Module):
         ncf = self.ncf(concat)
 
         # Neural Matrix Factorization
-        # Concatenate result from MF and NCF
-        combine = torch.cat((mf, ncf), 1)
+        # Concatenate result from GMF and NCF
+        combine = torch.cat((gmf, ncf), 1)
         # Prediction
         return self.nmf(combine)
