@@ -25,7 +25,8 @@ Current supported algorithms/models are:
   <tr>
     <td>Matrix Factorization</td>
     <td>
-    	<a href="">paper</a> | <a href="">code</a>
+    	<a href="https://www.inf.unibz.it/~ricci/ISR/papers/ieeecomputer.pdf" target="_blank">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mf.py" target="_blank">code</a>
     </td>
     <td></td>
     <td></td>
