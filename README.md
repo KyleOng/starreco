@@ -34,7 +34,7 @@ Current supported research models:
     <td></td>
     <td></td>
     <td></td>
-    <td>[1]</td>
+    <td><a href="#1">[1]</a></td>
   </tr>
   <tr>
     <td>FM</td>
