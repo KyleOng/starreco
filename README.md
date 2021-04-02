@@ -7,6 +7,9 @@ Star classification is a type of ratings scale commonly used by reviewers to rat
 
 Research Models
 ---
+<p align="center">
+  <img width = "60%" src="asset/venn_diagram.png">
+</p>
 Current supported research models:
 <table>
   <tr>
