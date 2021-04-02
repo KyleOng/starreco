@@ -10,8 +10,29 @@ Research Models
 Current supported algorithms/models are:
 
 <sup> * asterisk symbol indicates code modification for originally CTR models to Rating Prediction models</sup>
-|Research models|Linear|MLP|AE|CNN|
-|-|:-:|:-:|:-:|:-:|
+<table>
+  <tr>
+    <th rowspan = 2>Research models</th>
+    <th rowspan = 2>Details</th>
+    <th colspan = 4>Models</th>
+  </tr>
+  <tr>
+    <th>Linear</th>
+    <th>Non-linear/MLP</th>
+    <th>AE</th>
+    <th>CNN</th>
+  </tr>
+  <tr>
+    <td>Matrix Factorization</td>
+    <td>
+    	<a href="">paper</a> | <a href="">code</a>
+    </td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+</table>
 
 Datasets
 ---
