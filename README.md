@@ -5,7 +5,7 @@
 # star-reco :star: :robot:
 ![version] ![issues] ![license]
 
-Pytorch and lightning implementation for a series of deep learning `star` or rating-based `reco`mmendation systems. This work also acts as a part of the master thesis work's literature review.
+Pytorch and lightning implementation for a series of deep learning `star` or rating-based `reco`mmendation systems. This work also acts as a part of the master thesis work's literature review. 
 
 ### Features:
 + Up to 25+ recommendation models across 20 publications.
@@ -14,14 +14,7 @@ Pytorch and lightning implementation for a series of deep learning `star` or rat
 + Simple and understandable code comments.
 + Code reusability.
 
-### Installation
-
-:warning: This repo is not meant to be used as a python package. To use this, simply git clone it, install necessary packages and you're good to go.
-    
-:checkered_flag: Python package + documentation may be considered as future work/feature.
-
-    git clone https://github.com/KyleOng/star-reco
-    pip install -r requirements.txt
+Click [here](#start) to get started!
 
 Background
 ---
@@ -337,6 +330,52 @@ Datasets
 
 - **Book Crossing Dataset**.
 
+Getting Started<a name="start"></a>
+---
+### Installation
+| :warning: |This is not meant to be used as a python package. To use this, simply git clone it to get started.|
+|-|:-|
+ 
+    git clone https://github.com/KyleOng/star-reco
+    pip install -r requirements.txt
+
+### Example
+
+    from pytorch_lightning import Trainer
+    from pytorch_lightning.callbacks import ModelCheckpoint
+    
+    from starreco.data import DataModule
+    from starreco.model import MF
+    
+    # Initialize dataset
+    data_module = DataModule("ml-1m")
+    data_module.setup()
+    
+    # Initialize model
+    model = MF(([
+        data_module.dataset.rating.num_users, 
+        data_module.dataset.rating.num_items
+    ])
+                 
+    # Train
+    checkpoint_callback = ModelCheckpoint(
+        dirpath = "checkpoints/mf",
+        monitor = "valid_loss_epoch",
+        filename = "mf-{epoch:02d}-{valid_loss_epoch:.4f}"
+    )
+    trainer = Trainer(
+        gpus = 1, 
+        max_epochs = 500, 
+        progress_bar_refresh_rate = 50, 
+        logger = False,
+        callbacks=[checkpoint_callback]
+    )
+    trainer.fit(mf, data_module)
+    
+    # Evaluate
+    model_test = MF.load_from_checkpoint(checkpoint_callback.best_model_path)
+    trainer.test(mf_test, datamodule = data_module)
+    
 Acknowledgements
 ---
 This work is inspired by the following links.
