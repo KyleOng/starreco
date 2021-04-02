@@ -11,7 +11,7 @@ Current supported research models:
 <table>
   <tr>
     <th rowspan = 2>Research model names</th>
-    <th rowspan = 2>Details</th>
+    <th rowspan = 2>Ref and implementation </th>
     <th colspan = 4>Hybrid models</th>
   </tr>
   <tr>
@@ -153,6 +153,17 @@ Current supported research models:
     <td></td>
   </tr>
   <tr>
+    <td>NeuFM</td>
+    <td>
+      <a href="https://arxiv.org/pdf/1708.05027.pdf">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/nfm.py">code</a>
+    </td>
+    <td>:heavy_check_mark:</td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
     <td>DeepFM</td>
     <td>
       <a href="https://arxiv.org/pdf/1703.04247.pdf">paper</a> | 
@@ -168,6 +179,18 @@ Current supported research models:
     <td>
       <a href="https://arxiv.org/pdf/1904.04447.pdf">paper</a> | 
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fgcnn.py">code</a>
+    </td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+  </tr>
+  
+  <tr>
+    <td>aSDAE+MF</td>
+    <td>
+      <a href="https://ojs.aaai.org/index.php/AAAI/article/view/10747/10606">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/asdaemf.py">code</a>
     </td>
     <td>:heavy_check_mark:</td>
     <td></td>
@@ -248,6 +271,17 @@ Current supported research models:
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
+    <td>:heavy_check_mark:</td>
+  </tr>
+  <tr>
+    <td>CCAE</td>
+    <td>
+      <a href="">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ccae.py">code</a>
+    </td>
+    <td></td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
   </tr>
   <tr>
