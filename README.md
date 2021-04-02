@@ -1,9 +1,11 @@
-[issues]: https://img.shields.io/github/issues/KyleOng/star-reco
-[license]: https://img.shields.io/github/license/KyleOng/star-reco
 [version]: https://img.shields.io/badge/python-3.6|3.7|3.8-blue
+[pytorch]: https://img.shields.io/badge/Made%20with-Pytorch-critical?style=for-the-badge&logo=Pytorch
+[lightning]: https://img.shields.io/badge/Made%20with-Pytorch%20Lightning-blueviolet?style=for-the-badge&logo=Pytorch
 
 # star-reco :star: :robot:
-![version] ![issues] ![license]
+![version]
+
+![pytorch] ![lightning]
 
 Pytorch and lightning implementation for a series of deep learning `star` or rating-based `reco`mmendation systems. This work also acts as a part of the master thesis work's literature review. 
 
