@@ -8,10 +8,9 @@ Star classification is a type of ratings scale commonly used by reviewers to rat
 Research Models
 ---
 Current supported algorithms/models are:
-
-<sup> * asterisk symbol indicates code modification for originally CTR models to Rating Prediction models</sup>
 <details>
   <summary>Click to expand research models</summary>
+  <sup> * asterisk symbol indicates code modification for originally CTR models to Rating Prediction models</sup>
   <table>
     <tr>
       <th rowspan = 2>Research models</th>
