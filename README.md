@@ -10,9 +10,9 @@ Research Models
 Current supported research models:
 <table>
   <tr>
-    <th rowspan = 2>Research models</th>
+    <th rowspan = 2>Research model names</th>
     <th rowspan = 2>Details</th>
-    <th colspan = 4>Models</th>
+    <th colspan = 4>Hybrid models</th>
   </tr>
   <tr>
     <th>Linear</th>
@@ -26,7 +26,7 @@ Current supported research models:
       <a href="https://www.inf.unibz.it/~ricci/ISR/papers/ieeecomputer.pdf">paper</a> | 
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mf.py">code</a>
     </td>
-    <td></td>
+    <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
     <td></td>
@@ -37,7 +37,7 @@ Current supported research models:
       <a href="https://sdcast.ksdaemon.ru/wp-content/uploads/2020/02/Rendle2010FM.pdf">paper</a> | 
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fm.py">code</a>
     </td>
-    <td></td>
+    <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
     <td></td>
@@ -49,7 +49,7 @@ Current supported research models:
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/gmf.py">code</a>
     </td>
     <td></td>
-    <td></td>
+    <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
   <tr>
@@ -59,7 +59,7 @@ Current supported research models:
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ncf.py">code</a>
     </td>
     <td></td>
-    <td></td>
+    <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
   </tr>
@@ -70,7 +70,7 @@ Current supported research models:
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/wdl.py">code</a>
     </td>
     <td></td>
-    <td></td>
+    <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
   </tr>
@@ -82,7 +82,7 @@ Current supported research models:
     </td>
     <td></td>
     <td></td>
-    <td></td>
+    <td>:heavy_check_mark:</td>
     <td></td>
   </tr>
   
@@ -94,7 +94,7 @@ Current supported research models:
     </td>
     <td></td>
     <td></td>
-    <td></td>
+    <td>:heavy_check_mark:</td>
     <td></td>
   </tr>
   <tr>
@@ -105,7 +105,7 @@ Current supported research models:
     </td>
     <td></td>
     <td></td>
-    <td></td>
+    <td>:heavy_check_mark:</td>
     <td></td>
   </tr>
   <tr>
@@ -116,7 +116,7 @@ Current supported research models:
     </td>
     <td></td>
     <td></td>
-    <td></td>
+    <td>:heavy_check_mark:</td>
     <td></td>
   </tr>
   <tr>
@@ -127,7 +127,7 @@ Current supported research models:
     </td>
     <td></td>
     <td></td>
-    <td></td>
+    <td>:heavy_check_mark:</td>
     <td></td>
   </tr>
   <tr>
@@ -139,18 +139,7 @@ Current supported research models:
     <td></td>
     <td></td>
     <td></td>
-    <td></td>
-  </tr>
-  <tr>
-    <td>CNN-DCF</td>
-    <td>
-      <a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=9086604">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cnndcf.py">code</a>
-    </td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>:heavy_check_mark:</td>
   </tr>
   <tr>
     <td>NeuMF</td>
@@ -158,8 +147,8 @@ Current supported research models:
       <a href="https://www.comp.nus.edu.sg/~xiangnan/papers/ncf.pdf">paper</a> | 
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/nmf.py">code</a>
     </td>
-    <td></td>
-    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
   </tr>
@@ -169,52 +158,8 @@ Current supported research models:
       <a href="https://arxiv.org/pdf/1703.04247.pdf">paper</a> | 
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/dfm.py">code</a>
     </td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-  </tr>
-  <tr>
-    <td>ConvMF</td>
-    <td>
-      <a href="http://uclab.khu.ac.kr/resources/publication/C_351.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cmf.py">code</a>
-    </td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-  </tr>
-  <tr>
-    <td>DE-ConvMF</td>
-    <td>
-      <a href="https://download.atlantis-press.com/article/125910161.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/decmf.py">code</a>
-    </td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-  </tr>
-  <tr>
-    <td>xDeepFM</td>
-    <td>
-      <a href="https://arxiv.org/pdf/1803.05170.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/xdfm.py">code</a>
-    </td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-  </tr>
-  <tr>
-    <td>FGCNN</td>
-    <td>
-      <a href="https://arxiv.org/pdf/1904.04447.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fgcnn.py">code</a>
-    </td>
-    <td></td>
-    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
   </tr>
@@ -224,21 +169,41 @@ Current supported research models:
       <a href="https://arxiv.org/pdf/1904.04447.pdf">paper</a> | 
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fgcnn.py">code</a>
     </td>
+    <td>:heavy_check_mark:</td>
     <td></td>
-    <td></td>
-    <td></td>
+    <td>:heavy_check_mark:</td>
     <td></td>
   </tr>
-  
   <tr>
+    <td>ConvMF</td>
+    <td>
+      <a href="http://uclab.khu.ac.kr/resources/publication/C_351.pdf">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cmf.py">code</a>
+    </td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
+  </tr>
+  <tr>
+    <td>DE-ConvMF</td>
+    <td>
+      <a href="https://download.atlantis-press.com/article/125910161.pdf">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/decmf.py">code</a>
+    </td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
+  </tr><tr>
     <td>GMF++</td>
     <td>
       <a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8361573">paper</a> | 
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cmfpp.py">code</a>
     </td>
     <td></td>
-    <td></td>
-    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td>:heavy_check_mark:</td>
     <td></td>
   </tr>
   <tr>
@@ -248,9 +213,42 @@ Current supported research models:
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mlppp.py">code</a>
     </td>
     <td></td>
+    <td>:heavy_check_mark:</td>
+    <td>:heavy_check_mark:</td>
     <td></td>
+  </tr>
+  <tr>
+    <td>CNN-DCF</td>
+    <td>
+      <a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=9086604">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cnndcf.py">code</a>
+    </td>
     <td></td>
+    <td>:heavy_check_mark:</td>
     <td></td>
+    <td>:heavy_check_mark:</td>
+  </tr>
+  <tr>
+    <td>xDeepFM</td>
+    <td>
+      <a href="https://arxiv.org/pdf/1803.05170.pdf">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/xdfm.py">code</a>
+    </td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
+  </tr>
+  <tr>
+    <td>FGCNN</td>
+    <td>
+      <a href="https://arxiv.org/pdf/1904.04447.pdf">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fgcnn.py">code</a>
+    </td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
   </tr>
   <tr>
     <td>SDAE-DE-ConvMF</td>
@@ -258,10 +256,10 @@ Current supported research models:
       <a href="https://download.atlantis-press.com/article/125910161.pdf">paper</a> | 
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/sdaedecmf.py">code</a>
     </td>
+    <td>:heavy_check_mark:</td>
     <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td>:heavy_check_mark:</td>
   </tr>
 </table>
 <sup> * asterisk symbol indicates code modification for originally CTR models to Rating Prediction models</sup>
