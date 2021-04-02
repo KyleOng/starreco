@@ -9,6 +9,8 @@ Research Models
 ---
 <p align="center">
   <img width = "60%" src="asset/venn_diagram.png">
+  <br>
+  <b>Figure 2:</b> Venn diagram of hybrid and non-hybrid recommendation models.
 </p>
 Current supported research models:
 <table>
