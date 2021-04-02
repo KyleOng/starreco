@@ -11,54 +11,54 @@ Current supported algorithms/models are:
 
 <sup> * asterisk symbol indicates code modification for originally CTR models to Rating Prediction models</sup>
 <details>
-  <summary>
-    <table>
-      <tr>
-        <th rowspan = 2>Research models</th>
-        <th rowspan = 2>Details</th>
-        <th colspan = 4>Models</th>
-      </tr>
-      <tr>
-        <th>Linear</th>
-        <th>Non-linear/FC/MLP</th>
-        <th>AE</th>
-        <th>CNN</th>
-      </tr>
-      <tr>
-        <td>Matrix Factorization (MF)</td>
-        <td>
-          <a href="https://www.inf.unibz.it/~ricci/ISR/papers/ieeecomputer.pdf">paper</a> | 
-          <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mf.py">code</a>
-        </td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td>Factorization Machine (FM)</td>
-        <td>
-          <a href="https://sdcast.ksdaemon.ru/wp-content/uploads/2020/02/Rendle2010FM.pdf">paper</a> | 
-          <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fm.py">code</a>
-        </td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td>Neural Collaborative Filtering (MLP)</td>
-        <td>
-          <a href="https://www.comp.nus.edu.sg/~xiangnan/papers/ncf.pdf">paper</a> | 
-          <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ncf.py">code</a>
-        </td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
-    </table>
-</summary></details>
+  <summary>Click to expand research models</summary>
+  <table>
+    <tr>
+      <th rowspan = 2>Research models</th>
+      <th rowspan = 2>Details</th>
+      <th colspan = 4>Models</th>
+    </tr>
+    <tr>
+      <th>Linear</th>
+      <th>Non-linear/FC/MLP</th>
+      <th>AE</th>
+      <th>CNN</th>
+    </tr>
+    <tr>
+      <td>Matrix Factorization (MF)</td>
+      <td>
+        <a href="https://www.inf.unibz.it/~ricci/ISR/papers/ieeecomputer.pdf">paper</a> | 
+        <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mf.py">code</a>
+      </td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>Factorization Machine (FM)</td>
+      <td>
+        <a href="https://sdcast.ksdaemon.ru/wp-content/uploads/2020/02/Rendle2010FM.pdf">paper</a> | 
+        <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fm.py">code</a>
+      </td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>Neural Collaborative Filtering (MLP)</td>
+      <td>
+        <a href="https://www.comp.nus.edu.sg/~xiangnan/papers/ncf.pdf">paper</a> | 
+        <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ncf.py">code</a>
+      </td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+  </table>
+</details>
   
 Datasets
 ---
