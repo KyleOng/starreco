@@ -11,7 +11,7 @@ Current supported research models:
 <table>
   <tr>
     <th rowspan = 2>Research model names</th>
-    <th rowspan = 2>Ref and implementation </th>
+    <th rowspan = 2>Details</th>
     <th colspan = 4>Hybrid models</th>
   </tr>
   <tr>
