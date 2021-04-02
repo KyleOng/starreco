@@ -333,7 +333,7 @@ Datasets
 Getting Started<a name="start"></a>
 ---
 ### Installation
-| :warning: |This is not meant to be used as a python package. To use this, simply `git clone` to get started.|
+| :warning: |This is not meant to be used as a python package. <br>To use this, simply `git clone` to get started.|
 |-|:-|
  
     git clone https://github.com/KyleOng/star-reco
@@ -341,6 +341,7 @@ Getting Started<a name="start"></a>
 
 ### Example
 ```python
+
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
     
@@ -365,16 +366,16 @@ checkpoint_callback = ModelCheckpoint(
 )
 trainer = Trainer(
     gpus = 1, 
-    max_epochs = 500, 
+    max_epochs = 100, 
     progress_bar_refresh_rate = 50, 
     logger = False,
     callbacks=[checkpoint_callback]
 )
-trainer.fit(mf, data_module)
+trainer.fit(model, data_module)
     
 # Evaluate
 model_test = MF.load_from_checkpoint(checkpoint_callback.best_model_path)
-trainer.test(mf_test, datamodule = data_module)
+trainer.test(model_test, datamodule = data_module)
 ```
 
 Acknowledgements
