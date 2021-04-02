@@ -1,12 +1,21 @@
 # star-reco :star: :robot:
 Pytorch and lightning implementation for a series of deep learning `star` or rating-based `reco`mmendation systems. This work also acts as a part of the master thesis work's literature review.
 
-**Features:**
+### Features:
 + Up to 25+ recommendation models across 20 publications.
 + GPU acceleration execution.
 + Reducing memory usage for large sparse matrix.
 + Simple and understandable code comments.
 + Code reusability.
+
+### Installation
+
+:warning: This repo is not meant to be used as a python package. To use this, simply git clone it, install necessary packages and you're good to go.
+
+    git clone https://github.com/KyleOng/star-reco
+    pip install -r requirements.txt
+    
+:checkered_flag: **Python package may be considered as future work/feature.**
 
 Background
 ---
