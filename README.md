@@ -12,23 +12,6 @@ Current supported algorithms/models are:
 <sup> * asterisk symbol indicates code modification for originally CTR models to Rating Prediction models</sup>
 |Research models|Linear|MLP|AE|CNN|
 |-|:-:|:-:|:-:|:-:|
-|Matrix Factorization (MF) <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/mf.py)> <[paper](https://www.inf.unibz.it/~ricci/ISR/papers/ieeecomputer.pdf)>|:heavy_check_mark:||||
-|Factorization Machine (FM) <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/fm.py)> <[paper](https://sdcast.ksdaemon.ru/wp-content/uploads/2020/02/Rendle2010FM.pdf)>|:heavy_check_mark:||||
-|Neural Collaborative Filtering (NCF) <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/ncf.py)> <[paper](https://www.comp.nus.edu.sg/~xiangnan/papers/ncf.pdf)>||:heavy_check_mark:|||
-|Wide & Deep * <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/wnd.py)> <[paper](https://arxiv.org/pdf/1606.07792.pdf%29/)>||:heavy_check_mark:|||
-|Autorec (AR) <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/ar.py)> <[paper](http://users.cecs.anu.edu.au/~u5098633/papers/www15.pdf)>|||:heavy_check_mark:||
-|Autorec with side information (HAR) <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/har.py)> <[paper](https://arxiv.org/pdf/1603.00806.pdf)>|||:heavy_check_mark:||
-|Deep Autorec (DAR) <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/dar.py)> <[paper](https://arxiv.org/pdf/1708.01715.pdf)>|||:heavy_check_mark:||
-|Deep Autorec with side information (HDAR) <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/hdar.py)> <[paper](https://arxiv.org/pdf/1603.00806.pdf)>|||:heavy_check_mark:||
-|Variational Autoencoder (VAE) <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/vae.py)> <[paper](https://arxiv.org/pdf/1802.05814.pdf)>|||:heavy_check_mark:||
-|Outer Product-based Neural Collaborative Filtering (ONCF) * <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/oncf.py)> <[paper](https://arxiv.org/pdf/1808.03912.pdf)>||||:heavy_check_mark:|
-|ConvolutionalNeural Networks based Deep Collaborative Filtering model (CNN-DCF) * <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/cnndcf.py)> <[paper](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=9086604)>||||:heavy_check_mark:|
-|Neural Matrix Factorization (NMF) <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/nmf.py)> <[paper](https://www.comp.nus.edu.sg/~xiangnan/papers/ncf.pdf)>|:heavy_check_mark:|:heavy_check_mark:|||
-|Neural Factorization Machine (NFM) <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/nfm.py)> <[paper](https://arxiv.org/pdf/1708.05027&ie=utf-8&sc_us=6917339300733978278.pdf)>|:heavy_check_mark:|:heavy_check_mark:|||
-|Deep Factorization Machine (DeepFM) * <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/dfm.py)> <[paper](https://arxiv.org/pdf/1703.04247.pdf)>|:heavy_check_mark:|:heavy_check_mark:|||
-|Convolutional Matrix Factorization (ConvMF) <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/cmf.py)> <[paper](http://uclab.khu.ac.kr/resources/publication/C_351.pdf)>|:heavy_check_mark:|||:heavy_check_mark:|
-|Extreme Deep Factorization Machine (xDeepFM) * <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/xdfm.py)> <[paper](https://arxiv.org/pdf/1803.05170.pdf)>|:heavy_check_mark:|:heavy_check_mark:||:heavy_check_mark:|
-|Feature Generation by Convolutional Neural Network (FGCNN) * <[code](https://github.com/KyleOng/star-reco/blob/master/starreco/model/fgcnn.py)> <[paper](https://arxiv.org/pdf/1904.04447.pdf)>|:heavy_check_mark:|:heavy_check_mark:||:heavy_check_mark:|
 
 Datasets
 ---
