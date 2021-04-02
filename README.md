@@ -11,11 +11,11 @@ Pytorch and lightning implementation for a series of deep learning `star` or rat
 ### Installation
 
 :warning: This repo is not meant to be used as a python package. To use this, simply git clone it, install necessary packages and you're good to go.
+    
+:checkered_flag: **Python package may be considered as future work/feature.**
 
     git clone https://github.com/KyleOng/star-reco
     pip install -r requirements.txt
-    
-:checkered_flag: **Python package may be considered as future work/feature.**
 
 Background
 ---
