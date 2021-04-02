@@ -275,11 +275,22 @@ Current supported research models:
     <td><a href="#17">[17]</a></td>
   </tr>
   <tr>
+    <td>CCAE</td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ccae.py">ccae.py</a>
+    </td>
+    <td></td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td>:heavy_check_mark:</td>
+    <td><a href="#20">[20]</a></td>
+  </tr>
+  <tr>
     <td>xDeepFM</td>
     <td>
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/xdfm.py">dfm.py</a>
     </td>
-    <td></td>
+    <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
     <td></td>
     <td>:heavy_check_mark:</td>
@@ -290,22 +301,11 @@ Current supported research models:
     <td>
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fgcnn.py">fgcnn.py</a>
     </td>
-    <td></td>
+    <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
     <td></td>
     <td>:heavy_check_mark:</td>
     <td><a href="#19">[19]</a></td>
-  </tr>
-  <tr>
-    <td>CCAE</td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ccae.py">ccae.py</a>
-    </td>
-    <td></td>
-    <td></td>
-    <td>:heavy_check_mark:</td>
-    <td>:heavy_check_mark:</td>
-    <td><a href="#20">[20]</a></td>
   </tr>
   <tr>
     <td>SDAE-DE-ConvMF</td>
