@@ -283,7 +283,7 @@ Current supported research models:
     <td></td>
     <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
-    <td><a href="#20">[20]</a></td>
+    <td><a href="#18">[18]</a></td>
   </tr>
   <tr>
     <td>xDeepFM</td>
@@ -294,7 +294,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td></td>
     <td>:heavy_check_mark:</td>
-    <td><a href="#18">[18]</a></td>
+    <td><a href="#19">[19]</a></td>
   </tr>
   <tr>
     <td>FGCNN</td>
@@ -305,7 +305,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td></td>
     <td>:heavy_check_mark:</td>
-    <td><a href="#19">[19]</a></td>
+    <td><a href="#20">[20]</a></td>
   </tr>
   <tr>
     <td>SDAE-DE-ConvMF</td>
@@ -429,8 +429,8 @@ References
 
 <a id="17">[17]</a> Wu, Y., Wei, J., Yin, J., Liu, X., & Zhang, J. (2020). Deep Collaborative Filtering Based on Outer Product. IEEE Access, 8, 85567-85574. https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=9086604
 
-<a id="18">[18]</a> Lian, J., Zhou, X., Zhang, F., Chen, Z., Xie, X., & Sun, G. (2018, July). xdeepfm: Combining explicit and implicit feature interactions for recommender systems. In Proceedings of the 24th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining (pp. 1754-1763). https://arxiv.org/pdf/1803.05170.pdf
+<a id="18">[20]</a> Zhang, S. Z., Li, P. H., & Chen, X. N. (2019, December). Collaborative Convolution AutoEncoder for Recommendation Systems. In Proceedings of the 2019 8th International Conference on Networks, Communication and Computing (pp. 202-207). https://dl.acm.org/doi/abs/10.1145/3375998.3376031
 
-<a id="19">[19]</a> Liu, B., Tang, R., Chen, Y., Yu, J., Guo, H., & Zhang, Y. (2019, May). Feature generation by convolutional neural network for click-through rate prediction. In The World Wide Web Conference (pp. 1119-1129). https://arxiv.org/pdf/1904.04447.pdf
+<a id="19">[18]</a> Lian, J., Zhou, X., Zhang, F., Chen, Z., Xie, X., & Sun, G. (2018, July). xdeepfm: Combining explicit and implicit feature interactions for recommender systems. In Proceedings of the 24th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining (pp. 1754-1763). https://arxiv.org/pdf/1803.05170.pdf
 
-<a id="20">[20]</a> Zhang, S. Z., Li, P. H., & Chen, X. N. (2019, December). Collaborative Convolution AutoEncoder for Recommendation Systems. In Proceedings of the 2019 8th International Conference on Networks, Communication and Computing (pp. 202-207). https://dl.acm.org/doi/abs/10.1145/3375998.3376031
+<a id="20">[19]</a> Liu, B., Tang, R., Chen, Y., Yu, J., Guo, H., & Zhang, Y. (2019, May). Feature generation by convolutional neural network for click-through rate prediction. In The World Wide Web Conference (pp. 1119-1129). https://arxiv.org/pdf/1904.04447.pdf
