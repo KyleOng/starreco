@@ -1,6 +1,6 @@
 [issues]: https://img.shields.io/github/issues/KyleOng/star-reco
 [license]: https://img.shields.io/github/license/KyleOng/star-reco
-[version]: https://img.shields.io/badge/python-3.5|3.6|3.7|3.8-blue
+[version]: https://img.shields.io/badge/python-3.6|3.7|3.8-blue
 
 # star-reco :star: :robot:
 ![version] ![issues] ![license]
