@@ -1,5 +1,10 @@
+[issues]: https://img.shields.io/github/issues/KyleOng/star-reco
+[license]: https://img.shields.io/github/license/KyleOng/star-reco
+[version]: https://img.shields.io/badge/python-3.5|3.6|3.7|3.8-blue
+
 # star-reco :star: :robot:
 ![version] ![issues] ![license]
+
 Pytorch and lightning implementation for a series of deep learning `star` or rating-based `reco`mmendation systems. This work also acts as a part of the master thesis work's literature review.
 
 ### Features:
@@ -13,7 +18,7 @@ Pytorch and lightning implementation for a series of deep learning `star` or rat
 
 :warning: This repo is not meant to be used as a python package. To use this, simply git clone it, install necessary packages and you're good to go.
     
-:checkered_flag: **Python package may be considered as future work/feature.**
+:checkered_flag: **Python package + documentation may be considered as future work/feature.**
 
     git clone https://github.com/KyleOng/star-reco
     pip install -r requirements.txt
