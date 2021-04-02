@@ -2,11 +2,7 @@
 [pytorch]: https://img.shields.io/badge/made%20with-Pytorch-critical?logo=Pytorch
 [lightning]: https://img.shields.io/badge/made%20with-Pytorch%20Lightning-blueviolet?logo=data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAclBMVEUAAABwIN9wMN94KN94KOd4MN94MOd4LON2LeJ4LeR6Luh5LuR5LuZ6Lud4LuN5LuZ4LuN4L%2BV6LeV4LuR5LeR5LeZ5LuV5LuV5LuWBO%2BeJSOiSVembYuurfO6rfO%2B0ifG8lvLNsPXdy%2Fjm2Pru5fz%2F%2F%2F8%2FsQg4AAAAGHRSTlMAEBAgICAgQFBgb3Bwf4CPkJ%2BfoL%2B%2F3%2B93imz1AAAAsklEQVR42pWOVaLDQAzEtszceqdhvP8RH0Mndki%2FksGNZP64zjr05AAAh2mb33h8IRtTrx74Q%2FSdyQlE85WtRwPZv24XGMj61z%2FQwvUnAJE98YcVZCU6g6zOdUC%2BTnRAvg51QL4OOoL4M6gCHahCBVwUHQH6NkTkjSAlbwQFeSMoyevgGcAKljeY3Bful41oLSv3ytGz9kfS6s5l6jRL%2BTu%2Bcgy%2F4neuleUZONN2nSwc8w52pTpHkqDqRQAAAABJRU5ErkJggg%3D%3D
 
-<p float="left">
-  <img align="left" width="100" height="100" src="asset/logo.png">
-  <h1>star-reco</h1>
-</p>
-
+# star-recp
 ![version] ![pytorch] ![lightning]
 
 Pytorch and lightning implementation for a series of deep learning `star` or rating-based `reco`mmendation systems. This work also acts as a part of the master thesis work's literature review. 
