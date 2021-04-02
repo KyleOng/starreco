@@ -333,7 +333,7 @@ Datasets
 Getting Started<a name="start"></a>
 ---
 ### Installation
-| :warning: |This is not meant to be used as a python package. To use this, simply git clone it to get started.|
+| :warning: |This is not meant to be used as a python package. To use this, simply `git clone` to get started.|
 |-|:-|
  
     git clone https://github.com/KyleOng/star-reco
@@ -352,7 +352,7 @@ data_module = DataModule("ml-1m")
 data_module.setup()
     
 # Initialize model
-model = MF(([
+model = MF([
     data_module.dataset.rating.num_users, 
     data_module.dataset.rating.num_items
 ])
