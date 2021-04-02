@@ -46,7 +46,7 @@ Current supported research models:
     <td></td>
     <td></td>
     <td></td>
-    <td>[2]</td>
+    <td><a href="#2">[2]</a></td>
   </tr>
   <tr>
     <td>GMF</td>
@@ -58,7 +58,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
-    <td>[3]</td>
+    <td><a href="#3">[3]</a></td>
   <tr>
     <td>NCF/MLP</td>
     <td>
@@ -69,7 +69,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
-    <td>[3]</td>
+    <td><a href="#3">[3]</a></td>
   </tr>
   <tr>
     <td>WDL</td>
@@ -81,7 +81,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
-    <td>[4]</td>
+    <td><a href="#4">[4]</a></td>
   </tr>
   <tr>
     <td>AutoRec</td>
@@ -93,7 +93,7 @@ Current supported research models:
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
-    <td>[5]</td>
+    <td><a href="#5">[5]</a></td>
   </tr>
   <tr>
     <td>DeepRec</td>
@@ -105,7 +105,7 @@ Current supported research models:
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
-    <td>[6]</td>
+    <td><a href="#6">[6]</a></td>
   </tr>
   <tr>
     <td>CFN</td>
@@ -117,7 +117,7 @@ Current supported research models:
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
-    <td>[7]</td>
+    <td><a href="#7">[7]</a></td>
   </tr>
   <tr>
     <td>Mult-VAE</td>
@@ -129,7 +129,7 @@ Current supported research models:
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
-    <td>[8]</td>
+    <td><a href="#8">[8]</a></td>
   </tr>
   <tr>
     <td>Mult-DAE</td>
@@ -141,7 +141,7 @@ Current supported research models:
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
-    <td>[8]</td>
+    <td><a href="#8">[8]</a></td>
   </tr>
   <tr>
     <td>ONCF</td>
@@ -153,7 +153,7 @@ Current supported research models:
     <td></td>
     <td></td>
     <td>:heavy_check_mark:</td>
-    <td>[9]</td>
+    <td><a href="#9">[9]</a></td>
   </tr>
   <tr>
     <td>NeuMF</td>
@@ -165,7 +165,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
-    <td>[3]</td>
+    <td><a href="#3">[3]</a></td>
   </tr>
   <tr>
     <td>NeuFM</td>
@@ -177,7 +177,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
-    <td>[10]</td>
+    <td><a href="#10">[10]</a></td>
   </tr>
   <tr>
     <td>DeepFM</td>
@@ -189,7 +189,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
-    <td>[11]</td>
+    <td><a href="#11">[11]</a></td>
   </tr>
   <tr>
     <td>mDA-CF</td>
@@ -201,7 +201,7 @@ Current supported research models:
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
-    <td>[12]</td>
+    <td><a href="#12">[12]</a></td>
   </tr>
   
   <tr>
@@ -214,7 +214,7 @@ Current supported research models:
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
-    <td>[13]</td>
+    <td><a href="#13">[13]</a></td>
   </tr>
   <tr>
     <td>ConvMF</td>
@@ -226,7 +226,7 @@ Current supported research models:
     <td></td>
     <td></td>
     <td>:heavy_check_mark:</td>
-    <td>[14]</td>
+    <td><a href="#14">[14]</a></td>
   </tr>
   <tr>
     <td>DE-ConvMF</td>
@@ -238,7 +238,7 @@ Current supported research models:
     <td></td>
     <td></td>
     <td>:heavy_check_mark:</td>
-    <td>[15]</td>
+    <td><a href="#15">[15]</a></td>
   </tr><tr>
     <td>GMF++</td>
     <td>
@@ -249,7 +249,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
     <td></td>
-    <td>[16]</td>
+    <td><a href="#16">[16]</a></td>
   </tr>
   <tr>
     <td>MLP++</td>
@@ -261,7 +261,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
     <td></td>
-    <td>[16]</td>
+    <td><a href="#16">[16]</a></td>
   </tr>
   <tr>
     <td>CNN-DCF</td>
@@ -273,7 +273,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td></td>
     <td>:heavy_check_mark:</td>
-    <td>[17]</td>
+    <td><a href="#17">[17]</a></td>
   </tr>
   <tr>
     <td>xDeepFM</td>
@@ -285,7 +285,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td></td>
     <td>:heavy_check_mark:</td>
-    <td>[18]</td>
+    <td><a href="#18">[18]</a></td>
   </tr>
   <tr>
     <td>FGCNN</td>
@@ -297,7 +297,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td></td>
     <td>:heavy_check_mark:</td>
-    <td>[19]</td>
+    <td><a href="#19">[19]</a></td>
   </tr>
   <tr>
     <td>CCAE</td>
@@ -309,7 +309,7 @@ Current supported research models:
     <td></td>
     <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
-    <td>[20]</td>
+    <td><a href="#20">[20]</a></td>
   </tr>
   <tr>
     <td>SDAE-DE-ConvMF</td>
@@ -321,7 +321,7 @@ Current supported research models:
     <td></td>
     <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
-    <td>[15]</td>
+    <td><a href="#15">[15]</a></td>
   </tr>
 </table>
 
@@ -352,43 +352,43 @@ Special thanks to the following repositories for github code references and mode
 
 References
 ---
-[1] Koren, Y., Bell, R., & Volinsky, C. (2009). Matrix factorization techniques for recommender systems. Computer, 42(8), 30-37.
+<a id="1">[1]</a> Koren, Y., Bell, R., & Volinsky, C. (2009). Matrix factorization techniques for recommender systems. Computer, 42(8), 30-37.
 
-[2] Rendle, S. (2010, December). Factorization machines. In 2010 IEEE International Conference on Data Mining (pp. 995-1000). IEEE.
+<a id="2">[2]</a> Rendle, S. (2010, December). Factorization machines. In 2010 IEEE International Conference on Data Mining (pp. 995-1000). IEEE.
 
-[3] He, X., Liao, L., Zhang, H., Nie, L., Hu, X., & Chua, T. S. (2017, April). Neural collaborative filtering. In Proceedings of the 26th international conference on world wide web (pp. 173-182).
+<a id="3">[3]</a> He, X., Liao, L., Zhang, H., Nie, L., Hu, X., & Chua, T. S. (2017, April). Neural collaborative filtering. In Proceedings of the 26th international conference on world wide web (pp. 173-182).
 
-[4] Cheng, H. T., Koc, L., Harmsen, J., Shaked, T., Chandra, T., Aradhye, H., ... & Shah, H. (2016, September). Wide & deep learning for recommender systems. In Proceedings of the 1st workshop on deep learning for recommender systems (pp. 7-10).
+<a id="4">[4]</a> Cheng, H. T., Koc, L., Harmsen, J., Shaked, T., Chandra, T., Aradhye, H., ... & Shah, H. (2016, September). Wide & deep learning for recommender systems. In Proceedings of the 1st workshop on deep learning for recommender systems (pp. 7-10).
 
-[5] Sedhain, S., Menon, A. K., Sanner, S., & Xie, L. (2015, May). Autorec: Autoencoders meet collaborative filtering. In Proceedings of the 24th international conference on World Wide Web (pp. 111-112).
+<a id="5">[5]</a> Sedhain, S., Menon, A. K., Sanner, S., & Xie, L. (2015, May). Autorec: Autoencoders meet collaborative filtering. In Proceedings of the 24th international conference on World Wide Web (pp. 111-112).
 
-[6] Kuchaiev, O., & Ginsburg, B. (2017). Training deep autoencoders for collaborative filtering. arXiv preprint arXiv:1708.01715.
+<a id="6">[6]</a> Kuchaiev, O., & Ginsburg, B. (2017). Training deep autoencoders for collaborative filtering. arXiv preprint arXiv:1708.01715.
 
-[7] Strub, F., Mary, J., & Gaudel, R. (2016). Hybrid collaborative filtering with autoencoders. arXiv preprint arXiv:1603.00806.
+<a id="7">[7]</a> Strub, F., Mary, J., & Gaudel, R. (2016). Hybrid collaborative filtering with autoencoders. arXiv preprint arXiv:1603.00806.
 
-[8] Liang, D., Krishnan, R. G., Hoffman, M. D., & Jebara, T. (2018, April). Variational autoencoders for collaborative filtering. In Proceedings of the 2018 world wide web conference (pp. 689-698).
+<a id="8">[8]</a> Liang, D., Krishnan, R. G., Hoffman, M. D., & Jebara, T. (2018, April). Variational autoencoders for collaborative filtering. In Proceedings of the 2018 world wide web conference (pp. 689-698).
 
-[9] He, X., Du, X., Wang, X., Tian, F., Tang, J., & Chua, T. S. (2018). Outer product-based neural collaborative filtering. arXiv preprint arXiv:1808.03912.
+<a id="9">[9]</a> He, X., Du, X., Wang, X., Tian, F., Tang, J., & Chua, T. S. (2018). Outer product-based neural collaborative filtering. arXiv preprint arXiv:1808.03912.
 
-[10] He, X., & Chua, T. S. (2017, August). Neural factorization machines for sparse predictive analytics. In Proceedings of the 40th International ACM SIGIR conference on Research and Development in Information Retrieval (pp. 355-364).
+<a id="10">[10]</a> He, X., & Chua, T. S. (2017, August). Neural factorization machines for sparse predictive analytics. In Proceedings of the 40th International ACM SIGIR conference on Research and Development in Information Retrieval (pp. 355-364).
 
-[11] Guo, H., Tang, R., Ye, Y., Li, Z., & He, X. (2017). DeepFM: a factorization-machine based neural network for CTR prediction. arXiv preprint arXiv:1703.04247.
+<a id="11">[11]</a> Guo, H., Tang, R., Ye, Y., Li, Z., & He, X. (2017). DeepFM: a factorization-machine based neural network for CTR prediction. arXiv preprint arXiv:1703.04247.
 
-[12] Li, S., Kawale, J., & Fu, Y. (2015, October). Deep collaborative filtering via marginalized denoising auto-encoder. In Proceedings of the 24th ACM international on conference on information and knowledge management (pp. 811-820).
+<a id="12">[12]</a> Li, S., Kawale, J., & Fu, Y. (2015, October). Deep collaborative filtering via marginalized denoising auto-encoder. In Proceedings of the 24th ACM international on conference on information and knowledge management (pp. 811-820).
 
-[13] Dong, X., Yu, L., Wu, Z., Sun, Y., Yuan, L., & Zhang, F. (2017, February). A hybrid collaborative filtering model with deep structure for recommender systems. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 31, No. 1).
+<a id="13">[13]</a> Dong, X., Yu, L., Wu, Z., Sun, Y., Yuan, L., & Zhang, F. (2017, February). A hybrid collaborative filtering model with deep structure for recommender systems. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 31, No. 1).
 
-[14] Kim, D., Park, C., Oh, J., Lee, S., & Yu, H. (2016, September). Convolutional matrix factorization for document context-aware recommendation. In Proceedings of the 10th ACM conference on recommender systems (pp. 233-240).
+<a id="14">[14]</a> Kim, D., Park, C., Oh, J., Lee, S., & Yu, H. (2016, September). Convolutional matrix factorization for document context-aware recommendation. In Proceedings of the 10th ACM conference on recommender systems (pp. 233-240).
 
-[15] Zhao, J., Liu, Z., Chen, H., Zhang, J., & Wen, Q. (2019, June). Hybrid recommendation algorithms based on ConvMF deep learning model. In 2019 International Conference on Wireless Communication, Network and Multimedia Engineering (WCNME 2019) (pp. 151-154). Atlantis Press.
+<a id="15">[15]</a> Zhao, J., Liu, Z., Chen, H., Zhang, J., & Wen, Q. (2019, June). Hybrid recommendation algorithms based on ConvMF deep learning model. In 2019 International Conference on Wireless Communication, Network and Multimedia Engineering (WCNME 2019) (pp. 151-154). Atlantis Press.
 
-[16] Liu, Y., Wang, S., Khan, M. S., & He, J. (2018). A novel deep hybrid recommender system based on auto-encoder with neural collaborative filtering. Big Data Mining and Analytics, 1(3), 211-221.
+<a id="16">[16]</a> Liu, Y., Wang, S., Khan, M. S., & He, J. (2018). A novel deep hybrid recommender system based on auto-encoder with neural collaborative filtering. Big Data Mining and Analytics, 1(3), 211-221.
 
-[17] Wu, Y., Wei, J., Yin, J., Liu, X., & Zhang, J. (2020). Deep Collaborative Filtering Based on Outer Product. IEEE Access, 8, 85567-85574.
+<a id="17">[17]</a> Wu, Y., Wei, J., Yin, J., Liu, X., & Zhang, J. (2020). Deep Collaborative Filtering Based on Outer Product. IEEE Access, 8, 85567-85574.
 
-[18] Lian, J., Zhou, X., Zhang, F., Chen, Z., Xie, X., & Sun, G. (2018, July). xdeepfm: Combining explicit and implicit feature interactions for recommender systems. In Proceedings of the 24th ACM SIGKDD International Conference on Knowledge 
+<a id="18">[18]</a> Lian, J., Zhou, X., Zhang, F., Chen, Z., Xie, X., & Sun, G. (2018, July). xdeepfm: Combining explicit and implicit feature interactions for recommender systems. In Proceedings of the 24th ACM SIGKDD International Conference on Knowledge 
 Discovery & Data Mining (pp. 1754-1763).
 
-[19] Liu, B., Tang, R., Chen, Y., Yu, J., Guo, H., & Zhang, Y. (2019, May). Feature generation by convolutional neural network for click-through rate prediction. In The World Wide Web Conference (pp. 1119-1129).
+<a id="19">[19]</a> Liu, B., Tang, R., Chen, Y., Yu, J., Guo, H., & Zhang, Y. (2019, May). Feature generation by convolutional neural network for click-through rate prediction. In The World Wide Web Conference (pp. 1119-1129).
 
-[20] Zhang, S. Z., Li, P. H., & Chen, X. N. (2019, December). Collaborative Convolution AutoEncoder for Recommendation Systems. In Proceedings of the 2019 8th International Conference on Networks, Communication and Computing (pp. 202-207).
+<a id="20">[20]</a> Zhang, S. Z., Li, P. H., & Chen, X. N. (2019, December). Collaborative Convolution AutoEncoder for Recommendation Systems. In Proceedings of the 2019 8th International Conference on Networks, Communication and Computing (pp. 202-207).
