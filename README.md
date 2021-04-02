@@ -14,7 +14,7 @@ Pytorch and lightning implementation for a series of deep learning `star` or rat
 + Simple and understandable code comments.
 + Code reusability.
 
-Click [here](#start) to get started!
+:star: Click [here](#start) to get started!
 
 Background
 ---
