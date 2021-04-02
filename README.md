@@ -7,7 +7,7 @@
 
 Pytorch and lightning implementation for a series of deep learning `star` or rating-based `reco`mmendation systems. This work also acts as a part of the master thesis work's literature review. 
 
-### Features:
+**Features:**
 + Up to 25+ recommendation models across 20 publications.
 + GPU acceleration execution.
 + Reducing memory usage for large sparse matrix.
@@ -340,7 +340,7 @@ Getting Started<a name="start"></a>
     pip install -r requirements.txt
 
 ### Example
-
+```python
     from pytorch_lightning import Trainer
     from pytorch_lightning.callbacks import ModelCheckpoint
     
@@ -375,7 +375,8 @@ Getting Started<a name="start"></a>
     # Evaluate
     model_test = MF.load_from_checkpoint(checkpoint_callback.best_model_path)
     trainer.test(mf_test, datamodule = data_module)
-    
+```
+
 Acknowledgements
 ---
 This work is inspired by the following links.
