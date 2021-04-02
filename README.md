@@ -16,12 +16,12 @@ Current supported research models:
   </tr>
   <tr>
     <th>Linear</th>
-    <th>Non-linear/FC/MLP</th>
+    <th>Nonlinear/FC/MLP</th>
     <th>AE</th>
     <th>CNN</th>
   </tr>
   <tr>
-    <td>Matrix Factorization (MF)</td>
+    <td>MF</td>
     <td>
       <a href="https://www.inf.unibz.it/~ricci/ISR/papers/ieeecomputer.pdf">paper</a> | 
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mf.py">code</a>
@@ -32,7 +32,7 @@ Current supported research models:
     <td></td>
   </tr>
   <tr>
-    <td>Factorization Machine (FM)</td>
+    <td>FM</td>
     <td>
       <a href="https://sdcast.ksdaemon.ru/wp-content/uploads/2020/02/Rendle2010FM.pdf">paper</a> | 
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fm.py">code</a>
@@ -43,7 +43,17 @@ Current supported research models:
     <td></td>
   </tr>
   <tr>
-    <td>Neural Collaborative Filtering (MLP)</td>
+    <td>GMF</td>
+    <td>
+      <a href="https://www.comp.nus.edu.sg/~xiangnan/papers/ncf.pdf">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/gmf.py">code</a>
+    </td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  <tr>
+    <td>NCF/MLP</td>
     <td>
       <a href="https://www.comp.nus.edu.sg/~xiangnan/papers/ncf.pdf">paper</a> | 
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ncf.py">code</a>
@@ -54,10 +64,199 @@ Current supported research models:
     <td></td>
   </tr>
   <tr>
-    <td>Wide and Deep</td>
+    <td>WDL</td>
     <td>
       <a href="https://arxiv.org/pdf/1606.07792.pdf%29/">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/wnd.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/wdl.py">code</a>
+    </td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>AutoRec</td>
+    <td>
+      <a href="http://users.cecs.anu.edu.au/~u5098633/papers/www15.pdf">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ae.py">code</a>
+    </td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  
+  <tr>
+    <td>DeepRec</td>
+    <td>
+      <a href="https://arxiv.org/pdf/1708.01715.pdf">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/dae.py">code</a>
+    </td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>CFN</td>
+    <td>
+      <a href="https://arxiv.org/pdf/1603.00806.pdf">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/hae.py">code</a> 
+    </td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Mult-VAE</td>
+    <td>
+      <a href="https://arxiv.org/pdf/1802.05814.pdf">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mvae.py">code</a>
+    </td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Mult-DAE</td>
+    <td>
+      <a href="https://arxiv.org/pdf/1802.05814.pdf">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mdae.py">code</a>
+    </td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>ONCF</td>
+    <td>
+      <a href="https://arxiv.org/pdf/1808.03912.pdf">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/oncf.py">code</a>
+    </td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>CNN-DCF</td>
+    <td>
+      <a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=9086604">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cnndcf.py">code</a>
+    </td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>NeuMF</td>
+    <td>
+      <a href="https://www.comp.nus.edu.sg/~xiangnan/papers/ncf.pdf">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/nmf.py">code</a>
+    </td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>DeepFM</td>
+    <td>
+      <a href="https://arxiv.org/pdf/1703.04247.pdf">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/dfm.py">code</a>
+    </td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>ConvMF</td>
+    <td>
+      <a href="http://uclab.khu.ac.kr/resources/publication/C_351.pdf">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cmf.py">code</a>
+    </td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>DE-ConvMF</td>
+    <td>
+      <a href="https://download.atlantis-press.com/article/125910161.pdf">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/decmf.py">code</a>
+    </td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>xDeepFM</td>
+    <td>
+      <a href="https://arxiv.org/pdf/1803.05170.pdf">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/xdfm.py">code</a>
+    </td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>FGCNN</td>
+    <td>
+      <a href="https://arxiv.org/pdf/1904.04447.pdf">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fgcnn.py">code</a>
+    </td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>mDA-CF</td>
+    <td>
+      <a href="https://arxiv.org/pdf/1904.04447.pdf">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fgcnn.py">code</a>
+    </td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  
+  <tr>
+    <td>GMF++</td>
+    <td>
+      <a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8361573">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cmfpp.py">code</a>
+    </td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>MLP++</td>
+    <td>
+      <a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8361573">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mlppp.py">code</a>
+    </td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>SDAE-DE-ConvMF</td>
+    <td>
+      <a href="https://download.atlantis-press.com/article/125910161.pdf">paper</a> | 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/sdaedecmf.py">code</a>
     </td>
     <td></td>
     <td></td>
@@ -86,6 +285,7 @@ This work is inspired by the following links for creating a unified and comprehe
 
 Special thanks to the following repositories for github code references and model/algorithms understanding.
 - https://github.com/khanhnamle1994/MetaRec
+- https://github.com/makgyver/rectorch
 - https://github.com/rixwew/pytorch-fm
 - https://github.com/RaptorMai/Deep-AutoEncoder-Recommendation
 - https://github.com/shenweichen/DeepCTR/
