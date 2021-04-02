@@ -5,7 +5,7 @@
 # star-reco
 ![version] ![pytorch] ![lightning]
 
-Pytorch and lightning implementation for a series of deep learning `star` (rating) -based `reco`mmendation systems. This work also acts as a part of the master thesis work's literature review. 
+Pytorch and lightning implementation for a series of deep learning `star`-based or rating-based `reco`mmendation systems. This work also acts as a part of the master thesis work's literature review. 
 
 ### Features:
 + Up to 25+ recommendation models across 20 publications.
