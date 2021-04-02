@@ -341,40 +341,40 @@ Getting Started<a name="start"></a>
 
 ### Example
 ```python
-    from pytorch_lightning import Trainer
-    from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning import Trainer
+from pytorch_lightning.callbacks import ModelCheckpoint
     
-    from starreco.data import DataModule
-    from starreco.model import MF
+from starreco.data import DataModule
+from starreco.model import MF
     
-    # Initialize dataset
-    data_module = DataModule("ml-1m")
-    data_module.setup()
+# Initialize dataset
+data_module = DataModule("ml-1m")
+data_module.setup()
     
-    # Initialize model
-    model = MF(([
-        data_module.dataset.rating.num_users, 
-        data_module.dataset.rating.num_items
-    ])
+# Initialize model
+model = MF(([
+    data_module.dataset.rating.num_users, 
+    data_module.dataset.rating.num_items
+])
                  
-    # Train
-    checkpoint_callback = ModelCheckpoint(
-        dirpath = "checkpoints/mf",
-        monitor = "valid_loss_epoch",
-        filename = "mf-{epoch:02d}-{valid_loss_epoch:.4f}"
-    )
-    trainer = Trainer(
-        gpus = 1, 
-        max_epochs = 500, 
-        progress_bar_refresh_rate = 50, 
-        logger = False,
-        callbacks=[checkpoint_callback]
-    )
-    trainer.fit(mf, data_module)
+# Train
+checkpoint_callback = ModelCheckpoint(
+    dirpath = "checkpoints/mf",
+    monitor = "valid_loss_epoch",
+    filename = "mf-{epoch:02d}-{valid_loss_epoch:.4f}"
+)
+trainer = Trainer(
+    gpus = 1, 
+    max_epochs = 500, 
+    progress_bar_refresh_rate = 50, 
+    logger = False,
+    callbacks=[checkpoint_callback]
+)
+trainer.fit(mf, data_module)
     
-    # Evaluate
-    model_test = MF.load_from_checkpoint(checkpoint_callback.best_model_path)
-    trainer.test(mf_test, datamodule = data_module)
+# Evaluate
+model_test = MF.load_from_checkpoint(checkpoint_callback.best_model_path)
+trainer.test(mf_test, datamodule = data_module)
 ```
 
 Acknowledgements
