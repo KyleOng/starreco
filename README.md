@@ -262,7 +262,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
   </tr>
 </table>
-<sup> * asterisk symbol indicates code modification for originally CTR models to Rating Prediction models</sup>
+<sup>* Several models are originally CTR models, but have been modified as Rating Prediction models. *</sup>
   
 Datasets
 ---
