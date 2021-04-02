@@ -10,9 +10,10 @@ Research Models
 Current supported research models:
 <table>
   <tr>
-    <th rowspan = 3>Research model names</th>
-    <th rowspan = 3>Details</th>
+    <th rowspan = 3>Research models</th>
+    <th rowspan = 3>Direct links</th>
     <th colspan = 4>Hybrid models</th>
+    <th rowspan = 3>Reference</th>
   </tr>
   <tr>
     <th rowspan = 2>Linear</th>
@@ -33,6 +34,7 @@ Current supported research models:
     <td></td>
     <td></td>
     <td></td>
+    <td>[1]</td>
   </tr>
   <tr>
     <td>FM</td>
@@ -44,6 +46,7 @@ Current supported research models:
     <td></td>
     <td></td>
     <td></td>
+    <td>[2]</td>
   </tr>
   <tr>
     <td>GMF</td>
@@ -55,6 +58,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
+    <td>[3]</td>
   <tr>
     <td>NCF/MLP</td>
     <td>
@@ -65,6 +69,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
+    <td>[3]</td>
   </tr>
   <tr>
     <td>WDL</td>
@@ -76,6 +81,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
+    <td>[4]</td>
   </tr>
   <tr>
     <td>AutoRec</td>
@@ -87,8 +93,8 @@ Current supported research models:
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
+    <td>[5]</td>
   </tr>
-  
   <tr>
     <td>DeepRec</td>
     <td>
@@ -99,6 +105,7 @@ Current supported research models:
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
+    <td>[6]</td>
   </tr>
   <tr>
     <td>CFN</td>
@@ -110,6 +117,7 @@ Current supported research models:
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
+    <td>[7]</td>
   </tr>
   <tr>
     <td>Mult-VAE</td>
@@ -121,6 +129,7 @@ Current supported research models:
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
+    <td>[8]</td>
   </tr>
   <tr>
     <td>Mult-DAE</td>
@@ -132,6 +141,7 @@ Current supported research models:
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
+    <td>[8]</td>
   </tr>
   <tr>
     <td>ONCF</td>
@@ -143,6 +153,7 @@ Current supported research models:
     <td></td>
     <td></td>
     <td>:heavy_check_mark:</td>
+    <td>[9]</td>
   </tr>
   <tr>
     <td>NeuMF</td>
@@ -154,6 +165,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
+    <td>[3]</td>
   </tr>
   <tr>
     <td>NeuFM</td>
@@ -165,6 +177,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
+    <td>[10]</td>
   </tr>
   <tr>
     <td>DeepFM</td>
@@ -176,6 +189,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
+    <td>[11]</td>
   </tr>
   <tr>
     <td>mDA-CF</td>
@@ -187,6 +201,7 @@ Current supported research models:
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
+    <td>[12]</td>
   </tr>
   
   <tr>
@@ -199,6 +214,7 @@ Current supported research models:
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
+    <td>[13]</td>
   </tr>
   <tr>
     <td>ConvMF</td>
@@ -210,6 +226,7 @@ Current supported research models:
     <td></td>
     <td></td>
     <td>:heavy_check_mark:</td>
+    <td>[14]</td>
   </tr>
   <tr>
     <td>DE-ConvMF</td>
@@ -221,6 +238,7 @@ Current supported research models:
     <td></td>
     <td></td>
     <td>:heavy_check_mark:</td>
+    <td>[15]</td>
   </tr><tr>
     <td>GMF++</td>
     <td>
@@ -231,6 +249,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
     <td></td>
+    <td>[16]</td>
   </tr>
   <tr>
     <td>MLP++</td>
@@ -242,6 +261,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
     <td></td>
+    <td>[16]</td>
   </tr>
   <tr>
     <td>CNN-DCF</td>
@@ -253,6 +273,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td></td>
     <td>:heavy_check_mark:</td>
+    <td>[17]</td>
   </tr>
   <tr>
     <td>xDeepFM</td>
@@ -264,6 +285,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td></td>
     <td>:heavy_check_mark:</td>
+    <td>[18]</td>
   </tr>
   <tr>
     <td>FGCNN</td>
@@ -275,6 +297,7 @@ Current supported research models:
     <td>:heavy_check_mark:</td>
     <td></td>
     <td>:heavy_check_mark:</td>
+    <td>[19]</td>
   </tr>
   <tr>
     <td>CCAE</td>
@@ -286,6 +309,7 @@ Current supported research models:
     <td></td>
     <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
+    <td>[20]</td>
   </tr>
   <tr>
     <td>SDAE-DE-ConvMF</td>
@@ -297,14 +321,9 @@ Current supported research models:
     <td></td>
     <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
+    <td>[15]</td>
   </tr>
 </table>
-<sup>* Several models are originally CTR models, but have been modified as Rating Prediction models. *</sup>
-<br>
-<details>
-  <summary>Expand to view publications of each research model.</summary>
-  
-</details>
 
 Datasets
 ---
@@ -373,8 +392,3 @@ Discovery & Data Mining (pp. 1754-1763).
 [19] Liu, B., Tang, R., Chen, Y., Yu, J., Guo, H., & Zhang, Y. (2019, May). Feature generation by convolutional neural network for click-through rate prediction. In The World Wide Web Conference (pp. 1119-1129).
 
 [20] Zhang, S. Z., Li, P. H., & Chen, X. N. (2019, December). Collaborative Convolution AutoEncoder for Recommendation Systems. In Proceedings of the 2019 8th International Conference on Networks, Communication and Computing (pp. 202-207).
-
-
-
-
- 
