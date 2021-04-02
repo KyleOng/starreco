@@ -11,7 +11,7 @@ Current supported research models:
 <table>
   <tr>
     <th rowspan = 3>Research models</th>
-    <th rowspan = 3>Direct links</th>
+    <th rowspan = 3>Implementation</th>
     <th colspan = 4>Hybrid models</th>
     <th rowspan = 3>Reference</th>
   </tr>
@@ -27,8 +27,7 @@ Current supported research models:
   <tr>
     <td>MF</td>
     <td>
-      <a href="https://www.inf.unibz.it/~ricci/ISR/papers/ieeecomputer.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mf.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mf.py">mf.py</a>
     </td>
     <td>:heavy_check_mark:</td>
     <td></td>
@@ -39,8 +38,7 @@ Current supported research models:
   <tr>
     <td>FM</td>
     <td>
-      <a href="https://sdcast.ksdaemon.ru/wp-content/uploads/2020/02/Rendle2010FM.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fm.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fm.py">fm.py</a>
     </td>
     <td>:heavy_check_mark:</td>
     <td></td>
@@ -51,8 +49,7 @@ Current supported research models:
   <tr>
     <td>GMF</td>
     <td>
-      <a href="https://www.comp.nus.edu.sg/~xiangnan/papers/ncf.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/gmf.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/gmf.py">gmf.py</a>
     </td>
     <td></td>
     <td>:heavy_check_mark:</td>
@@ -62,8 +59,7 @@ Current supported research models:
   <tr>
     <td>NCF/MLP</td>
     <td>
-      <a href="https://www.comp.nus.edu.sg/~xiangnan/papers/ncf.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ncf.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ncf.py">ncf.py</a>
     </td>
     <td></td>
     <td>:heavy_check_mark:</td>
@@ -74,8 +70,7 @@ Current supported research models:
   <tr>
     <td>WDL</td>
     <td>
-      <a href="https://arxiv.org/pdf/1606.07792.pdf%29/">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/wdl.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/wdl.py">wdl.py</a>
     </td>
     <td></td>
     <td>:heavy_check_mark:</td>
@@ -86,8 +81,7 @@ Current supported research models:
   <tr>
     <td>AutoRec</td>
     <td>
-      <a href="http://users.cecs.anu.edu.au/~u5098633/papers/www15.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ae.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ar.py">ar.py</a>
     </td>
     <td></td>
     <td></td>
@@ -98,8 +92,7 @@ Current supported research models:
   <tr>
     <td>DeepRec</td>
     <td>
-      <a href="https://arxiv.org/pdf/1708.01715.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/dae.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/dr.py">dr.py</a>
     </td>
     <td></td>
     <td></td>
@@ -110,8 +103,7 @@ Current supported research models:
   <tr>
     <td>CFN</td>
     <td>
-      <a href="https://arxiv.org/pdf/1603.00806.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/hae.py">code</a> 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cfn.py">cfn.py</a> 
     </td>
     <td></td>
     <td></td>
@@ -122,8 +114,7 @@ Current supported research models:
   <tr>
     <td>Mult-VAE</td>
     <td>
-      <a href="https://arxiv.org/pdf/1802.05814.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mvae.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mvae.py">mvae.py</a>
     </td>
     <td></td>
     <td></td>
@@ -134,8 +125,7 @@ Current supported research models:
   <tr>
     <td>Mult-DAE</td>
     <td>
-      <a href="https://arxiv.org/pdf/1802.05814.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mdae.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mdae.py">mdae.py</a>
     </td>
     <td></td>
     <td></td>
@@ -146,8 +136,7 @@ Current supported research models:
   <tr>
     <td>ONCF</td>
     <td>
-      <a href="https://arxiv.org/pdf/1808.03912.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/oncf.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/oncf.py">oncf.py</a>
     </td>
     <td></td>
     <td></td>
@@ -158,8 +147,7 @@ Current supported research models:
   <tr>
     <td>NeuMF</td>
     <td>
-      <a href="https://www.comp.nus.edu.sg/~xiangnan/papers/ncf.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/nmf.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/nmf.py">nmf.py</a>
     </td>
     <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
@@ -170,8 +158,7 @@ Current supported research models:
   <tr>
     <td>NeuFM</td>
     <td>
-      <a href="https://arxiv.org/pdf/1708.05027.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/nfm.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/nfm.py">nfm.py</a>
     </td>
     <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
@@ -182,8 +169,7 @@ Current supported research models:
   <tr>
     <td>DeepFM</td>
     <td>
-      <a href="https://arxiv.org/pdf/1703.04247.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/dfm.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/dfm.py">dfm.py</a>
     </td>
     <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
@@ -194,8 +180,7 @@ Current supported research models:
   <tr>
     <td>mDA-CF</td>
     <td>
-      <a href="https://dl.acm.org/doi/pdf/10.1145/2806416.2806527">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fgcnn.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fgcnn.py">mdacf.py</a>
     </td>
     <td>:heavy_check_mark:</td>
     <td></td>
@@ -207,8 +192,7 @@ Current supported research models:
   <tr>
     <td>aSDAE+MF</td>
     <td>
-      <a href="https://ojs.aaai.org/index.php/AAAI/article/view/10747/10606">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/asdaemf.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/asdaemf.py">asadaemf.py</a>
     </td>
     <td>:heavy_check_mark:</td>
     <td></td>
@@ -219,8 +203,7 @@ Current supported research models:
   <tr>
     <td>ConvMF</td>
     <td>
-      <a href="http://uclab.khu.ac.kr/resources/publication/C_351.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cmf.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cmf.py">cmf.py</a>
     </td>
     <td>:heavy_check_mark:</td>
     <td></td>
@@ -231,8 +214,7 @@ Current supported research models:
   <tr>
     <td>DE-ConvMF</td>
     <td>
-      <a href="https://download.atlantis-press.com/article/125910161.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/decmf.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/decmf.py">decmf.py</a>
     </td>
     <td>:heavy_check_mark:</td>
     <td></td>
@@ -242,8 +224,7 @@ Current supported research models:
   </tr><tr>
     <td>GMF++</td>
     <td>
-      <a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8361573">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cmfpp.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cmfpp.py">gmfpp.py</a>
     </td>
     <td></td>
     <td>:heavy_check_mark:</td>
@@ -253,9 +234,8 @@ Current supported research models:
   </tr>
   <tr>
     <td>MLP++</td>
-    <td>
-      <a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8361573">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mlppp.py">code</a>
+    <td> 
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mlppp.py">mlppp.py</a>
     </td>
     <td></td>
     <td>:heavy_check_mark:</td>
@@ -266,8 +246,7 @@ Current supported research models:
   <tr>
     <td>CNN-DCF</td>
     <td>
-      <a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=9086604">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cnndcf.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cnndcf.py">cnndcf.py</a>
     </td>
     <td></td>
     <td>:heavy_check_mark:</td>
@@ -278,8 +257,7 @@ Current supported research models:
   <tr>
     <td>xDeepFM</td>
     <td>
-      <a href="https://arxiv.org/pdf/1803.05170.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/xdfm.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/xdfm.py">dfm.py</a>
     </td>
     <td></td>
     <td>:heavy_check_mark:</td>
@@ -290,8 +268,7 @@ Current supported research models:
   <tr>
     <td>FGCNN</td>
     <td>
-      <a href="https://arxiv.org/pdf/1904.04447.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fgcnn.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fgcnn.py">fgcnn.py</a>
     </td>
     <td></td>
     <td>:heavy_check_mark:</td>
@@ -302,8 +279,7 @@ Current supported research models:
   <tr>
     <td>CCAE</td>
     <td>
-      <a href="">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ccae.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ccae.py">ccae.py</a>
     </td>
     <td></td>
     <td></td>
@@ -314,8 +290,7 @@ Current supported research models:
   <tr>
     <td>SDAE-DE-ConvMF</td>
     <td>
-      <a href="https://download.atlantis-press.com/article/125910161.pdf">paper</a> | 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/sdaedecmf.py">code</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/sdaedecmf.py">sdaedecmf.py</a>
     </td>
     <td>:heavy_check_mark:</td>
     <td></td>
@@ -352,43 +327,42 @@ Special thanks to the following repositories for github code references and mode
 
 References
 ---
-<a id="1">[1]</a> Koren, Y., Bell, R., & Volinsky, C. (2009). Matrix factorization techniques for recommender systems. Computer, 42(8), 30-37.
+<a id="1">[1]</a> Koren, Y., Bell, R., & Volinsky, C. (2009). Matrix factorization techniques for recommender systems. Computer, 42(8), 30-37. https://www.inf.unibz.it/~ricci/ISR/papers/ieeecomputer.pdf
 
-<a id="2">[2]</a> Rendle, S. (2010, December). Factorization machines. In 2010 IEEE International Conference on Data Mining (pp. 995-1000). IEEE.
+<a id="2">[2]</a> Rendle, S. (2010, December). Factorization machines. In 2010 IEEE International Conference on Data Mining (pp. 995-1000). IEEE. https://sdcast.ksdaemon.ru/wp-content/uploads/2020/02/Rendle2010FM.pdf
 
-<a id="3">[3]</a> He, X., Liao, L., Zhang, H., Nie, L., Hu, X., & Chua, T. S. (2017, April). Neural collaborative filtering. In Proceedings of the 26th international conference on world wide web (pp. 173-182).
+<a id="3">[3]</a> He, X., Liao, L., Zhang, H., Nie, L., Hu, X., & Chua, T. S. (2017, April). Neural collaborative filtering. In Proceedings of the 26th international conference on world wide web (pp. 173-182). https://www.comp.nus.edu.sg/~xiangnan/papers/ncf.pdf
 
-<a id="4">[4]</a> Cheng, H. T., Koc, L., Harmsen, J., Shaked, T., Chandra, T., Aradhye, H., ... & Shah, H. (2016, September). Wide & deep learning for recommender systems. In Proceedings of the 1st workshop on deep learning for recommender systems (pp. 7-10).
+<a id="4">[4]</a> Cheng, H. T., Koc, L., Harmsen, J., Shaked, T., Chandra, T., Aradhye, H., ... & Shah, H. (2016, September). Wide & deep learning for recommender systems. In Proceedings of the 1st workshop on deep learning for recommender systems (pp. 7-10). https://arxiv.org/pdf/1606.07792.pdf%29/
 
-<a id="5">[5]</a> Sedhain, S., Menon, A. K., Sanner, S., & Xie, L. (2015, May). Autorec: Autoencoders meet collaborative filtering. In Proceedings of the 24th international conference on World Wide Web (pp. 111-112).
+<a id="5">[5]</a> Sedhain, S., Menon, A. K., Sanner, S., & Xie, L. (2015, May). Autorec: Autoencoders meet collaborative filtering. In Proceedings of the 24th international conference on World Wide Web (pp. 111-112). http://users.cecs.anu.edu.au/~u5098633/papers/www15.pdf
 
-<a id="6">[6]</a> Kuchaiev, O., & Ginsburg, B. (2017). Training deep autoencoders for collaborative filtering. arXiv preprint arXiv:1708.01715.
+<a id="6">[6]</a> Kuchaiev, O., & Ginsburg, B. (2017). Training deep autoencoders for collaborative filtering. arXiv preprint arXiv:1708.01715. https://arxiv.org/pdf/1708.01715.pdf
 
-<a id="7">[7]</a> Strub, F., Mary, J., & Gaudel, R. (2016). Hybrid collaborative filtering with autoencoders. arXiv preprint arXiv:1603.00806.
+<a id="7">[7]</a> Strub, F., Mary, J., & Gaudel, R. (2016). Hybrid collaborative filtering with autoencoders. arXiv preprint arXiv:1603.00806. https://arxiv.org/pdf/1603.00806.pdf
 
-<a id="8">[8]</a> Liang, D., Krishnan, R. G., Hoffman, M. D., & Jebara, T. (2018, April). Variational autoencoders for collaborative filtering. In Proceedings of the 2018 world wide web conference (pp. 689-698).
+<a id="8">[8]</a> Liang, D., Krishnan, R. G., Hoffman, M. D., & Jebara, T. (2018, April). Variational autoencoders for collaborative filtering. In Proceedings of the 2018 world wide web conference (pp. 689-698). https://arxiv.org/pdf/1802.05814.pdf
 
-<a id="9">[9]</a> He, X., Du, X., Wang, X., Tian, F., Tang, J., & Chua, T. S. (2018). Outer product-based neural collaborative filtering. arXiv preprint arXiv:1808.03912.
+<a id="9">[9]</a> He, X., Du, X., Wang, X., Tian, F., Tang, J., & Chua, T. S. (2018). Outer product-based neural collaborative filtering. arXiv preprint arXiv:1808.03912. https://arxiv.org/pdf/1808.03912.pdf
 
-<a id="10">[10]</a> He, X., & Chua, T. S. (2017, August). Neural factorization machines for sparse predictive analytics. In Proceedings of the 40th International ACM SIGIR conference on Research and Development in Information Retrieval (pp. 355-364).
+<a id="10">[10]</a> He, X., & Chua, T. S. (2017, August). Neural factorization machines for sparse predictive analytics. In Proceedings of the 40th International ACM SIGIR conference on Research and Development in Information Retrieval (pp. 355-364). https://arxiv.org/pdf/1708.05027.pdf
 
-<a id="11">[11]</a> Guo, H., Tang, R., Ye, Y., Li, Z., & He, X. (2017). DeepFM: a factorization-machine based neural network for CTR prediction. arXiv preprint arXiv:1703.04247.
+<a id="11">[11]</a> Guo, H., Tang, R., Ye, Y., Li, Z., & He, X. (2017). DeepFM: a factorization-machine based neural network for CTR prediction. arXiv preprint arXiv:1703.04247. https://arxiv.org/pdf/1703.04247.pdf
 
-<a id="12">[12]</a> Li, S., Kawale, J., & Fu, Y. (2015, October). Deep collaborative filtering via marginalized denoising auto-encoder. In Proceedings of the 24th ACM international on conference on information and knowledge management (pp. 811-820).
+<a id="12">[12]</a> Li, S., Kawale, J., & Fu, Y. (2015, October). Deep collaborative filtering via marginalized denoising auto-encoder. In Proceedings of the 24th ACM international on conference on information and knowledge management (pp. 811-820). https://arxiv.org/pdf/1904.04447.pdf
 
-<a id="13">[13]</a> Dong, X., Yu, L., Wu, Z., Sun, Y., Yuan, L., & Zhang, F. (2017, February). A hybrid collaborative filtering model with deep structure for recommender systems. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 31, No. 1).
+<a id="13">[13]</a> Dong, X., Yu, L., Wu, Z., Sun, Y., Yuan, L., & Zhang, F. (2017, February). A hybrid collaborative filtering model with deep structure for recommender systems. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 31, No. 1). https://ojs.aaai.org/index.php/AAAI/article/view/10747/10606
 
-<a id="14">[14]</a> Kim, D., Park, C., Oh, J., Lee, S., & Yu, H. (2016, September). Convolutional matrix factorization for document context-aware recommendation. In Proceedings of the 10th ACM conference on recommender systems (pp. 233-240).
+<a id="14">[14]</a> Kim, D., Park, C., Oh, J., Lee, S., & Yu, H. (2016, September). Convolutional matrix factorization for document context-aware recommendation. In Proceedings of the 10th ACM conference on recommender systems (pp. 233-240). http://uclab.khu.ac.kr/resources/publication/C_351.pdf
 
-<a id="15">[15]</a> Zhao, J., Liu, Z., Chen, H., Zhang, J., & Wen, Q. (2019, June). Hybrid recommendation algorithms based on ConvMF deep learning model. In 2019 International Conference on Wireless Communication, Network and Multimedia Engineering (WCNME 2019) (pp. 151-154). Atlantis Press.
+<a id="15">[15]</a> Zhao, J., Liu, Z., Chen, H., Zhang, J., & Wen, Q. (2019, June). Hybrid recommendation algorithms based on ConvMF deep learning model. In 2019 International Conference on Wireless Communication, Network and Multimedia Engineering (WCNME 2019) (pp. 151-154). Atlantis Press. https://download.atlantis-press.com/article/125910161.pdf
 
-<a id="16">[16]</a> Liu, Y., Wang, S., Khan, M. S., & He, J. (2018). A novel deep hybrid recommender system based on auto-encoder with neural collaborative filtering. Big Data Mining and Analytics, 1(3), 211-221.
+<a id="16">[16]</a> Liu, Y., Wang, S., Khan, M. S., & He, J. (2018). A novel deep hybrid recommender system based on auto-encoder with neural collaborative filtering. Big Data Mining and Analytics, 1(3), 211-221. https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8361573
 
-<a id="17">[17]</a> Wu, Y., Wei, J., Yin, J., Liu, X., & Zhang, J. (2020). Deep Collaborative Filtering Based on Outer Product. IEEE Access, 8, 85567-85574.
+<a id="17">[17]</a> Wu, Y., Wei, J., Yin, J., Liu, X., & Zhang, J. (2020). Deep Collaborative Filtering Based on Outer Product. IEEE Access, 8, 85567-85574. https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=9086604
 
-<a id="18">[18]</a> Lian, J., Zhou, X., Zhang, F., Chen, Z., Xie, X., & Sun, G. (2018, July). xdeepfm: Combining explicit and implicit feature interactions for recommender systems. In Proceedings of the 24th ACM SIGKDD International Conference on Knowledge 
-Discovery & Data Mining (pp. 1754-1763).
+<a id="18">[18]</a> Lian, J., Zhou, X., Zhang, F., Chen, Z., Xie, X., & Sun, G. (2018, July). xdeepfm: Combining explicit and implicit feature interactions for recommender systems. In Proceedings of the 24th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining (pp. 1754-1763). https://arxiv.org/pdf/1803.05170.pdf
 
-<a id="19">[19]</a> Liu, B., Tang, R., Chen, Y., Yu, J., Guo, H., & Zhang, Y. (2019, May). Feature generation by convolutional neural network for click-through rate prediction. In The World Wide Web Conference (pp. 1119-1129).
+<a id="19">[19]</a> Liu, B., Tang, R., Chen, Y., Yu, J., Guo, H., & Zhang, Y. (2019, May). Feature generation by convolutional neural network for click-through rate prediction. In The World Wide Web Conference (pp. 1119-1129). https://arxiv.org/pdf/1904.04447.pdf
 
-<a id="20">[20]</a> Zhang, S. Z., Li, P. H., & Chen, X. N. (2019, December). Collaborative Convolution AutoEncoder for Recommendation Systems. In Proceedings of the 2019 8th International Conference on Networks, Communication and Computing (pp. 202-207).
+<a id="20">[20]</a> Zhang, S. Z., Li, P. H., & Chen, X. N. (2019, December). Collaborative Convolution AutoEncoder for Recommendation Systems. In Proceedings of the 2019 8th International Conference on Networks, Communication and Computing (pp. 202-207). https://dl.acm.org/doi/abs/10.1145/3375998.3376031
