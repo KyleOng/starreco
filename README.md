@@ -10,6 +10,7 @@ Research Models
 Current supported algorithms/models are:
 <details>
   <summary>Click to expand research models</summary>
+  <br>
   <sup> * asterisk symbol indicates code modification for originally CTR models to Rating Prediction models</sup>
   <table>
     <tr>
