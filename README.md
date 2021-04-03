@@ -33,8 +33,6 @@ Research Models
   <b>Figure:</b> Venn diagram of chosen hybrid and non-hybrid recommendation models.
 </p>
 
-As seen in the venn diagram, we covered different hybrid and non-hybrid recommendation models which includes Single/Multilayer Perceptrons (S/MLP), Autoencoder (AE) and Convolutional Neural Network (CNN). Concurrently, new models have also been proposed in the master project (also to fill in the missing parts in the venn diagram).
-
 Current supported research models:
 <table>
   <tr>
