@@ -7,18 +7,23 @@
 
 Pytorch and lightning implementation for a series of deep learning `star`-based or rating-based `reco`mmendation systems. This work also acts as a part of the master thesis work's literature review. 
 
-### Features:
-+ Up to 25+ recommendation models across 20 publications.
+Features
+---
++ With up to 25+ recommendation models across 20 publications.
 + GPU acceleration execution.
 + Reducing memory usage for large sparse matrix.
 + Simple and understandable code comments.
-+ Code reusability.
++ Easy extension and code reusability.
 
 Click [here](#start) to get started!
 
 Background
 ---
-Star classification is a type of ratings scale commonly used by reviewers to rate certain items such as films, TV shows, restaurants, and hotels. Businesses are able to utilize user-item star ratings to build rating-based recommendation system, as these ratings can directly or indirectly reflect customers' preferences. This recommendation technique is also known as the **Collaborative Filtering (CF)** technique which recommendations are generated based on user-item interaction analysis. Correspondingly, various techniques for recommendation generation has been proposed throughout the years, in order to solve previous existing problems (For example, cold start and data sparsity). Hence, the purpose of this research is to understand, recreate and evaluate various SOTA recommendation algorithms in a coherent and unified repository.
+Star classification is a type of ratings scale commonly used by reviewers to rate certain items such as films, TV shows, restaurants, and hotels. These ratings can directly reflect customers' interest, and businesses are able to use them to build rating-based recommendations. This recommendation technique is also known as the **Collaborative Filtering (CF)** technique, which recommendations is based on user-item interaction. The underlying assumption for CF-based technique is:
+
+> The likelihood of two persons, who have the same interests, having the same opinion is higher than two random person.
+
+Several studies have shown that incorporating side information can alleviate the problem of cold start and data sparsity in many CF-based techniques. This form a group known as the **Hybrid-based (HB)** technique. Additionally, deep learning has been actively used in the recommendation field, which further enhance its accuracy and performance. Hence, the purpose of this repository is to recreate some of the well-known models and evaluate them in an understandable, coherent and unified manner.
 
 Research Models
 ---
@@ -31,8 +36,8 @@ Current supported research models:
 <table>
   <tr>
     <th rowspan = 3>Research models</th>
-    <th rowspan = 3>Implementation</th>
     <th colspan = 4>Hybrid models</th>
+    <th rowspan = 3>Implementation</th>
     <th rowspan = 3>Reference</th>
   </tr>
   <tr>
@@ -46,276 +51,276 @@ Current supported research models:
   </tr>
   <tr>
     <td>MF</td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mf.py">mf.py</a>
-    </td>
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
     <td></td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mf.py">mf.py</a>
+    </td>
     <td><a href="#1">[1]</a></td>
   </tr>
   <tr>
     <td>FM</td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fm.py">fm.py</a>
-    </td>
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
     <td></td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fm.py">fm.py</a>
+    </td>
     <td><a href="#2">[2]</a></td>
   </tr>
   <tr>
     <td>GMF</td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td></td>
     <td>
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/gmf.py">gmf.py</a>
     </td>
-    <td></td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
-    <td></td>
     <td><a href="#3">[3]</a></td>
   <tr>
     <td>NCF/MLP</td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ncf.py">ncf.py</a>
-    </td>
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ncf.py">ncf.py</a>
+    </td>
     <td><a href="#3">[3]</a></td>
   </tr>
   <tr>
     <td>WDL</td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/wdl.py">wdl.py</a>
-    </td>
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/wdl.py">wdl.py</a>
+    </td>
     <td><a href="#4">[4]</a></td>
   </tr>
   <tr>
     <td>AutoRec</td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ar.py">ar.py</a>
-    </td>
     <td></td>
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ar.py">ar.py</a>
+    </td>
     <td><a href="#5">[5]</a></td>
   </tr>
   <tr>
     <td>DeepRec</td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/dr.py">dr.py</a>
-    </td>
     <td></td>
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/dr.py">dr.py</a>
+    </td>
     <td><a href="#6">[6]</a></td>
   </tr>
   <tr>
     <td>CFN</td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cfn.py">cfn.py</a> 
-    </td>
     <td></td>
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cfn.py">cfn.py</a> 
+    </td>
     <td><a href="#7">[7]</a></td>
   </tr>
   <tr>
     <td>Mult-VAE</td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mvae.py">mvae.py</a>
-    </td>
     <td></td>
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mvae.py">mvae.py</a>
+    </td>
     <td><a href="#8">[8]</a></td>
   </tr>
   <tr>
     <td>Mult-DAE</td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mdae.py">mdae.py</a>
-    </td>
     <td></td>
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mdae.py">mdae.py</a>
+    </td>
     <td><a href="#8">[8]</a></td>
   </tr>
   <tr>
     <td>ONCF</td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/oncf.py">oncf.py</a>
-    </td>
     <td></td>
     <td></td>
     <td></td>
     <td>:heavy_check_mark:</td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/oncf.py">oncf.py</a>
+    </td>
     <td><a href="#9">[9]</a></td>
   </tr>
   <tr>
     <td>NeuMF</td>
+    <td>:heavy_check_mark:</td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td></td>
     <td>
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/nmf.py">nmf.py</a>
     </td>
-    <td>:heavy_check_mark:</td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
-    <td></td>
     <td><a href="#3">[3]</a></td>
   </tr>
   <tr>
     <td>NeuFM</td>
+    <td>:heavy_check_mark:</td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td></td>
     <td>
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/nfm.py">nfm.py</a>
     </td>
-    <td>:heavy_check_mark:</td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
-    <td></td>
     <td><a href="#10">[10]</a></td>
   </tr>
   <tr>
     <td>DeepFM</td>
+    <td>:heavy_check_mark:</td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td></td>
     <td>
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/dfm.py">dfm.py</a>
     </td>
-    <td>:heavy_check_mark:</td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
-    <td></td>
     <td><a href="#11">[11]</a></td>
   </tr>
   <tr>
     <td>mDA-CF</td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
     <td>
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fgcnn.py">mdacf.py</a>
     </td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
     <td><a href="#12">[12]</a></td>
   </tr>
   
   <tr>
     <td>aSDAE+MF</td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
     <td>
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/asdaemf.py">asadaemf.py</a>
     </td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
     <td><a href="#13">[13]</a></td>
   </tr>
   <tr>
     <td>ConvMF</td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
     <td>
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cmf.py">cmf.py</a>
     </td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
-    <td></td>
-    <td>:heavy_check_mark:</td>
     <td><a href="#14">[14]</a></td>
   </tr>
   <tr>
     <td>DE-ConvMF</td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
     <td>
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/decmf.py">decmf.py</a>
     </td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
-    <td></td>
-    <td>:heavy_check_mark:</td>
     <td><a href="#15">[15]</a></td>
   </tr><tr>
     <td>GMF++</td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
     <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cmfpp.py">gmfpp.py</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/gmfpp.py">gmfpp.py</a>
     </td>
-    <td></td>
-    <td>:heavy_check_mark:</td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
     <td><a href="#16">[16]</a></td>
   </tr>
   <tr>
     <td>MLP++</td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
     <td> 
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mlppp.py">mlppp.py</a>
     </td>
-    <td></td>
-    <td>:heavy_check_mark:</td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
     <td><a href="#16">[16]</a></td>
   </tr>
   <tr>
     <td>CNN-DCF</td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
     <td>
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cnndcf.py">cnndcf.py</a>
     </td>
-    <td></td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
-    <td>:heavy_check_mark:</td>
     <td><a href="#17">[17]</a></td>
   </tr>
   <tr>
     <td>CCAE</td>
+    <td></td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td>:heavy_check_mark:</td>
     <td>
       <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ccae.py">ccae.py</a>
     </td>
-    <td></td>
-    <td></td>
-    <td>:heavy_check_mark:</td>
-    <td>:heavy_check_mark:</td>
     <td><a href="#18">[18]</a></td>
   </tr>
   <tr>
     <td>xDeepFM</td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/xdfm.py">dfm.py</a>
-    </td>
     <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
     <td></td>
     <td>:heavy_check_mark:</td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/xdfm.py">dfm.py</a>
+    </td>
     <td><a href="#19">[19]</a></td>
   </tr>
   <tr>
     <td>FGCNN</td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fgcnn.py">fgcnn.py</a>
-    </td>
     <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
     <td></td>
     <td>:heavy_check_mark:</td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fgcnn.py">fgcnn.py</a>
+    </td>
     <td><a href="#20">[20]</a></td>
   </tr>
   <tr>
     <td>SDAE-DE-ConvMF</td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/sdaedecmf.py">sdaedecmf.py</a>
-    </td>
     <td>:heavy_check_mark:</td>
     <td></td>
     <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/sdaedecmf.py">sdaedecmf.py</a>
+    </td>
     <td><a href="#15">[15]</a></td>
   </tr>
 </table>
@@ -417,7 +422,7 @@ References
 
 <a id="11">[11]</a> Guo, H., Tang, R., Ye, Y., Li, Z., & He, X. (2017). DeepFM: a factorization-machine based neural network for CTR prediction. arXiv preprint arXiv:1703.04247. https://arxiv.org/pdf/1703.04247.pdf
 
-<a id="12">[12]</a> Li, S., Kawale, J., & Fu, Y. (2015, October). Deep collaborative filtering via marginalized denoising auto-encoder. In Proceedings of the 24th ACM international on conference on information and knowledge management (pp. 811-820). https://arxiv.org/pdf/1904.04447.pdf
+<a id="12">[12]</a> Li, S., Kawale, J., & Fu, Y. (2015, October). Deep collaborative filtering via marginalized denoising auto-encoder. In Proceedings of the 24th ACM international on conference on information and knowledge management (pp. 811-820). https://dl.acm.org/doi/pdf/10.1145/2806416.2806527
 
 <a id="13">[13]</a> Dong, X., Yu, L., Wu, Z., Sun, Y., Yuan, L., & Zhang, F. (2017, February). A hybrid collaborative filtering model with deep structure for recommender systems. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 31, No. 1). https://ojs.aaai.org/index.php/AAAI/article/view/10747/10606
 
