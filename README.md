@@ -19,7 +19,7 @@ Click [here](#start) to get started!
 
 Background
 ---
-Star classification is a type of ratings scale commonly used by reviewers to rate certain items such as films, TV shows, restaurants, and hotels. These ratings can directly reflect customers' interest, and businesses are able to use them to build rating-based recommendations. This recommendation technique is also known as the **Collaborative Filtering (CF)** technique, which recommendations is based on user-item interaction. The underlying assumption for CF-based technique is:
+Star classification is a type of ratings scale commonly used by reviewers to rate certain items such as films, TV shows, restaurants, and hotels. These ratings can directly reflect customers' interest, and businesses are able to use them to build rating-based recommendations. This recommendation technique is also known as the **Collaborative Filtering (CF)** technique, which recommendations are generated based on user-item interaction. The underlying assumption for CF-based technique is:
 
 > The likelihood of two persons, who have the same interests, having the same opinion is higher than two random person.
 
