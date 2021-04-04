@@ -36,9 +36,9 @@ Research Models
 Current supported research models:
 <table>
   <tr>
-    <th rowspan = 3>Research models</th>
+    <th rowspan = 3>Research model</th>
+    <th rowspan = 3>Description</th>
     <th colspan = 4>Hybrid models</th>
-    <th rowspan = 3>Implementation</th>
     <th rowspan = 3>Reference</th>
   </tr>
   <tr>
@@ -51,277 +51,266 @@ Current supported research models:
     <th>CNN</th>
   </tr>
   <tr>
-    <td>MF</td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mf.py">MF</a>
+    </td>
+    <td>Matrix Factorization</td>
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
     <td></td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mf.py">mf.py</a>
-    </td>
     <td><a href="#1">[1]</a></td>
   </tr>
   <tr>
-    <td>FM</td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fm.py">FM</a>
+    </td>
+    <td>Factorization Machine</td>
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
     <td></td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fm.py">fm.py</a>
-    </td>
     <td><a href="#2">[2]</a></td>
   </tr>
   <tr>
-    <td>GMF</td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/gmf.py">GMF</a>
+    </td>
+    <td>Generalized Matrix Factorization</td>
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/gmf.py">gmf.py</a>
-    </td>
     <td><a href="#3">[3]</a></td>
   <tr>
-    <td>NCF/MLP</td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ncf.py">NCF/MLP</a>
+    </td>
+    <td>Neural Collaborative Filtering / Multilayer Perceptrons</td>
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ncf.py">ncf.py</a>
-    </td>
     <td><a href="#3">[3]</a></td>
   </tr>
   <tr>
-    <td>WDL</td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/wdl.py">WDL</a>
+    </td>
+    <td>Wide and Deep Learning</td>
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/wdl.py">wdl.py</a>
-    </td>
     <td><a href="#4">[4]</a></td>
   </tr>
   <tr>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ar.py">AutoRec</a>
+    </td>
     <td>AutoRec</td>
     <td></td>
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ar.py">ar.py</a>
-    </td>
     <td><a href="#5">[5]</a></td>
   </tr>
   <tr>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/dr.py">DeepRec</a>
+    </td>
     <td>DeepRec</td>
     <td></td>
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/dr.py">dr.py</a>
-    </td>
     <td><a href="#6">[6]</a></td>
   </tr>
   <tr>
-    <td>CFN</td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cfn.py">CFN</a> 
+    </td>
+    <td>Collaborative Filtering Neural network</td>
     <td></td>
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cfn.py">cfn.py</a> 
-    </td>
     <td><a href="#7">[7]</a></td>
   </tr>
   <tr>
-    <td>Mult-VAE</td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mvae.py">Mult-VAE</a>
+    </td>
+    <td>Variational Autoencoder for Collaborative filtering with Multinomial prior</td>
     <td></td>
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mvae.py">mvae.py</a>
-    </td>
     <td><a href="#8">[8]</a></td>
   </tr>
   <tr>
-    <td>Mult-DAE</td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mdae.py">Mult-DAE</a>
+    </td>
+    <td>Denoising Autoencoder for Collaborative filtering with Multinomial prior</td>
     <td></td>
     <td></td>
     <td>:heavy_check_mark:</td>
     <td></td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mdae.py">mdae.py</a>
-    </td>
     <td><a href="#8">[8]</a></td>
   </tr>
   <tr>
-    <td>ONCF</td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/oncf.py">ONCF</a>
+    </td>
+    <td>Outer product-based Neural Collaborative Filtering</td>
     <td></td>
     <td></td>
     <td></td>
     <td>:heavy_check_mark:</td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/oncf.py">oncf.py</a>
-    </td>
     <td><a href="#9">[9]</a></td>
   </tr>
   <tr>
-    <td>NeuMF</td>
-    <td>:heavy_check_mark:</td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
-    <td></td>
     <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/nmf.py">nmf.py</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/nfm.py">NeuFM</a>
     </td>
-    <td><a href="#3">[3]</a></td>
-  </tr>
-  <tr>
-    <td>NeuFM</td>
+    <td>Neural Factorization Machine</td>
     <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
     <td></td>
     <td></td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/nfm.py">nfm.py</a>
-    </td>
     <td><a href="#10">[10]</a></td>
   </tr>
   <tr>
-    <td>DeepFM</td>
-    <td>:heavy_check_mark:</td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
-    <td></td>
     <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/dfm.py">dfm.py</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/dfm.py">DeepFM</a>
     </td>
+    <td>Deep Factorization Machine</td>
+    <td>:heavy_check_mark:</td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td></td>
     <td><a href="#11">[11]</a></td>
   </tr>
   <tr>
-    <td>mDA-CF</td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
     <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fgcnn.py">mdacf.py</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fgcnn.py">mmDA-CF</a>
     </td>
+    <td>marginalized Denoising Autoencoder Collaborative Filtering</td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
     <td><a href="#12">[12]</a></td>
   </tr>
   
   <tr>
-    <td>aSDAE+MF</td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
     <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/asdaemf.py">asadaemf.py</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/asdaemf.py">aSDAE+MF</a>
     </td>
+    <td>additional Stacked Denoising Autoencoder + Matrix Factorization</td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
     <td><a href="#13">[13]</a></td>
   </tr>
   <tr>
-    <td>ConvMF</td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
-    <td></td>
-    <td>:heavy_check_mark:</td>
     <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cmf.py">cmf.py</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cmf.py">ConvMF</a>
     </td>
+    <td>Convolutional Matrix Factorization</td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
     <td><a href="#14">[14]</a></td>
   </tr>
   <tr>
-    <td>DE-ConvMF</td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
-    <td></td>
-    <td>:heavy_check_mark:</td>
     <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/decmf.py">decmf.py</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/decmf.py">DE-ConvMF</a>
     </td>
+    <td>Double Embeddings Convolutional Matrix Factorization</td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
     <td><a href="#15">[15]</a></td>
   </tr><tr>
-    <td>GMF++</td>
-    <td></td>
-    <td>:heavy_check_mark:</td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
     <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/gmfpp.py">gmfpp.py</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/gmfpp.py">GMF++</a>
     </td>
+    <td>Generalized Matrix Factorization ++</td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
     <td><a href="#16">[16]</a></td>
   </tr>
   <tr>
-    <td>MLP++</td>
-    <td></td>
-    <td>:heavy_check_mark:</td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
     <td> 
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mlppp.py">mlppp.py</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/mlppp.py">MLP++</a>
     </td>
+    <td>Multilayer Perceptrons ++</td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
     <td><a href="#16">[16]</a></td>
   </tr>
   <tr>
-    <td>CNN-DCF</td>
-    <td></td>
-    <td>:heavy_check_mark:</td>
-    <td></td>
-    <td>:heavy_check_mark:</td>
     <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cnndcf.py">cnndcf.py</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/cnndcf.py">CNN-DCF</a>
     </td>
+    <td>Convolutional Neural Networks based Deep Collaborative Filtering model</td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
     <td><a href="#17">[17]</a></td>
   </tr>
   <tr>
-    <td>CCAE</td>
-    <td></td>
-    <td></td>
-    <td>:heavy_check_mark:</td>
-    <td>:heavy_check_mark:</td>
     <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ccae.py">ccae.py</a>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/ccae.py">CCAE</a>
     </td>
+    <td>Collaborative Convolution AutoEncoder</td>
+    <td></td>
+    <td></td>
+    <td>:heavy_check_mark:</td>
+    <td>:heavy_check_mark:</td>
     <td><a href="#18">[18]</a></td>
   </tr>
   <tr>
-    <td>xDeepFM</td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/xdfm.py">DeepFM</a>
+    </td>
+    <td>Extreme Deep Factorization Machine</td>
     <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
     <td></td>
     <td>:heavy_check_mark:</td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/xdfm.py">dfm.py</a>
-    </td>
     <td><a href="#19">[19]</a></td>
   </tr>
   <tr>
-    <td>FGCNN</td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fgcnn.py">FGCNN</a>
+    </td>
+    <td>Feature Generation by Convolutional Neural Network</td>
     <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
     <td></td>
     <td>:heavy_check_mark:</td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/fgcnn.py">fgcnn.py</a>
-    </td>
     <td><a href="#20">[20]</a></td>
   </tr>
   <tr>
-    <td>SDAE-DE-ConvMF</td>
+    <td>
+      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/sdaedecmf.py">SDAE-DE-ConvMF</a>
+    </td>
+    <td>Stacked Denoising Autoencoder Double Embeddings Convolutional Matrix Factorization</td>
     <td>:heavy_check_mark:</td>
     <td></td>
     <td>:heavy_check_mark:</td>
     <td>:heavy_check_mark:</td>
-    <td>
-      <a href="https://github.com/KyleOng/star-reco/blob/master/starreco/model/sdaedecmf.py">sdaedecmf.py</a>
-    </td>
     <td><a href="#15">[15]</a></td>
   </tr>
 </table>
@@ -338,10 +327,7 @@ Datasets
 
 Getting Started<a name="start"></a>
 ---
-### Installation
-| :warning: |This is not meant to be used as a python package.<br>To use this, simply `git clone` to get started.|
-|-|:-|
- 
+### Installation 
     git clone https://github.com/KyleOng/star-reco
     pip install -r requirements.txt
 
