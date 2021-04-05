@@ -5,7 +5,7 @@
 # star-reco
 ![version] ![pytorch] ![lightning] [![License](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
-Pytorch and lightning implementation for a series of deep learning `star`-based or rating-based `reco`mmendation systems. This work also acts as a part of the master thesis work's literature review. 
+Pytorch and lightning implementation for a series of deep learning rating or `star` based `reco`mmendation systems. This work also acts as a part of the master thesis work's literature review. 
 
 Features
 ---
