@@ -118,7 +118,6 @@ class CMF(Module):
         # Generate item features aka "embed_item" from word embeddings
         embed_item = self.cnn(embed_word)
 
-        # Matrix factorization, instead of Probabilistic MF
         matrix = torch.mm(embed_user, embed_item.T)
         # Obtain diagonal part of matrix as result
         diagonal = matrix.diag()

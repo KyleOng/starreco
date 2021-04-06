@@ -22,7 +22,7 @@ class NCF(Module):
                  weight_decay:float = 1e-6,
                  criterion:F = F.mse_loss,
                  save_hyperparameters:bool = True):
-        """
+        """ 
         Hyperparamters setting.
 
         :param feature_dims (list): List of feature dimensions. 

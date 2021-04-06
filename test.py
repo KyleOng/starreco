@@ -2,7 +2,7 @@ from starreco.data import *
 
 dataset = "epinions"
 
-data = HybridAEDataModule(dataset)
+data = RCSIDataModule(dataset)
 data.setup()
 data.train_dataloader()
 data.val_dataloader()

@@ -8,7 +8,11 @@ from sklearn.model_selection import train_test_split
 from starreco.data.dataset import *
 from starreco.preprocessing import Preprocessor
 
-class DataModule(pl.LightningDataModule):
+class CFDataModule(pl.LightningDataModule):
+    """
+    Data Module for Collaborative Filtering
+    """
+
     options = ["ml-1m", "epinions",  "book-crossing"]
     preprocessor = Preprocessor()
 
@@ -62,7 +66,11 @@ class DataModule(pl.LightningDataModule):
         test_ds = TensorDataset(self.X_test, self.y_test)
         return DataLoader(test_ds, batch_size = self.batch_size)
         
-class HybridDataModule(DataModule):
+class HBDataModule(CFDataModule):
+    """
+    Data Module for Hybrid Based
+    """
+    
     def prepare_data(self, stage = None):
         super().prepare_data()
         self.X = hstack([
@@ -94,7 +102,11 @@ class HybridDataModule(DataModule):
         self.split()
         self.to_tensor()
 
-class AEDataModule(DataModule):
+class RCDataModule(CFDataModule):
+    """
+    Data Module for Reconstruction (Collaborative Filtering)
+    """
+
     def __init__(self, option = "ml-1m", batch_size = 256, transpose = False):
         self.transpose = transpose
         super().__init__(option, batch_size)
@@ -141,7 +153,11 @@ class AEDataModule(DataModule):
         test_ds = TensorDataset(self.X_test, self.X_test)
         return DataLoader(test_ds, batch_size = self.batch_size)
 
-class HybridAEDataModule(AEDataModule):
+class RCSIDataModule(RCDataModule):
+    """
+    Data Module for Reconstruction with Side Information (Hybrid Based)
+    """
+
     def add_side_information(self):
         if self.transpose:
             side_information = self.preprocessor.transform(

@@ -15,7 +15,7 @@ class GMF(Module):
                  weight_decay:float = 1e-6,
                  criterion:F = F.mse_loss,
                  save_hyperparameters:bool = True):
-        """
+        """ 
         Hyperparameters setting.
 
         :param feature_dims (list): List of feature dimensions. 

@@ -14,6 +14,11 @@ class Module(pl.LightningModule):
                                      weight_decay = self.weight_decay)
         return optimizer
     
+    def evaluate(self, x, y):
+        y_hat = self.forward(x)
+        loss = self.criterion(y_hat, y)
+        return loss
+
     def training_step(self, batch, batch_idx):
         x, y = batch
 
@@ -24,9 +29,7 @@ class Module(pl.LightningModule):
 
         x = x.view(x.shape[0], -1)
         y = y.view(y.shape[0], -1)
-        y_hat = self.forward(x)
-        
-        loss = self.criterion(y_hat, y)
+        loss = self.evaluate(x, y)
         
         self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
         return loss
@@ -41,9 +44,7 @@ class Module(pl.LightningModule):
             
         x = x.view(x.shape[0], -1)
         y = y.view(y.shape[0], -1)
-        y_hat = self.forward(x)
-        
-        loss = self.criterion(y_hat, y)
+        loss = self.evaluate(x, y)
         
         self.log("valid_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
         return loss
@@ -58,8 +59,6 @@ class Module(pl.LightningModule):
 
         x = x.view(x.shape[0], -1)
         y = y.view(y.shape[0], -1)
-        y_hat = self.forward(x)
-        
-        loss = self.criterion(y_hat, y)
+        loss = self.evaluate(x, y)
         
         self.log("test_loss", loss, on_step=True, on_epoch=True, prog_bar=True)

@@ -23,7 +23,7 @@ class NMF(Module):
                  weight_decay:float = 1e-6,
                  criterion:F = F.mse_loss,
                  save_hyperparameters:bool = True):
-        """
+        """ 
         Hyperparameters setting.
 
         :param embed_dim (int): Embeddings dimensions. Default: 8
@@ -37,13 +37,18 @@ class NMF(Module):
         :param criterion (F): Objective function. Default: F.mse_loss
         """
         super().__init__(lr, weight_decay, criterion)
+
+        # Construct GMF model structure
         gmf_params["save_hyperparameters"] = False
         self.gmf = GMF(**gmf_params)
+        # Load GMF pretrained weights
         if gmf_state_dict:
             self.gmf.load_state_dict(gmf_state_dict)
 
+        # Construct NCF model structure
         ncf_params["save_hyperparameters"] = False
         self.ncf = NCF(**ncf_params)
+        # Load NCF pretrained weights
         if ncf_state_dict:
             self.ncf.load_state_dict(ncf_state_dict)
 
@@ -58,7 +63,7 @@ class NMF(Module):
         # Add GMF embedding dim to `input_dim`
         input_dim = self.gmf.embedding.embedding.weight.shape[1]
 
-        # Remove NCF output layer and freeze hidden weights
+        # Remove NCF output layer and freeze hidden weights and biases
         ncf_nn_blocks = []
         for i, module in enumerate(self.ncf.nn.mlp):
             # Freeze weights and bias if pretrain

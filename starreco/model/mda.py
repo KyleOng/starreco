@@ -7,6 +7,7 @@ import torch.nn.functional as F
 
 from starreco.model import (ActivationFunction, 
                             Module)
+from starreco.evaluator import mDA_reconstruction_loss
 
 class mDAEncoder(torch.nn.Module):
     def __init__(self, input_dim, hidden_dim):
@@ -53,8 +54,9 @@ class mDA(Module):
                  e_activation = "relu",
                  d_activation = "relu",
                  lr:float = 1e-3,
-                 weight_decay:float = 0,
-                 criterion:F = None):
+                 weight_decay:float = 0):
+        criterion = mDA_reconstruction_loss
+
         super().__init__(lr, weight_decay, criterion)
         self.noise_rate = noise_rate
         
@@ -70,36 +72,20 @@ class mDA(Module):
             decoder,    
             ActivationFunction(d_activation)
         )
-        self.criterion = self.cost_function
     
     def encode(self, x):
         return self.encoder(x)
 
+    def decode(self, z):
+        return self.decoder(z)
+
     def forward(self,x):
-        return self.decoder(self.encode(x))
-    
-    def cost_function(self, y, x):
-        """
-        Custom cost/objective function. Define in class Module instead of Evaluator, because need to access the weights
-        """
+        return self.decode(self.encode(x))
+
+    def evaluate(self, x, y = None):
+        y_hat = self.forward(x)
         z = self.encode(x)
-        
-        # Squared loss
-        L = torch.mean(torch.sum((x - y) ** 2, axis = 1))
-        
-        # Regularization term because of Implicit Denoising via Marginalization
-        dz = z * (1 - z)
-        
-        # Reconstruction lost  
-        W = self.W.to(self.device)
-        W_ = self.W_.to(self.device)
-        # 2 * ∑w_^2 * (z(1-z)w)^2  
-        # df_x_2 = torch.matmul(dz * dz, torch.matmul(W_ * W_ * 2, W * W))
-        df_x_2 = torch.matmul(torch.matmul(dz * dz, W_ * W_ * 2), W * W)
-        L2 = self.noise_rate * self.noise_rate * torch.mean(torch.sum(df_x_2, axis = 1))
-        cost = L + 0.5 * L2
-        
-        return cost
+        return mDA_reconstruction_loss(x, y_hat, z, self.W, self.W_, self.noise_rate, self.device)
 
 def mapping(x:torch.FloatTensor, p:float, bias = True):
     d = x.shape[-1]
