@@ -21,7 +21,8 @@ class ONCF(Module):
                  batch_norm:bool = True, 
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
-                 criterion:F = F.mse_loss):
+                 criterion:F = F.mse_loss,
+                 save_hyperparameters:bool = True):
         """
         Hyperparameters setting.      
         
@@ -77,7 +78,8 @@ class ONCF(Module):
         cnn_blocks.append(fc)
         self.cnn = torch.nn.Sequential(*cnn_blocks)
 
-        self.save_hyperparameters()
+        if save_hyperparameters:
+            self.save_hyperparameters()
         
     def forward(self, x):
         """

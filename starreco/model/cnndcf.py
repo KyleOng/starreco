@@ -21,7 +21,8 @@ class CNNDCF(Module):
                  batch_norm:bool = True, 
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
-                 criterion:F = F.mse_loss):
+                 criterion:F = F.mse_loss,
+                 save_hyperparameters:bool = True):
         """
         Hyperparameters setting.      
         
@@ -53,7 +54,7 @@ class CNNDCF(Module):
         # 1 fully connected layer before residual connection
         self.fc_rc = MultilayerPerceptrons(input_dim = embed_dim ** 2,
                                            hidden_dims = [embed_dim ** 2],
-                                           apply_last_hidden = False,
+                                           apply_last_bndp = False,
                                            output_layer = None)
 
         # Convolution neural network

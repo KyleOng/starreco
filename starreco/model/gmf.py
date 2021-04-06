@@ -11,10 +11,10 @@ class GMF(Module):
     """
     def __init__(self, feature_dims:list, 
                  embed_dim:int = 8, 
-                 activation:str = "relu",
                  lr:float = 1e-2,
                  weight_decay:float = 1e-6,
-                 criterion:F = F.mse_loss):
+                 criterion:F = F.mse_loss,
+                 save_hyperparameters:bool = True):
         """
         Hyperparameters setting.
 
@@ -35,12 +35,13 @@ class GMF(Module):
         # Embedding layer
         self.embedding = FeaturesEmbedding(feature_dims, embed_dim)
 
-        # Multilayer perceptrons
-        self.mlp = MultilayerPerceptrons(input_dim = embed_dim, 
-                                         activations = activation, 
-                                         output_layer = "relu")
+        # Singlelayer perceptrons
+        self.nn = MultilayerPerceptrons(input_dim = embed_dim, 
+                                        output_layer = "relu")
 
-        self.save_hyperparameters()
+        # Save hyperparameters to checkpoint
+        if save_hyperparameters:
+            self.save_hyperparameters()
     
     def forward(self, x):
         """
@@ -52,11 +53,14 @@ class GMF(Module):
         """
         # Generate embeddings
         x = self.embedding(x)
+        # Seperate user (1st column) and item (2nd column) embeddings from generated embeddings
         user_embedding = x[:, 0]
         item_embedding = x[:, 1]
 
-        # Element wise product between embeddings
+        # Element wise product between user and item embeddings
         product = user_embedding * item_embedding
 
-        # Prediction
-        return self.mlp(product)
+        # Feed element wise product to generalized non-linear layer
+        y = self.nn(product)
+
+        return y

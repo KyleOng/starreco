@@ -19,7 +19,8 @@ class DAE(Module):
                  batch_norm:bool = True,
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
-                 criterion:F = F.mse_loss):
+                 criterion:F = F.mse_loss,
+                 save_hyperparameters:bool = True):
         """
         Hyperparameters setting.
 
@@ -62,7 +63,7 @@ class DAE(Module):
                                              hidden_dims = [*hidden_dims[:-1][::-1], io_dim], 
                                              activations = d_activations, 
                                              dropouts = 0,
-                                             apply_last_hidden = False,
+                                             apply_last_bndp = False,
                                              output_layer = None,
                                              batch_norm = batch_norm)
 

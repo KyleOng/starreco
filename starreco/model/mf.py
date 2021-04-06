@@ -12,7 +12,8 @@ class MF(Module):
                  embed_dim:int = 8, 
                  lr:float = 1e-2,
                  weight_decay:float = 1e-6,
-                 criterion:F = F.mse_loss):
+                 criterion:F = F.mse_loss,
+                 save_hyperparameters:bool = True):
         """
         Hyperparameters setting.
 
@@ -31,7 +32,9 @@ class MF(Module):
         # Embedding layer
         self.embedding = FeaturesEmbedding(feature_dims, embed_dim)
 
-        self.save_hyperparameters()
+        # Save hyperparameters to checkpoint
+        if save_hyperparameters:
+            self.save_hyperparameters()
 
     def forward(self, x):
         """
@@ -43,14 +46,15 @@ class MF(Module):
         """
         # Generate embeddings
         x = self.embedding(x)
+        # Seperate user (1st column) and item (2nd column) embeddings from generated embeddings
         user_embedding = x[:, 0]
         item_embedding = x[:, 1]
 
-        # Dot product between embeddings
-        matrix = torch.mm(user_embedding, item_embedding.T)
-
-        # Obtain diagonal part of the outer product result
-        diagonal = matrix.diag()
-
+        # Dot product between user and items embeddings
+        dot = torch.mm(user_embedding, item_embedding.T)
+        # Obtain diagonal part of the dot product result
+        diagonal = dot.diag()
         # Reshape to match evaluation shape
-        return diagonal.view(diagonal.shape[0], -1)
+        y = diagonal.view(diagonal.shape[0], -1)
+
+        return y

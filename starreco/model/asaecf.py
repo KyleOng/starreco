@@ -11,7 +11,8 @@ class ASAECF(Module):
     def __init__(self, user_lookup:torch.Tensor, item_lookup:torch.Tensor, user_aae:Union[AAE, ASAE], item_aae:Union[AAE, ASAE],
                  lr:float = 1e-3,
                  weight_decay:float = 0,
-                 criterion:F = F.mse_loss):
+                 criterion:F = F.mse_loss,
+                 save_hyperparameters:bool = True):
         super().__init__(lr, weight_decay, criterion)
         self.user_lookup = user_lookup
         self.item_lookup = item_lookup

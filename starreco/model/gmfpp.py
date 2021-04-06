@@ -18,7 +18,8 @@ class GMFpp(Module):
                  dropout = 0.5,
                  lr:float = 1e-2,
                  weight_decay:float = 0,
-                 criterion:F = F.mse_loss):
+                 criterion:F = F.mse_loss,
+                 save_hyperparameters:bool = True):
         """
         Hyperparameters setting.
 

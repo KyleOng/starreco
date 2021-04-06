@@ -26,7 +26,8 @@ class CMF(Module):
                  batch_norm:bool = True, 
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
-                 criterion:F = F.mse_loss):
+                 criterion:F = F.mse_loss,
+                 save_hyperparameters:bool = True):
         """
         Hyperparameters setting. 
 
@@ -92,7 +93,7 @@ class CMF(Module):
                                    hidden_dims = [*fc_hidden_dims, user_embed_dim], 
                                    activations = fc_activations, 
                                    dropouts = fc_dropouts,
-                                   apply_last_hidden = True, # Check result
+                                   apply_last_bndp = True, # Check result
                                    output_layer = None, 
                                    batch_norm = batch_norm)
         cnn_blocks.append(fc)

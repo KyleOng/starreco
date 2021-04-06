@@ -8,7 +8,8 @@ class mDACF(Module):
     def __init__(self, user_lookup:torch.Tensor, item_lookup:torch.Tensor, user_mda:mDA, item_mda:mDA, 
                  lr:float = 1e-3,
                  weight_decay:float = 0,
-                 criterion:F = F.mse_loss):
+                 criterion:F = F.mse_loss,
+                 save_hyperparameters:bool = True):
 
         super().__init__(lr, weight_decay, criterion)
         self.user_lookup = user_lookup

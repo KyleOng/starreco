@@ -20,7 +20,8 @@ class NCF(Module):
                  batch_norm:bool = True,
                  lr:float = 1e-3,
                  weight_decay:float = 1e-6,
-                 criterion:F = F.mse_loss):
+                 criterion:F = F.mse_loss,
+                 save_hyperparameters:bool = True):
         """
         Hyperparamters setting.
 
@@ -48,15 +49,16 @@ class NCF(Module):
         self.embedding = FeaturesEmbedding(feature_dims, embed_dim)
 
         # Multilayer perceptrons
-        # Number of nodes in the input layers = embed_dim * 2
-        self.mlp = MultilayerPerceptrons(input_dim = embed_dim * 2, 
-                                         hidden_dims = hidden_dims, 
-                                         activations = activations, 
-                                         dropouts = dropouts,
-                                         output_layer = "relu",
-                                         batch_norm = batch_norm)
+        self.nn = MultilayerPerceptrons(input_dim = embed_dim * 2, 
+                                        hidden_dims = hidden_dims, 
+                                        activations = activations, 
+                                        dropouts = dropouts,
+                                        output_layer = "relu",
+                                        batch_norm = batch_norm)
         
-        self.save_hyperparameters()
+        # Save hyperparameters to checkpoint
+        if save_hyperparameters:
+            self.save_hyperparameters()
 
     def forward(self, x):
         """
@@ -73,4 +75,6 @@ class NCF(Module):
         x = torch.flatten(x, start_dim = 1)
 
         # Prediction
-        return self.mlp(x)
+        y = self.nn(x)
+
+        return y

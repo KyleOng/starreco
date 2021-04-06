@@ -127,7 +127,7 @@ class MultilayerPerceptrons(torch.nn.Module):
                  hidden_dims:list = [], 
                  activations:Union[str, list] = "relu",
                  dropouts:Union[float, list] = 0.5,
-                 apply_last_hidden:bool = True,
+                 apply_last_bndp:bool = True,
                  output_layer:str = "linear",
                  batch_norm:bool = True,
                  extra_nodes_in:Union[int,list] = 0,
@@ -170,7 +170,7 @@ class MultilayerPerceptrons(torch.nn.Module):
             # Batch normalization will not be applied to the last hidden layer (output layer is None)
             if batch_norm:
                 mlp_blocks.append(torch.nn.BatchNorm1d(hidden_dim))
-                if i == len(hidden_dims) - 1 and not apply_last_hidden:
+                if i == len(hidden_dims) - 1 and not apply_last_bndp:
                     mlp_blocks = mlp_blocks[:-1]
             # Append activation function
             activation = activations[i].lower()
@@ -180,7 +180,7 @@ class MultilayerPerceptrons(torch.nn.Module):
             # Dropout will not be applied to the last hidden layer (output layer is None)
             if dropouts[i] > 0 and dropouts[i] <= 1:
                 mlp_blocks.append(torch.nn.Dropout(dropouts[i]))
-                if i == len(hidden_dims) - 1 and not apply_last_hidden:
+                if i == len(hidden_dims) - 1 and not apply_last_bndp:
                     mlp_blocks = mlp_blocks[:-1]
             input_dim = hidden_dim
         
