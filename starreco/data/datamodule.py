@@ -14,13 +14,13 @@ class CFDataModule(pl.LightningDataModule):
 
     Parameters
     ----------
-    :option (str): chosen dataset option. Default ml-1m
+    :option (str): chosen dataset option. Default: "ml-1m"
 
-    :batch_size (int): training/validation/testing batch size.
+    :batch_size (int): training/validation/testing batch size. Default: 256
 
 
     Attibutes
-    ----------
+    ---------
     :dataset (Dataset): chosen dataset obtain from `option`
 
     :batch_size (int): training/validation/testing batch size.
@@ -69,7 +69,7 @@ class CFDataModule(pl.LightningDataModule):
         """
         Perform train/validate/test split. 
         
-        :random_state (int): A seed to sklearn's random number generator which to generate the splits. This ensures that the splits generated as reproducable. 
+        :random_state (int): A seed to sklearn's random number generator which to generate the splits. This ensures that the splits generated as reproducable. Default: 77
         """
 
         # General rule of thumb 60/20/20 train valid test split 
@@ -83,6 +83,8 @@ class CFDataModule(pl.LightningDataModule):
     def setup(self, stage = None):
         """
         Data operation for each training/validating/testing.
+
+        stage (str): Seperate setup logic for pytorch_lightining `trainer.fit` and `trainer.test`. Default: None
         """
 
         self.prepare_data()
@@ -123,11 +125,11 @@ class CFSIDataModule(CFDataModule):
 
     :batch_size (int): training/validation/testing batch size.
 
-    :user_item_indices (bool): If True, user and item indices are included in X, else user and item indices are removed from X.
-
-
+    :user_item_indices (bool): If True, user and item indices (1st 2 columns of X) are included in X, else user and item indices are removed from X. 
+    
+    
     Attibutes
-    ----------
+    ---------
     :dataset (Dataset): chosen dataset obtain from `option`
 
     :batch_size (int): training/validation/testing batch size.
@@ -143,6 +145,10 @@ class CFSIDataModule(CFDataModule):
         super().__init__(option, batch_size)
     
     def prepare_data(self, stage = None):
+        """
+        Prepare X and y dataset. 
+        """
+
         super().prepare_data()
         if not self.user_item_indices:
             self.X = None
@@ -164,6 +170,10 @@ class CFSIDataModule(CFDataModule):
         ])
 
     def to_tensor(self):
+        """
+        Transform X and y from numpy/scipy array to pytorch dense/sparse tensor.
+        """
+
         self.X_train = self.preprocessor.sparse_coo_to_tensor(self.X_train.tocoo())
         self.X_valid = self.preprocessor.sparse_coo_to_tensor(self.X_valid.tocoo())
         self.X_test = self.preprocessor.sparse_coo_to_tensor(self.X_test.tocoo())
@@ -172,6 +182,12 @@ class CFSIDataModule(CFDataModule):
         self.y_test = torch.tensor(self.y_test).type(torch.FloatTensor)
 
     def setup(self, stage = None):
+        """
+        Data operation for each training/validating/testing.
+
+        stage (str): Seperate setup logic for pytorch_lightining `trainer.fit` and `trainer.test`. Default: None
+        """
+
         self.prepare_data()
         self.split()
         self.to_tensor()
@@ -190,7 +206,7 @@ class RCDataModule(CFDataModule):
 
 
     Attibutes
-    ----------
+    ---------
     :dataset (Dataset): chosen dataset obtain from `option`
 
     :batch_size (int): training/validation/testing batch size.
@@ -199,13 +215,21 @@ class RCDataModule(CFDataModule):
 
     :_dataset_options (list): List of available supported dataset options.
 
+
+    Notes
+    -----
+    Reconstruction matrix datamodule does not have y, since output = input (y = x).
     """
 
     def __init__(self, option = "ml-1m", batch_size = 256, transpose = False):
         self.transpose = transpose
         super().__init__(option, batch_size)
 
-    def to_matrix(self):        
+    def to_matrix(self):
+        """
+        Transform rating dataframe with M*N rows to rating matrix with M rows and N columns.
+        """
+
         self.X_train = self.preprocessor.ratings_to_sparse(
             self.X_train.T[0], self.X_train.T[1], self.y_train, 
             self.dataset.rating.num_users, self.dataset.rating.num_items
@@ -225,25 +249,47 @@ class RCDataModule(CFDataModule):
             self.X_test = self.X_test.T
 
     def to_tensor(self):
+        """
+        Transform X from numpy/scipy array to pytorch dense/sparse tensor.
+        """
+
         self.X_train = self.preprocessor.sparse_coo_to_tensor(self.X_train.tocoo())
         self.X_valid = self.preprocessor.sparse_coo_to_tensor(self.X_valid.tocoo())
         self.X_test = self.preprocessor.sparse_coo_to_tensor(self.X_test.tocoo())
 
     def setup(self, stage = None):
+        """
+        Data operation for each training/validating/testing.
+
+        stage (str): Seperate setup logic for pytorch_lightining `trainer.fit` and `trainer.test`. Default: None
+        """
+
         self.prepare_data()
         self.split()
         self.to_matrix()
         self.to_tensor()
 
     def train_dataloader(self):
+        """
+        Train dataloader.
+        """
+
         train_ds = TensorDataset(self.X_train, self.X_train)
         return DataLoader(train_ds, batch_size = self.batch_size)
                           
     def val_dataloader(self):
+        """
+        Validate dataloader.
+        """
+
         valid_ds = TensorDataset(self.X_valid, self.X_valid)
         return DataLoader(valid_ds, batch_size = self.batch_size)
 
     def test_dataloader(self):
+        """
+        Test dataloader.
+        """
+
         test_ds = TensorDataset(self.X_test, self.X_test)
         return DataLoader(test_ds, batch_size = self.batch_size)
 
@@ -261,7 +307,7 @@ class RCSIDataModule(RCDataModule):
 
 
     Attibutes
-    ----------
+    ---------
     :dataset (Dataset): chosen dataset obtain from `option`
 
     :batch_size (int): training/validation/testing batch size.
@@ -270,9 +316,18 @@ class RCSIDataModule(RCDataModule):
 
     :_dataset_options (list): List of available supported dataset options.
 
+
+    Notes
+    -----
+    Reconstruction matrix datamodule does not have y, since output = input (y = x).
+
     """
 
     def add_side_information(self):
+        """
+        Incorporate side information to rating matrix.
+        """
+
         if self.transpose:
             side_information = self.preprocessor.transform(
                 self.dataset.item.map_column(self.dataset.rating.item_map, "left"), 
@@ -293,6 +348,12 @@ class RCSIDataModule(RCDataModule):
         self.X_test = hstack([self.X_test, side_information])
     
     def setup(self, stage = None):
+        """
+        Data operation for each training/validating/testing.
+
+        stage (str): Seperate setup logic for pytorch_lightining `trainer.fit` and `trainer.test`. Default: None
+        """
+
         self.prepare_data()
         self.split()
         self.to_matrix()
