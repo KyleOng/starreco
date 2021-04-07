@@ -121,13 +121,13 @@ class CFSIDataModule(CFDataModule):
 
     Parameters
     ----------
-    :option (str): chosen dataset option. Default ml-1m
+    :option (str): chosen dataset option. Default: "ml-1m"
 
-    :batch_size (int): training/validation/testing batch size.
+    :batch_size (int): training/validation/testing batch size. Default: 256
 
     :user_item_indices (bool): If True, user and item indices (1st 2 columns of X) are included in X, else user and item indices are removed from X. 
     
-    
+
     Attibutes
     ---------
     :dataset (Dataset): chosen dataset obtain from `option`
@@ -150,7 +150,9 @@ class CFSIDataModule(CFDataModule):
         """
 
         super().prepare_data()
+
         if not self.user_item_indices:
+            # Set X as None (Remove 1st 2 columns of X)
             self.X = None
 
         self.X = hstack([
@@ -198,9 +200,9 @@ class RCDataModule(CFDataModule):
 
     Parameters
     ----------
-    :option (str): chosen dataset option. Default ml-1m
+    :option (str): chosen dataset option. Default: "ml-1m"
 
-    :batch_size (int): training/validation/testing batch size.
+    :batch_size (int): training/validation/testing batch size. Default: 256
 
     :transpose (bool): If True, transpose rating matrix, else pass.
 
@@ -299,9 +301,9 @@ class RCSIDataModule(RCDataModule):
 
     Parameters
     ----------
-    :option (str): chosen dataset option. Default ml-1m
+    :option (str): chosen dataset option. Default: "ml-1m"
 
-    :batch_size (int): training/validation/testing batch size.
+    :batch_size (int): training/validation/testing batch size. Default: 256
 
     :transpose (bool): If True, transpose rating matrix, else pass.
 
