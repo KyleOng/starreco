@@ -10,23 +10,38 @@ from starreco.preprocessing import Preprocessor
 
 class CFDataModule(pl.LightningDataModule):
     """
-    Data Module for Collaborative Filtering
+    Pytorch datamodule class for collaborative filtering.
+
+    Parameters
+    ----------
+    :option (str): chosen dataset option. Default ml-1m
+
+    :batch_size (int): training/validation/testing batch size.
+
+
+    Attibutes
+    ----------
+    :dataset (Dataset): chosen dataset obtain from `option`
+
+    :batch_size (int): training/validation/testing batch size.
+
+    :_dataset_options (list): List of available supported dataset options.
+
     """
 
-    options = ["ml-1m", "epinions",  "book-crossing"]
+    _dataset_options = ["ml-1m", "epinions",  "book-crossing"]
     preprocessor = Preprocessor()
 
-    def __init__(self, option = "ml-1m", batch_size = 256):
-        # Validate whether predefined dataset exist
-        if option in self.options: 
-            if option == "ml-1m":
-                self.dataset = MovielensDataset()
-            elif option == "epinions": 
-                self.dataset = EpinionsDataset()
-            elif option == "book-crossing": 
-                self.dataset = BookCrossingDataset()
-        else:
-            raise Exception(f"'{option}' not include in prefixed dataset options. Choose from {self.options}.")
+    def __init__(self, option:str = "ml-1m", batch_size:int = 256):
+        assert option in self._dataset_options, (f"'{option}' not include in prefixed dataset options. Choose from {self._dataset_options}.")
+        
+        if option == "ml-1m":
+            self.dataset = MovielensDataset()
+        elif option == "epinions": 
+            self.dataset = EpinionsDataset()
+        elif option == "book-crossing": 
+            self.dataset = BookCrossingDataset()
+
         self.batch_size = batch_size
         super().__init__()
     
@@ -66,13 +81,40 @@ class CFDataModule(pl.LightningDataModule):
         test_ds = TensorDataset(self.X_test, self.y_test)
         return DataLoader(test_ds, batch_size = self.batch_size)
         
-class HBDataModule(CFDataModule):
+class CFSIDataModule(CFDataModule):
     """
-    Data Module for Hybrid Based
+    Pytorch datamodule class for collaborative filtering incorporated with side information.
+
+    Parameters
+    ----------
+    :option (str): chosen dataset option. Default ml-1m
+
+    :batch_size (int): training/validation/testing batch size.
+
+    :user_item_indices (bool): If True, user and item indices are included in X, else user and item indices are removed from X.
+
+
+    Attibutes
+    ----------
+    :dataset (Dataset): chosen dataset obtain from `option`
+
+    :batch_size (int): training/validation/testing batch size.
+
+    :user_item_indices (bool): If True, user and item indices are included in X, else user and item indices are removed from X.
+
+    :_dataset_options (list): List of available supported dataset options.
+
     """
+
+    def __init__(self, option = "ml-1m", batch_size = 256, user_item_indices = True):
+        self.user_item_indices = user_item_indices
+        super().__init__(option, batch_size)
     
     def prepare_data(self, stage = None):
         super().prepare_data()
+        if not self.user_item_indices:
+            self.X = None
+
         self.X = hstack([
             self.X, 
             self.preprocessor.transform(
@@ -104,7 +146,27 @@ class HBDataModule(CFDataModule):
 
 class RCDataModule(CFDataModule):
     """
-    Data Module for Reconstruction (Collaborative Filtering)
+    Pytorch datamodule class for collaborative filtering reconstruction matrix.
+
+    Parameters
+    ----------
+    :option (str): chosen dataset option. Default ml-1m
+
+    :batch_size (int): training/validation/testing batch size.
+
+    :transpose (bool): If True, transpose rating matrix, else pass.
+
+
+    Attibutes
+    ----------
+    :dataset (Dataset): chosen dataset obtain from `option`
+
+    :batch_size (int): training/validation/testing batch size.
+
+    :transpose (bool): If True, transpose rating matrix, else pass.
+
+    :_dataset_options (list): List of available supported dataset options.
+
     """
 
     def __init__(self, option = "ml-1m", batch_size = 256, transpose = False):
@@ -155,7 +217,27 @@ class RCDataModule(CFDataModule):
 
 class RCSIDataModule(RCDataModule):
     """
-    Data Module for Reconstruction with Side Information (Hybrid Based)
+    Pytorch datamodule class for collaborative filtering reconstruction matrix incorporated with side information.
+
+    Parameters
+    ----------
+    :option (str): chosen dataset option. Default ml-1m
+
+    :batch_size (int): training/validation/testing batch size.
+
+    :transpose (bool): If True, transpose rating matrix, else pass.
+
+
+    Attibutes
+    ----------
+    :dataset (Dataset): chosen dataset obtain from `option`
+
+    :batch_size (int): training/validation/testing batch size.
+
+    :transpose (bool): If True, transpose rating matrix, else pass.
+
+    :_dataset_options (list): List of available supported dataset options.
+
     """
 
     def add_side_information(self):

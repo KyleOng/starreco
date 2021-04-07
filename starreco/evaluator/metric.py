@@ -1,6 +1,7 @@
 from typing import Union
 
 import torch
+import torch.nn.functional as F
 
 def mDA_reconstruction_loss(x:torch.tensor, 
                             y:torch.tensor, 
@@ -31,7 +32,7 @@ def mDA_reconstruction_loss(x:torch.tensor,
     W_ = W_.to(device)
 
     # Squared loss
-    L = torch.mean(torch.sum((x - y) ** 2, axis = 1))
+    L = F.mse_loss(x,y) #torch.mean(torch.sum((x - y) ** 2, axis = 1))
     
     # Regularization term because of Implicit Denoising via Marginalization
     dz = z * (1 - z)
