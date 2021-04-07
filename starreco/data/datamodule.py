@@ -332,7 +332,7 @@ class RCSIDataModule(RCDataModule):
 
     :field_dims (list): List of user and item field dimensions. 
 
-    :feature_dim (int): User or item feature (side information) field dimensions. 
+    :feature_dim (int): User or item feature (side information) field dimension. 
 
     :_dataset_options (list): List of available supported dataset options.
 
