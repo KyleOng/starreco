@@ -29,12 +29,13 @@ class CFDataModule(pl.LightningDataModule):
 
     """
 
-    _dataset_options = ["ml-1m", "epinions",  "book-crossing"]
+    _dataset_options = ["ml-1m", "epinions", "book-crossing"]
     preprocessor = Preprocessor()
 
     def __init__(self, option:str = "ml-1m", batch_size:int = 256):
         assert option in self._dataset_options, (f"'{option}' not include in prefixed dataset options. Choose from {self._dataset_options}.")
         
+        # Download dataset
         if option == "ml-1m":
             self.dataset = MovielensDataset()
         elif option == "epinions": 
@@ -43,19 +44,34 @@ class CFDataModule(pl.LightningDataModule):
             self.dataset = BookCrossingDataset()
 
         self.batch_size = batch_size
+
         super().__init__()
     
     def prepare_data(self):
+        """
+        Prepare X and y dataset. 
+        """
+
         ratings = self.dataset.rating.reindex
 
         self.X = ratings[[self.dataset.user.column, self.dataset.item.column]].values
         self.y = ratings[self.dataset.rating.rating_column].values
 
     def to_tensor(self):
+        """
+        Transform X and y from numpy/scipy array to pytorch tensor.
+        """
+
         self.X = torch.tensor(self.X).type(torch.LongTensor)
         self.y = torch.tensor(self.y).type(torch.FloatTensor)
 
     def split(self, random_state = 77):
+        """
+        Perform train/validate/test split. 
+        
+        :random_state (int): A seed to sklearn's random number generator which to generate the splits. This ensures that the splits generated as reproducable. 
+        """
+
         # General rule of thumb 60/20/20 train valid test split 
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
             self.X, self.y, stratify = self.y, test_size = 0.2, random_state = random_state
@@ -65,19 +81,35 @@ class CFDataModule(pl.LightningDataModule):
         ) 
 
     def setup(self, stage = None):
+        """
+        Data operation for each training/validating/testing.
+        """
+
         self.prepare_data()
         self.to_tensor()
         self.split()
 
     def train_dataloader(self):
+        """
+        Train dataloader.
+        """
+
         train_ds = TensorDataset(self.X_train, self.y_train)
         return DataLoader(train_ds, batch_size = self.batch_size)
                           
     def val_dataloader(self):
+        """
+        Validate dataloader.
+        """
+
         valid_ds = TensorDataset(self.X_valid, self.y_valid)
         return DataLoader(valid_ds, batch_size = self.batch_size)
 
     def test_dataloader(self):
+        """
+        Test dataloader.
+        """
+
         test_ds = TensorDataset(self.X_test, self.y_test)
         return DataLoader(test_ds, batch_size = self.batch_size)
         
