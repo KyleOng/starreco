@@ -21,9 +21,11 @@ class CFDataModule(pl.LightningDataModule):
 
     Attibutes
     ---------
-    :dataset (Dataset): chosen dataset obtain from `option`
+    :dataset (Dataset): chosen dataset obtain from `option`.
 
     :batch_size (int): training/validation/testing batch size.
+
+    :field_dims (list): List of user and item field dimensions. 
 
     :_dataset_options (list): List of available supported dataset options.
 
@@ -33,6 +35,7 @@ class CFDataModule(pl.LightningDataModule):
     preprocessor = Preprocessor()
 
     def __init__(self, option:str = "ml-1m", batch_size:int = 256):
+
         assert option in self._dataset_options, (f"'{option}' not include in prefixed dataset options. Choose from {self._dataset_options}.")
         
         # Download dataset
@@ -57,6 +60,8 @@ class CFDataModule(pl.LightningDataModule):
         self.X = ratings[[self.dataset.user.column, self.dataset.item.column]].values
         self.y = ratings[self.dataset.rating.rating_column].values
 
+        self.field_dims = [self.dataset.rating.num_users, self.dataset.rating.num_items]
+
     def to_tensor(self):
         """
         Transform X and y from numpy/scipy array to pytorch tensor.
@@ -65,7 +70,7 @@ class CFDataModule(pl.LightningDataModule):
         self.X = torch.tensor(self.X).type(torch.LongTensor)
         self.y = torch.tensor(self.y).type(torch.FloatTensor)
 
-    def split(self, random_state = 77):
+    def split(self, random_state:int = 77):
         """
         Perform train/validate/test split. 
         
@@ -80,7 +85,7 @@ class CFDataModule(pl.LightningDataModule):
             self.X_test, self.y_test, stratify = self.y_test, test_size = 0.5, random_state = random_state
         ) 
 
-    def setup(self, stage = None):
+    def setup(self, stage:str = None):
         """
         Data operation for each training/validating/testing.
 
@@ -117,7 +122,7 @@ class CFDataModule(pl.LightningDataModule):
         
 class CFSIDataModule(CFDataModule):
     """
-    Pytorch datamodule class for collaborative filtering incorporated with side information.
+    Pytorch datamodule class for collaborative filtering incorporated with features (side information).
 
     Parameters
     ----------
@@ -134,42 +139,48 @@ class CFSIDataModule(CFDataModule):
 
     :batch_size (int): training/validation/testing batch size.
 
+    :field_dims (list): List of user and item field dimensions. 
+
+    :feature_dims (list): List of user and item feature (side information) field dimensions. 
+
     :user_item_indices (bool): If True, user and item indices are included in X, else user and item indices are removed from X.
 
     :_dataset_options (list): List of available supported dataset options.
 
     """
 
-    def __init__(self, option = "ml-1m", batch_size = 256, user_item_indices = True):
+    def __init__(self, option:str = "ml-1m", batch_size:int = 256, user_item_indices:bool = True):
+
         self.user_item_indices = user_item_indices
         super().__init__(option, batch_size)
     
-    def prepare_data(self, stage = None):
+    def prepare_data(self, stage:str = None):
         """
         Prepare X and y dataset. 
         """
 
         super().prepare_data()
 
-        if not self.user_item_indices:
-            # Set X as None (Remove 1st 2 columns of X)
-            self.X = None
+        user_features = self.preprocessor.transform(
+            self.dataset.rating.user_select_related, 
+            cat_columns = self.dataset.user.cat_columns,
+            num_columns = self.dataset.user.num_columns, 
+            set_columns = self.dataset.user.set_columns
+        )
 
-        self.X = hstack([
-            self.X, 
-            self.preprocessor.transform(
-                self.dataset.rating.user_select_related, 
-                cat_columns = self.dataset.user.cat_columns,
-                num_columns = self.dataset.user.num_columns, 
-                set_columns = self.dataset.user.set_columns
-            ), 
-            self.preprocessor.transform(
-                self.dataset.rating.item_select_related, 
-                cat_columns = self.dataset.item.cat_columns,
-                num_columns = self.dataset.item.num_columns, 
-                set_columns = self.dataset.item.set_columns
-            ), 
-        ])
+        item_features = self.preprocessor.transform(
+            self.dataset.rating.item_select_related, 
+            cat_columns = self.dataset.item.cat_columns,
+            num_columns = self.dataset.item.num_columns, 
+            set_columns = self.dataset.item.set_columns
+        )
+
+        self.feature_dims = [user_features.shape[1], item_features.shape[1]]
+        
+        if self.user_item_indices:
+            self.X = hstack([self.X, user_features, item_features])
+        else:
+            self.X = hstack([user_features, item_features])
 
     def to_tensor(self):
         """
@@ -183,7 +194,7 @@ class CFSIDataModule(CFDataModule):
         self.y_valid = torch.tensor(self.y_valid).type(torch.FloatTensor)
         self.y_test = torch.tensor(self.y_test).type(torch.FloatTensor)
 
-    def setup(self, stage = None):
+    def setup(self, stage:str = None):
         """
         Data operation for each training/validating/testing.
 
@@ -213,6 +224,8 @@ class RCDataModule(CFDataModule):
 
     :batch_size (int): training/validation/testing batch size.
 
+    :field_dims (list): List of user and item field dimensions. 
+
     :transpose (bool): If True, transpose rating matrix, else pass.
 
     :_dataset_options (list): List of available supported dataset options.
@@ -223,7 +236,8 @@ class RCDataModule(CFDataModule):
     Reconstruction matrix datamodule does not have y, since output = input (y = x).
     """
 
-    def __init__(self, option = "ml-1m", batch_size = 256, transpose = False):
+    def __init__(self, option:str = "ml-1m", batch_size:int = 256, transpose:bool = False):
+
         self.transpose = transpose
         super().__init__(option, batch_size)
 
@@ -259,7 +273,7 @@ class RCDataModule(CFDataModule):
         self.X_valid = self.preprocessor.sparse_coo_to_tensor(self.X_valid.tocoo())
         self.X_test = self.preprocessor.sparse_coo_to_tensor(self.X_test.tocoo())
 
-    def setup(self, stage = None):
+    def setup(self, stage:str = None):
         """
         Data operation for each training/validating/testing.
 
@@ -297,7 +311,7 @@ class RCDataModule(CFDataModule):
 
 class RCSIDataModule(RCDataModule):
     """
-    Pytorch datamodule class for collaborative filtering reconstruction matrix incorporated with side information.
+    Pytorch datamodule class for collaborative filtering reconstruction matrix incorporated with features (side information).
 
     Parameters
     ----------
@@ -316,6 +330,10 @@ class RCSIDataModule(RCDataModule):
 
     :transpose (bool): If True, transpose rating matrix, else pass.
 
+    :field_dims (list): List of user and item field dimensions. 
+
+    :feature_dim (int): User or item feature (side information) field dimensions. 
+
     :_dataset_options (list): List of available supported dataset options.
 
 
@@ -325,31 +343,33 @@ class RCSIDataModule(RCDataModule):
 
     """
 
-    def add_side_information(self):
+    def add_features(self):
         """
-        Incorporate side information to rating matrix.
+        Incorporate user or item features (side information) to rating matrix.
         """
 
         if self.transpose:
-            side_information = self.preprocessor.transform(
+            features = self.preprocessor.transform(
                 self.dataset.item.map_column(self.dataset.rating.item_map, "left"), 
                 cat_columns = self.dataset.item.cat_columns,
                 num_columns = self.dataset.item.num_columns, 
                 set_columns = self.dataset.item.set_columns
             )
+
         else:
-            side_information = self.preprocessor.transform(
+            features = self.preprocessor.transform(
                 self.dataset.user.map_column(self.dataset.rating.user_map, "left"), 
                 cat_columns = self.dataset.user.cat_columns,
                 num_columns = self.dataset.user.num_columns, 
                 set_columns = self.dataset.user.set_columns
             )
+        self.feature_dim = features.shape[1]
 
-        self.X_train = hstack([self.X_train, side_information])
-        self.X_valid = hstack([self.X_valid, side_information])
-        self.X_test = hstack([self.X_test, side_information])
+        self.X_train = hstack([self.X_train, features])
+        self.X_valid = hstack([self.X_valid, features])
+        self.X_test = hstack([self.X_test, features])
     
-    def setup(self, stage = None):
+    def setup(self, stage:str = None):
         """
         Data operation for each training/validating/testing.
 
@@ -359,5 +379,5 @@ class RCSIDataModule(RCDataModule):
         self.prepare_data()
         self.split()
         self.to_matrix()
-        self.add_side_information()
+        self.add_features()
         self.to_tensor()

@@ -4,46 +4,46 @@ import numpy as np
 import torch
 
 class FeaturesEmbedding(torch.nn.Module):
-    def __init__(self, feature_dims: list, embed_dim: int):
+    def __init__(self, field_dims: list, embed_dim: int):
         """
         Embedd Features.
 
-        :param feature_dims (list): List of feature dimension. Each feature contains
+        :param field_dims (list): List of field dimension. Each feature contains
         a total number of unique values.
 
         :param embed_dim (int): Embedding dimension.
         """
         super().__init__()
-        self.embedding = torch.nn.Embedding(sum(feature_dims), embed_dim)
-        self.offsets = np.array((0, *np.cumsum(feature_dims)[:-1]), dtype = np.int64)
+        self.embedding = torch.nn.Embedding(sum(field_dims), embed_dim)
+        self.offsets = np.array((0, *np.cumsum(field_dims)[:-1]), dtype = np.int64)
 
     def forward(self, x):
         """
         Perform operations.
 
-        :param x (torch.Tensor): Contains inputs of size (batch_size, len(feature_dims)).
+        :param x (torch.Tensor): Contains inputs of size (batch_size, len(field_dims)).
 
-        :return (torch.Tensor): Contains embeddings of size (batch_size, len(feature_dims), 
+        :return (torch.Tensor): Contains embeddings of size (batch_size, len(field_dims), 
         embed_dim).
         """
         x = x + x.new_tensor(self.offsets).unsqueeze(0)
         return self.embedding(x)
 
 class FeaturesLinear(torch.nn.Module):
-    def __init__(self, feature_dims, 
+    def __init__(self, field_dims, 
                  output_dim:int = 1):
         """
         Linear transformation.
 
-        :param feature_dims (list): List of feature dimension. Each feature contains
+        :param field_dims (list): List of field dimension. Each feature contains
         a total number of unique values.
 
         :param output_dim (int): Embedding dimension.
         """ 
 
         super().__init__()
-        self.linear = torch.nn.Embedding(sum(feature_dims), output_dim)
-        self.offsets = np.array((0, *np.cumsum(feature_dims)[:-1]), dtype = np.int64)
+        self.linear = torch.nn.Embedding(sum(field_dims), output_dim)
+        self.offsets = np.array((0, *np.cumsum(field_dims)[:-1]), dtype = np.int64)
 
         self.bias = torch.nn.Parameter(torch.zeros((output_dim,)))
         
@@ -51,10 +51,10 @@ class FeaturesLinear(torch.nn.Module):
         """
         Perform operations.
 
-        :param x (torch.Tensor): Contains inputs of size (batch_size, len(feature_dims)).
+        :param x (torch.Tensor): Contains inputs of size (batch_size, len(field_dims)).
 
         :return (torch.Tensor): Contains linear transformation output of size 
-        (batch_size, len(feature_dims), embed_dim).
+        (batch_size, len(field_dims), embed_dim).
         """
         x = x + x.new_tensor(self.offsets).unsqueeze(0)
 
@@ -74,7 +74,7 @@ class PairwiseInteraction(torch.nn.Module):
         """
          Perform operations.
 
-        :param x (torch.Tensor): Contains inputs of size (batch_size, len(feature_dims),
+        :param x (torch.Tensor): Contains inputs of size (batch_size, len(field_dims),
         embed_dim).
 
         :return (torch.Tensor): If reduce_sum is True, return pairwise interaction 

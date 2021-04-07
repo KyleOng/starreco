@@ -9,7 +9,7 @@ class GMF(Module):
     """
     Generalized Matrix Factorization
     """
-    def __init__(self, feature_dims:list, 
+    def __init__(self, field_dims:list, 
                  embed_dim:int = 8, 
                  lr:float = 1e-2,
                  weight_decay:float = 1e-6,
@@ -18,7 +18,7 @@ class GMF(Module):
         """ 
         Hyperparameters setting.
 
-        :param feature_dims (list): List of feature dimensions. 
+        :param field_dims (list): List of field dimensions. 
 
         :param embed_dim (int): Embeddings dimensions. Default: 8
 
@@ -33,7 +33,7 @@ class GMF(Module):
         super().__init__(lr, weight_decay, criterion)
 
         # Embedding layer
-        self.embedding = FeaturesEmbedding(feature_dims, embed_dim)
+        self.embedding = FeaturesEmbedding(field_dims, embed_dim)
 
         # Singlelayer perceptrons
         self.nn = MultilayerPerceptrons(input_dim = embed_dim, 

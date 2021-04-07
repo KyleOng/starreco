@@ -12,7 +12,7 @@ class CNNDCF(Module):
     """
     Convolutional Neural Networks based Deep Collaborative Filtering model.
     """
-    def __init__(self, feature_dims:list, 
+    def __init__(self, field_dims:list, 
                  embed_dim:int = 32, #or 64
                  conv_filter_size:int = 32, #or 64
                  conv_kernel_size:int = 2, 
@@ -26,7 +26,7 @@ class CNNDCF(Module):
         """
         Hyperparameters setting.      
         
-        :param feature_dims (list): List of feature dimensions.
+        :param field_dims (list): List of field dimensions.
 
         :param embed_dim (int): Embedding size. Default: 32 or 64
 
@@ -49,7 +49,7 @@ class CNNDCF(Module):
         super().__init__(lr, weight_decay, criterion)
 
         # Embedding layer
-        self.embedding = FeaturesEmbedding(feature_dims, embed_dim)
+        self.embedding = FeaturesEmbedding(field_dims, embed_dim)
 
         # 1 fully connected layer before residual connection
         self.fc_rc = MultilayerPerceptrons(input_dim = embed_dim ** 2,

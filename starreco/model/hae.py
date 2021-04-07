@@ -23,7 +23,7 @@ class HAE(HDAE):
 
         :param io_dim (int): Input/Output dimension.
 
-        :param feature_dim (int): Feature dimension.
+        :param feature_dim (int): field dimension.
 
         :param feature_concat_all (bool): If True concat feature on input layer and hidden layer, else concat feature on input layer only. Default: True
 
