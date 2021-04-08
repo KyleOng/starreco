@@ -58,7 +58,7 @@ class CFDataModule(pl.LightningDataModule):
         ratings = self.dataset.rating.reindex
 
         self.X = ratings[[self.dataset.user.column, self.dataset.item.column]].values
-        self.y = ratings[self.dataset.rating.rating_column].values
+        self.y = ratings[self.dataset.rating.column].values
 
         self.field_dims = [self.dataset.rating.num_users, self.dataset.rating.num_items]
 
@@ -102,7 +102,8 @@ class CFDataModule(pl.LightningDataModule):
         """
 
         train_ds = TensorDataset(self.X_train, self.y_train)
-        return DataLoader(train_ds, batch_size = self.batch_size)
+        dl = DataLoader(train_ds, batch_size = self.batch_size)
+        return dl
                           
     def val_dataloader(self):
         """
@@ -130,7 +131,7 @@ class CFSIDataModule(CFDataModule):
 
     :batch_size (int): training/validation/testing batch size. Default: 256
 
-    :user_item_indices (bool): If True, user and item indices (1st 2 columns of X) are included in X, else user and item indices are removed from X. 
+    :include_user_item (bool): If True, user and item fields (1st 2 columns of X) are included in X, else user and item fields are removed from X. 
     
 
     Attibutes
@@ -143,15 +144,15 @@ class CFSIDataModule(CFDataModule):
 
     :feature_dims (list): List of user and item feature (side information) field dimensions. 
 
-    :user_item_indices (bool): If True, user and item indices are included in X, else user and item indices are removed from X.
+    :include_user_item (bool): If True, user and item fields are included in X, else user and item fields are removed from X.
 
     :_dataset_options (list): List of available supported dataset options.
 
     """
 
-    def __init__(self, option:str = "ml-1m", batch_size:int = 256, user_item_indices:bool = True):
+    def __init__(self, option:str = "ml-1m", batch_size:int = 256, include_user_item:bool = True):
 
-        self.user_item_indices = user_item_indices
+        self.include_user_item = include_user_item
         super().__init__(option, batch_size)
     
     def prepare_data(self, stage:str = None):
@@ -177,7 +178,7 @@ class CFSIDataModule(CFDataModule):
 
         self.feature_dims = [user_features.shape[1], item_features.shape[1]]
         
-        if self.user_item_indices:
+        if self.include_user_item:
             self.X = hstack([self.X, user_features, item_features])
         else:
             self.X = hstack([user_features, item_features])
@@ -200,7 +201,6 @@ class CFSIDataModule(CFDataModule):
 
         stage (str): Seperate setup logic for pytorch_lightining `trainer.fit` and `trainer.test`. Default: None
         """
-
         self.prepare_data()
         self.split()
         self.to_tensor()
