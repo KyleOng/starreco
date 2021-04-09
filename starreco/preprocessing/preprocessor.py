@@ -12,10 +12,7 @@ class CustomMultiLabelBinarizer(MultiLabelBinarizer):
     """
     Custom MultiLabelBinarizer
 
-    Notes: Original MultiLabelBinarizer fit_transform() only takes 2 positional arguments. 
-    However, our custom pipeline assumes the MultiLabelBinarizer fit_transform() 
-    is defined to take 3 positional arguments. Hence, adding an additional argument 
-    y to fit_transform() fix the problem.
+    Notes: Original MultiLabelBinarizer fit_transform() only takes 2 positional arguments. However, our custom pipeline assumes the MultiLabelBinarizer fit_transform() is defined to take 3 positional arguments. Hence, adding an additional argument y to fit_transform() fix the problem.
     """
     def fit_transform(self, X, y = None):
         """
