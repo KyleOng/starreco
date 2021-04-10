@@ -1,4 +1,1 @@
-from starreco.data.datamodule import (CFDataModule,
-                                      RCDataModule,
-                                      CFSIDataModule,
-                                      RCSIDataModule)
+from starreco.data.datamodule import CFDataModule, RCDataModule, CFSIDataModule, RCSIDataModule

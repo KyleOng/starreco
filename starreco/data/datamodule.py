@@ -5,34 +5,13 @@ from torchvision import transforms
 from torch.utils.data import TensorDataset, DataLoader
 from sklearn.model_selection import train_test_split
 
-from starreco.data.dataset import *
-from starreco.preprocessing import Preprocessor
+from starreco.preprocessing import Preprocessor, ratings_to_sparse
+from .dataset import MovielensDataset, BookCrossingDataset
+from .sparse import SparseDataset, sparse_batch_collate
 
-class CFDataModule(pl.LightningDataModule):
-    """
-    Pytorch datamodule class for collaborative filtering.
+class BaseDataModule(pl.LightningDataModule):
 
-    Parameters
-    ----------
-    :option (str): chosen dataset option. Default: "ml-1m"
-
-    :batch_size (int): training/validation/testing batch size. Default: 256
-
-
-    Attibutes
-    ---------
-    :dataset (Dataset): chosen dataset obtain from `option`.
-
-    :batch_size (int): training/validation/testing batch size.
-
-    :field_dims (list): List of user and item field dimensions. 
-
-    :_dataset_options (list): List of available supported dataset options.
-
-    """
-
-    _dataset_options = ["ml-1m", "epinions", "book-crossing"]
-    preprocessor = Preprocessor()
+    _dataset_options = ["ml-1m", "book-crossing"]
 
     def __init__(self, option:str = "ml-1m", batch_size:int = 256):
 
@@ -41,8 +20,6 @@ class CFDataModule(pl.LightningDataModule):
         # Download dataset
         if option == "ml-1m":
             self.dataset = MovielensDataset()
-        elif option == "epinions": 
-            self.dataset = EpinionsDataset()
         elif option == "book-crossing": 
             self.dataset = BookCrossingDataset()
 
@@ -62,13 +39,6 @@ class CFDataModule(pl.LightningDataModule):
 
         self.field_dims = [self.dataset.rating.num_users, self.dataset.rating.num_items]
 
-    def to_tensor(self):
-        """
-        Transform X and y from numpy/scipy array to pytorch tensor.
-        """
-
-        self.X = torch.tensor(self.X).type(torch.LongTensor)
-        self.y = torch.tensor(self.y).type(torch.FloatTensor)
 
     def split(self, random_state:int = 77):
         """
@@ -93,7 +63,6 @@ class CFDataModule(pl.LightningDataModule):
         """
 
         self.prepare_data()
-        self.to_tensor()
         self.split()
 
     def train_dataloader(self):
@@ -101,16 +70,15 @@ class CFDataModule(pl.LightningDataModule):
         Train dataloader.
         """
 
-        train_ds = TensorDataset(self.X_train, self.y_train)
-        dl = DataLoader(train_ds, batch_size = self.batch_size)
-        return dl
+        train_ds = SparseDataset(self.X_train, self.y_train)
+        return DataLoader(train_ds, batch_size = self.batch_size)
                           
     def val_dataloader(self):
         """
         Validate dataloader.
         """
 
-        valid_ds = TensorDataset(self.X_valid, self.y_valid)
+        valid_ds = SparseDataset(self.X_valid, self.y_valid)
         return DataLoader(valid_ds, batch_size = self.batch_size)
 
     def test_dataloader(self):
@@ -118,36 +86,81 @@ class CFDataModule(pl.LightningDataModule):
         Test dataloader.
         """
 
-        test_ds = TensorDataset(self.X_test, self.y_test)
+        test_ds = SparseDataset(self.X_test, self.y_test)
         return DataLoader(test_ds, batch_size = self.batch_size)
+
+class SparseDataModule(BaseDataModule):
+    def train_dataloader(self):
+        """
+        Train dataloader for sparse dataset.
+        """
+
+        train_ds = SparseDataset(self.X_train, self.y_train)
+        return DataLoader(train_ds, 
+                          batch_size = self.batch_size, 
+                          collate_fn = sparse_batch_collate)
+                          
+    def val_dataloader(self):
+        """
+        Validate dataloader for sparse dataset.
+        """
+
+        valid_ds = SparseDataset(self.X_valid, self.y_valid)
+        return DataLoader(valid_ds, 
+                          batch_size = self.batch_size, 
+                          collate_fn = sparse_batch_collate)
+
+    def test_dataloader(self):
+        """
+        Test dataloader for sparse dataset.
+        """
+
+        test_ds = SparseDataset(self.X_test, self.y_test)
+        return DataLoader(test_ds, 
+                          batch_size = self.batch_size, 
+                          collate_fn = sparse_batch_collate)
+
+class CFDataModule(BaseDataModule):
+    """
+    Pytorch datamodule class for collaborative filtering.
+
+    :option (str): chosen dataset option. Default: "ml-1m"
+
+    :batch_size (int): training/validation/testing batch size. Default: 256
+    """
+    
+    def to_tensor(self):
+        """
+        Transform X and y from numpy/scipy array to pytorch tensor.
+        """
+
+        self.X_train = torch.tensor(self.X_train).type(torch.LongTensor)
+        self.X_valid = torch.tensor(self.X_valid).type(torch.LongTensor)
+        self.X_test = torch.tensor(self.X_test).type(torch.LongTensor)
+        self.y_train = torch.tensor(self.y_train).type(torch.FloatTensor)
+        self.y_valid = torch.tensor(self.y_valid).type(torch.FloatTensor)
+        self.y_test = torch.tensor(self.y_test).type(torch.FloatTensor)
         
-class CFSIDataModule(CFDataModule):
+    def setup(self, stage:str = None):
+        """
+        Data operation for each training/validating/testing.
+
+        stage (str): Seperate setup logic for pytorch_lightining `trainer.fit` and `trainer.test`. Default: None
+        """
+
+        super().setup(stage)
+        self.to_tensor()
+    
+
+class CFSIDataModule(SparseDataModule):
     """
     Pytorch datamodule class for collaborative filtering incorporated with features (side information).
 
-    Parameters
-    ----------
     :option (str): chosen dataset option. Default: "ml-1m"
 
     :batch_size (int): training/validation/testing batch size. Default: 256
 
     :include_user_item (bool): If True, user and item fields (1st 2 columns of X) are included in X, else user and item fields are removed from X. 
-    
-
-    Attibutes
-    ---------
-    :dataset (Dataset): chosen dataset obtain from `option`
-
-    :batch_size (int): training/validation/testing batch size.
-
-    :field_dims (list): List of user and item field dimensions. 
-
-    :feature_dims (list): List of user and item feature (side information) field dimensions. 
-
-    :include_user_item (bool): If True, user and item fields are included in X, else user and item fields are removed from X.
-
-    :_dataset_options (list): List of available supported dataset options.
-
     """
 
     def __init__(self, option:str = "ml-1m", batch_size:int = 256, include_user_item:bool = True):
@@ -162,19 +175,21 @@ class CFSIDataModule(CFDataModule):
 
         super().prepare_data()
 
-        user_features = self.preprocessor.transform(
-            self.dataset.rating.user_select_related, 
+        user_preprocessor = Preprocessor(
+            self.dataset.rating.user_select_related,
             cat_columns = self.dataset.user.cat_columns,
             num_columns = self.dataset.user.num_columns, 
             set_columns = self.dataset.user.set_columns
         )
+        user_features = user_preprocessor.transform()
 
-        item_features = self.preprocessor.transform(
-            self.dataset.rating.item_select_related, 
+        item_preprocessor = Preprocessor(
+            self.dataset.rating.item_select_related,
             cat_columns = self.dataset.item.cat_columns,
             num_columns = self.dataset.item.num_columns, 
             set_columns = self.dataset.item.set_columns
         )
+        item_features = item_preprocessor.transform()
 
         self.feature_dims = [user_features.shape[1], item_features.shape[1]]
         
@@ -182,58 +197,19 @@ class CFSIDataModule(CFDataModule):
             self.X = hstack([self.X, user_features, item_features])
         else:
             self.X = hstack([user_features, item_features])
-
-    def to_tensor(self):
-        """
-        Transform X and y from numpy/scipy array to pytorch dense/sparse tensor.
-        """
-
-        self.X_train = self.preprocessor.sparse_coo_to_tensor(self.X_train.tocoo())
-        self.X_valid = self.preprocessor.sparse_coo_to_tensor(self.X_valid.tocoo())
-        self.X_test = self.preprocessor.sparse_coo_to_tensor(self.X_test.tocoo())
-        self.y_train = torch.tensor(self.y_train).type(torch.FloatTensor)
-        self.y_valid = torch.tensor(self.y_valid).type(torch.FloatTensor)
-        self.y_test = torch.tensor(self.y_test).type(torch.FloatTensor)
-
-    def setup(self, stage:str = None):
-        """
-        Data operation for each training/validating/testing.
-
-        stage (str): Seperate setup logic for pytorch_lightining `trainer.fit` and `trainer.test`. Default: None
-        """
-        self.prepare_data()
-        self.split()
-        self.to_tensor()
-
-class RCDataModule(CFDataModule):
+        
+class RCDataModule(SparseDataModule):
     """
     Pytorch datamodule class for collaborative filtering reconstruction matrix.
 
-    Parameters
-    ----------
+
     :option (str): chosen dataset option. Default: "ml-1m"
 
     :batch_size (int): training/validation/testing batch size. Default: 256
 
     :transpose (bool): If True, transpose rating matrix, else pass.
 
-
-    Attibutes
-    ---------
-    :dataset (Dataset): chosen dataset obtain from `option`
-
-    :batch_size (int): training/validation/testing batch size.
-
-    :field_dims (list): List of user and item field dimensions. 
-
-    :transpose (bool): If True, transpose rating matrix, else pass.
-
-    :_dataset_options (list): List of available supported dataset options.
-
-
-    Notes
-    -----
-    Reconstruction matrix datamodule does not have y, since output = input (y = x).
+    Note: Reconstruction matrix datamodule does not have y, since output = input (y = x).
     """
 
     def __init__(self, option:str = "ml-1m", batch_size:int = 256, transpose:bool = False):
@@ -246,15 +222,15 @@ class RCDataModule(CFDataModule):
         Transform rating dataframe with M*N rows to rating matrix with M rows and N columns.
         """
 
-        self.X_train = self.preprocessor.ratings_to_sparse(
+        self.X_train = ratings_to_sparse(
             self.X_train.T[0], self.X_train.T[1], self.y_train, 
             self.dataset.rating.num_users, self.dataset.rating.num_items
         )
-        self.X_valid = self.preprocessor.ratings_to_sparse(
+        self.X_valid = ratings_to_sparse(
             self.X_valid.T[0], self.X_valid.T[1], self.y_valid, 
             self.dataset.rating.num_users, self.dataset.rating.num_items
         )
-        self.X_test = self.preprocessor.ratings_to_sparse(
+        self.X_test = ratings_to_sparse(
             self.X_test.T[0], self.X_test.T[1], self.y_test, 
             self.dataset.rating.num_users, self.dataset.rating.num_items
         )
@@ -263,16 +239,7 @@ class RCDataModule(CFDataModule):
             self.X_train = self.X_train.T
             self.X_valid = self.X_valid.T
             self.X_test = self.X_test.T
-
-    def to_tensor(self):
-        """
-        Transform X from numpy/scipy array to pytorch dense/sparse tensor.
-        """
-
-        self.X_train = self.preprocessor.sparse_coo_to_tensor(self.X_train.tocoo())
-        self.X_valid = self.preprocessor.sparse_coo_to_tensor(self.X_valid.tocoo())
-        self.X_test = self.preprocessor.sparse_coo_to_tensor(self.X_test.tocoo())
-
+        
     def setup(self, stage:str = None):
         """
         Data operation for each training/validating/testing.
@@ -280,34 +247,13 @@ class RCDataModule(CFDataModule):
         stage (str): Seperate setup logic for pytorch_lightining `trainer.fit` and `trainer.test`. Default: None
         """
 
-        self.prepare_data()
-        self.split()
+        super().setup(stage)
         self.to_matrix()
-        self.to_tensor()
 
-    def train_dataloader(self):
-        """
-        Train dataloader.
-        """
-
-        train_ds = TensorDataset(self.X_train, self.X_train)
-        return DataLoader(train_ds, batch_size = self.batch_size)
-                          
-    def val_dataloader(self):
-        """
-        Validate dataloader.
-        """
-
-        valid_ds = TensorDataset(self.X_valid, self.X_valid)
-        return DataLoader(valid_ds, batch_size = self.batch_size)
-
-    def test_dataloader(self):
-        """
-        Test dataloader.
-        """
-
-        test_ds = TensorDataset(self.X_test, self.X_test)
-        return DataLoader(test_ds, batch_size = self.batch_size)
+        # Since reconstruction input = output, set y = x
+        self.y_train = self.X_train
+        self.y_valid = self.X_valid
+        self.y_test = self.X_test
 
 class RCSIDataModule(RCDataModule):
     """
@@ -349,25 +295,30 @@ class RCSIDataModule(RCDataModule):
         """
 
         if self.transpose:
-            features = self.preprocessor.transform(
-                self.dataset.item.map_column(self.dataset.rating.item_map, "left"), 
+            preprocessor = Preprocessor(
+                df = self.dataset.item.map_column(self.dataset.rating.item_map, "left"), 
                 cat_columns = self.dataset.item.cat_columns,
                 num_columns = self.dataset.item.num_columns, 
                 set_columns = self.dataset.item.set_columns
             )
-
         else:
-            features = self.preprocessor.transform(
-                self.dataset.user.map_column(self.dataset.rating.user_map, "left"), 
+            preprocessor = Preprocessor(
+                df = self.dataset.user.map_column(self.dataset.rating.user_map, "left"), 
                 cat_columns = self.dataset.user.cat_columns,
                 num_columns = self.dataset.user.num_columns, 
                 set_columns = self.dataset.user.set_columns
             )
+            
+        features = preprocessor.transform()
         self.feature_dim = features.shape[1]
 
         self.X_train = hstack([self.X_train, features])
         self.X_valid = hstack([self.X_valid, features])
         self.X_test = hstack([self.X_test, features])
+
+        self.y_train = hstack([self.y_train, features])
+        self.y_valid = hstack([self.y_valid, features])
+        self.y_test = hstack([self.y_test, features])
     
     def setup(self, stage:str = None):
         """
@@ -376,8 +327,5 @@ class RCSIDataModule(RCDataModule):
         stage (str): Seperate setup logic for pytorch_lightining `trainer.fit` and `trainer.test`. Default: None
         """
 
-        self.prepare_data()
-        self.split()
-        self.to_matrix()
+        super().setup(stage)
         self.add_features()
-        self.to_tensor()

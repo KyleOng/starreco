@@ -13,16 +13,11 @@ from .dataframe import User, Item, Rating
 class BaseDataset:
     """
     Base class for dataset.
-
-    Warning: This class should not be used directly. Use derived class instead.
     """
 
     _datasets_path = os.path.realpath(__file__).replace("data/dataset.py", "dataset/")
 
     def __init__(self):
-        """
-        Base class for Dataset    
-        """
 
         # Import data when class object is created
         self.rating, self.user, self.item = self.import_data()
@@ -84,12 +79,12 @@ class BaseDataset:
 
 class MovielensDataset(BaseDataset):
     """
-    Dataset class for Movielens
+    Dataset class for Movielens.
     """
 
     def import_data(self):
         """
-        Import Movielens dataset
+        Import Movielens rating, user and item dataframes. 
         """
 
         # Download dataset from url and store as zipfile
@@ -120,12 +115,12 @@ class MovielensDataset(BaseDataset):
 
 class BookCrossingDataset(BaseDataset):
     """
-    Dataset class for Book Crossing
+    Dataset class for Book Crossing.
     """
 
     def import_data(self):
         """
-        Import Book Crossing Dataset
+        Import Book Crossing rating, user and item dataframes. 
         """
 
         # Download dataset from url and store as zipfile
