@@ -10,6 +10,11 @@ from .dataset import MovielensDataset, BookCrossingDataset
 from .sparse import SparseDataset, sparse_batch_collate
 
 class BaseDataModule(pl.LightningDataModule):
+    """
+    Base data module class
+
+    Warning: This method should not be used directly.
+    """
 
     _dataset_options = ["ml-1m", "book-crossing"]
 
@@ -44,7 +49,7 @@ class BaseDataModule(pl.LightningDataModule):
         """
         Perform train/validate/test split. 
         
-        :random_state (int): A seed to sklearn's random number generator which to generate the splits. This ensures that the splits generated as reproducable. Default: 77
+        :param random_state (int): A seed to sklearn's random number generator which to generate the splits. This ensures that the splits generated as reproducable. Default: 77
         """
 
         # General rule of thumb 60/20/20 train valid test split 
@@ -124,9 +129,9 @@ class CFDataModule(BaseDataModule):
     """
     Pytorch datamodule class for collaborative filtering.
 
-    :option (str): chosen dataset option. Default: "ml-1m"
+    :param option (str): chosen dataset option. Default: "ml-1m"
 
-    :batch_size (int): training/validation/testing batch size. Default: 256
+    :param batch_size (int): training/validation/testing batch size. Default: 256
     """
     
     def to_tensor(self):
@@ -156,11 +161,11 @@ class CFSIDataModule(SparseDataModule):
     """
     Pytorch datamodule class for collaborative filtering incorporated with features (side information).
 
-    :option (str): chosen dataset option. Default: "ml-1m"
+    :param option (str): chosen dataset option. Default: "ml-1m"
 
-    :batch_size (int): training/validation/testing batch size. Default: 256
+    :param batch_size (int): training/validation/testing batch size. Default: 256
 
-    :include_user_item (bool): If True, user and item fields (1st 2 columns of X) are included in X, else user and item fields are removed from X. 
+    :param include_user_item (bool): If True, user and item fields (1st 2 columns of X) are included in X, else user and item fields are removed from X. 
     """
 
     def __init__(self, option:str = "ml-1m", batch_size:int = 256, include_user_item:bool = True):
@@ -203,11 +208,11 @@ class RCDataModule(SparseDataModule):
     Pytorch datamodule class for collaborative filtering reconstruction matrix.
 
 
-    :option (str): chosen dataset option. Default: "ml-1m"
+    :param option (str): chosen dataset option. Default: "ml-1m"
 
-    :batch_size (int): training/validation/testing batch size. Default: 256
+    :param batch_size (int): training/validation/testing batch size. Default: 256
 
-    :transpose (bool): If True, transpose rating matrix, else pass.
+    :param transpose (bool): If True, transpose rating matrix, else pass.
 
     Note: Reconstruction matrix datamodule does not have y, since output = input (y = x).
     """
@@ -259,33 +264,13 @@ class RCSIDataModule(RCDataModule):
     """
     Pytorch datamodule class for collaborative filtering reconstruction matrix incorporated with features (side information).
 
-    Parameters
-    ----------
-    :option (str): chosen dataset option. Default: "ml-1m"
+    :param option (str): chosen dataset option. Default: "ml-1m"
 
-    :batch_size (int): training/validation/testing batch size. Default: 256
+    :param batch_size (int): training/validation/testing batch size. Default: 256
 
-    :transpose (bool): If True, transpose rating matrix, else pass.
+    :param transpose (bool): If True, transpose rating matrix, else pass.
 
-
-    Attibutes
-    ---------
-    :dataset (Dataset): chosen dataset obtain from `option`
-
-    :batch_size (int): training/validation/testing batch size.
-
-    :transpose (bool): If True, transpose rating matrix, else pass.
-
-    :field_dims (list): List of user and item field dimensions. 
-
-    :feature_dim (int): User or item feature (side information) field dimension. 
-
-    :_dataset_options (list): List of available supported dataset options.
-
-
-    Notes
-    -----
-    Reconstruction matrix datamodule does not have y, since output = input (y = x).
+    Notes: Reconstruction matrix datamodule does not have y, since output = input (y = x).
 
     """
 
