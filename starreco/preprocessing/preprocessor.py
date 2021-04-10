@@ -103,7 +103,7 @@ class Preprocessor:
                 )
 
         # Perform transformation/preprocessing
-        self.df_transform = self.column_transformer.fit_transform(df)
+        self.df_transform = self.column_transformer.fit_transform(self.df)
 
         # Return transform data as dataframe if return_dataframe set as True
         if return_dataframe:
