@@ -19,8 +19,8 @@ class mDAEncoder(torch.nn.Module):
         )
         
         self.weight.data.uniform_(
-            -4 * np.sqrt(6. / (hidden_dim + input_dim)), 
-            4 * np.sqrt(6. / (hidden_dim + input_dim))
+            -1.0 / np.sqrt(input_dim), 
+            1.0 / np.sqrt(input_dim)
         )
         
         self.bias = torch.nn.Parameter(
@@ -55,23 +55,25 @@ class mDA(Module):
                  d_activation = "relu",
                  lr:float = 1e-3,
                  weight_decay:float = 0):
+
         criterion = mDA_reconstruction_loss
 
         super().__init__(lr, weight_decay, criterion)
         self.noise_rate = noise_rate
         
+        # Encoder layer
         encoder = mDAEncoder(io_dim, hidden_dim)
         self.W = encoder.state_dict()["weight"]
+        encoder_blocks = [encoder] 
+        encoder_blocks.append(ActivationFunction(e_activation)) if e_activation != "linear" else encoder_blocks
+        self.encoder = torch.nn.Sequential(*encoder_blocks)
+
+        # Decoder layer
         decoder = mDADecoder(self.W)
         self.W_ = decoder.state_dict()["weight"]
-        self.encoder = torch.nn.Sequential(
-            encoder,    
-            ActivationFunction(e_activation)
-        )
-        self.decoder = torch.nn.Sequential(
-            decoder,    
-            ActivationFunction(d_activation)
-        )
+        decoder_blocks = [decoder] 
+        decoder_blocks.append(ActivationFunction(d_activation)) if d_activation != "linear" else decoder_blocks
+        self.decoder = torch.nn.Sequential(*decoder_blocks)
     
     def encode(self, x):
         return self.encoder(x)
@@ -84,26 +86,48 @@ class mDA(Module):
 
     def evaluate(self, x, y = None):
         y_hat = self.forward(x)
+
         z = self.encode(x)
-        return mDA_reconstruction_loss(x, y_hat, z, self.W, self.W_, self.noise_rate, self.device)
+
+        reconstruction_loss = mDA_reconstruction_loss(x, y_hat, z, 
+                                                      self.W, self.W_, self.noise_rate, self.device)
+
+        return reconstruction_loss
 
 def mapping(x:torch.FloatTensor, p:float, bias = True):
+    # Get dimension
     d = x.shape[-1]
+    
+    # MATLAB: q=[ones(d-1,1).*(1-p); 1];
     q = torch.ones((d, 1)) * (1 - p)
     # Don't corrupt the bias term
     q[-1] = 1 if bias else q[-1]
+    
+    # MATLAB: S=X*X’;
     S = torch.matmul(x.T, x)
+    
+    # MATLAB: Q=S.*(q*q’);
     Q = S * torch.matmul(q, q.T)
+    
+    # MATLAB: Q(1:d+1:end)=q.*diag(S);
     v = q[:,0] * S.diag()
     mask = torch.diag(torch.ones_like(v))
     Q = mask * torch.diag(v) + (1 - mask) * Q
+    
+    # MATLAB: P=S.*repmat(q’,d,1);
+    # torch.tile requires torch version 1.8 and above
     P = S * torch.tile(q.T, (d, 1))
+    
+    # MATLAB: W=P(1:end-1,:)/(Q+1e-5*eye(d));
     A = Q + 1e-5 * torch.eye(d)
     B = P[:d-1, :] if bias else P
+
     W = torch.linalg.solve(A.T, B.T)
+    
     return W
 
 def LmDA(x:torch.FloatTensor, p:float, return_data = "non_linear", bias = True):
+
     assert return_data in ["linear", "non_linear", "mapping"], \
     "`return_data` can be linear, non_linear or mapping only."
 
@@ -117,6 +141,6 @@ def LmDA(x:torch.FloatTensor, p:float, return_data = "non_linear", bias = True):
     if return_data == "linear":
         return x
     elif return_data == "non_linear":
-        return torch.selu(x)
+        return torch.relu(x)
     elif return_data == "mapping":
         return W
