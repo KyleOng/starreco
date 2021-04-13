@@ -1,5 +1,6 @@
 import pytorch_lightning as pl
 import torch
+import time
 
 class Module(pl.LightningModule):
     def __init__(self, lr, weight_decay, criterion):
@@ -12,6 +13,7 @@ class Module(pl.LightningModule):
         optimizer = torch.optim.Adam(self.parameters(), 
                                      lr = self.lr, 
                                      weight_decay = self.weight_decay)
+       
         return optimizer
     
     def evaluate(self, x, y):
@@ -23,14 +25,14 @@ class Module(pl.LightningModule):
         x, y = batch
 
         # Convert sparse tensor into dense
-        if x.layout == torch.sparse_coo:
-            x = x.to_dense()
-            y = y.to_dense()
-
+        x = x.to_dense() if x.layout == torch.sparse_coo else x
+        y = y.to_dense() if y.layout == torch.sparse_coo else y
+        
         x = x.view(x.shape[0], -1)
         y = y.view(y.shape[0], -1)
-        loss = self.evaluate(x, y)
         
+        loss = self.evaluate(x, y)
+    
         self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
         return loss
     
@@ -38,9 +40,8 @@ class Module(pl.LightningModule):
         x, y = batch
         
         # Convert sparse tensor into dense
-        if x.layout == torch.sparse_coo:
-            x = x.to_dense()
-            y = y.to_dense()
+        x = x.to_dense() if x.layout == torch.sparse_coo else x
+        y = y.to_dense() if y.layout == torch.sparse_coo else y
             
         x = x.view(x.shape[0], -1)
         y = y.view(y.shape[0], -1)
@@ -53,9 +54,8 @@ class Module(pl.LightningModule):
         x, y = batch
 
         # Convert sparse tensor into dense
-        if x.layout == torch.sparse_coo:
-            x = x.to_dense()
-            y = y.to_dense()
+        x = x.to_dense() if x.layout == torch.sparse_coo else x
+        y = y.to_dense() if y.layout == torch.sparse_coo else y
 
         x = x.view(x.shape[0], -1)
         y = y.view(y.shape[0], -1)

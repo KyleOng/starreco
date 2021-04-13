@@ -24,8 +24,8 @@ from starreco.model.asae import ASAE
 from starreco.model.aae import AAE
 from starreco.model.vae import VAE
 from starreco.model.ccae import CCAE
-from starreco.model.mda import mDA
-from starreco.model.mdacf import mDACF
+#from starreco.model.mda import MDA
+from starreco.model.mdacf import MDACF
 from starreco.model.gmfpp import GMFpp
 from starreco.model.mlppp import MLPpp
 from starreco.model.asaecf import ASAECF
