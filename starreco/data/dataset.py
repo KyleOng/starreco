@@ -93,21 +93,20 @@ class MovielensDataset(BaseDataset):
 
         # User dataframe
         user = pd.read_csv(zf.open(f"ml-1m/users.dat"), delimiter = "::",
-        names = ["userId", "gender", "age", "occupation", "zipCode"], engine = "python")
+                           names = ["userId", "gender", "age", "occupation", "zipCode"], engine = "python")
         user = User(user, "userId")
-        user.cat_columns = ["gender", "occupation", "zipCode"]
-        user.num_columns = ["age"]
+        user.cat_columns = ["gender", "occupation", "age"]
 
         # Item dataframe
         item = pd.read_csv(zf.open(f"ml-1m/movies.dat"), delimiter = "::",
-        names = ["movieId", "title", "genre"], encoding = "ISO-8859-1", engine = "python")
+                           names = ["movieId", "title", "genre"], encoding = "ISO-8859-1", engine = "python")
         item["genre"] = item["genre"].apply(lambda x:set(x.split("|")))
         item = Item(item, "movieId")
         item.set_columns = ["genre"]
 
         # Rating dataframe
         rating = pd.read_csv(zf.open(f"ml-1m/ratings.dat"), delimiter = "::", 
-        names = ["userId", "movieId", "rating", "timestamp"], engine = "python")
+                             names = ["userId", "movieId", "rating", "timestamp"], engine = "python")
         rating = Rating(rating, user, item , "rating")
 
         return rating, user, item
