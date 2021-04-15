@@ -67,6 +67,10 @@ class DAE(Module):
                                              output_layer = None,
                                              batch_norm = batch_norm)
 
+        # Save hyperparameters to checkpoint
+        if save_hyperparameters:
+            self.save_hyperparameters()
+
     def encode(self, x):
         return self.encoder(x)
 
