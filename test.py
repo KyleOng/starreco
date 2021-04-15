@@ -1,9 +1,9 @@
 from starreco.data import *
 
-dataset = "epinions"
+dataset = "ml-1m"
 
 data = RCSIDataModule(dataset)
 data.setup()
-data.train_dataloader()
-data.val_dataloader()
-data.test_dataloader()
+for x,y in data.train_dataloader():
+    print(x.shape, y.shape)
+    break
