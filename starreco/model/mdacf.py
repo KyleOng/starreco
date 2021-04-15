@@ -25,7 +25,7 @@ class MDACF(Module):
 
         super().__init__(lr, weight_decay, criterion)
 
-        # Using notation same as paper for easy reference
+        # Using the same notation from the paper for easy reference
         self.m, self.p = user_feature.shape
         self.n, self.q = item_feature.shape
         self.X = user_feature.T
