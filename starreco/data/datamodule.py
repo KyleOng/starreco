@@ -75,7 +75,7 @@ class BaseDataModule(pl.LightningDataModule):
         Train dataloader.
         """
 
-        train_ds = SparseDataset(self.X_train, self.y_train)
+        train_ds = TensorDataset(self.X_train, self.y_train)
         return DataLoader(train_ds, batch_size = self.batch_size)
                           
     def val_dataloader(self):
@@ -83,7 +83,7 @@ class BaseDataModule(pl.LightningDataModule):
         Validate dataloader.
         """
 
-        valid_ds = SparseDataset(self.X_valid, self.y_valid)
+        valid_ds = TensorDataset(self.X_valid, self.y_valid)
         return DataLoader(valid_ds, batch_size = self.batch_size)
 
     def test_dataloader(self):
@@ -91,7 +91,7 @@ class BaseDataModule(pl.LightningDataModule):
         Test dataloader.
         """
 
-        test_ds = SparseDataset(self.X_test, self.y_test)
+        test_ds = TensorDataset(self.X_test, self.y_test)
         return DataLoader(test_ds, batch_size = self.batch_size)
 
 class SparseDataModule(BaseDataModule):
