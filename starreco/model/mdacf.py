@@ -17,9 +17,9 @@ class MDACF(Module):
                  beta:Union[int,float] = 3e-3,
                  lambda_:Union[int,float] = 0.3,
                  corrupt_ratio:Union[int,float] = 0.3,
-                 mean:bool = False,
+                 mean:bool = True,
                  lr:float = 1e-2,
-                 weight_decay:float = 1e-6,
+                 weight_decay:float = 0,
                  criterion:F = F.mse_loss,
                  save_hyperparameters:bool = True):
 
@@ -45,8 +45,10 @@ class MDACF(Module):
         
         # Embedding layer
         self.embedding = FeaturesEmbedding([self.m, self.n], embed_dim)
-        self.U = self.embedding.embedding.weight[:self.m, :].detach().clone()
-        self.V = self.embedding.embedding.weight[-self.n:, :].detach().clone()
+        # Get latent factors
+        # Obtain values only without gradient
+        self.U = self.embedding.embedding.weight[:self.m, :].data
+        self.V = self.embedding.embedding.weight[-self.n:, :].data
 
         # Save hyperparameters to checkpoint
         if save_hyperparameters:
@@ -95,22 +97,7 @@ class MDACF(Module):
         EQ += lambda_ * Q
         return torch.linalg.solve(EQ, ES)
 
-    def forward(self, x):
-        """
-        Perform operations.
-
-        :x (torch.tensor): Input tensors of shape (batch_size, 2) user and item.
-
-        :return (torch.tensor): Output prediction tensors of shape (batch_size, 1)
-        """
-        # Marginalized Autoencoder
-        # Update weights and projection matrices only in training mode
-        if self.training:
-            self.user_W = self.update_weights(self.X, self.user_P, self.U, self.p, self.lambda_, self.corrupt_ratio)
-            self.item_W = self.update_weights(self.Y, self.item_P, self.V, self.q, self.lambda_, self.corrupt_ratio)
-            self.user_P = self.update_projections(self.X, self.user_W, self.U)
-            self.item_P = self.update_projections(self.Y, self.item_W, self.V)
-        
+    def matrix_factorization(self, x):
         # Generate embeddings
         x = self.embedding(x)
         # Seperate user (1st column) and item (2nd column) embeddings from generated embeddings
@@ -126,14 +113,40 @@ class MDACF(Module):
 
         return y
 
+    def forward(self, x):
+        """
+        Perform operations.
+
+        :x (torch.tensor): Input tensors of shape (batch_size, 2) user and item.
+
+        :return (torch.tensor): Output prediction tensors of shape (batch_size, 1)
+        """
+        # Marginalized Autoencoder
+        # Update weights and projection matrices only in training mode
+
+        if self.training:
+            # Update weights and projections matrices
+            self.user_W = self.update_weights(self.X, self.user_P, self.U, self.p, self.lambda_, self.corrupt_ratio)
+            self.item_W = self.update_weights(self.Y, self.item_P, self.V, self.q, self.lambda_, self.corrupt_ratio)
+            self.user_P = self.update_projections(self.X, self.user_W, self.U)
+            self.item_P = self.update_projections(self.Y, self.item_W, self.V)
+
+            # Get new latent factors
+            # Obtain values only without gradient
+            self.U = self.embedding.embedding.weight[:self.m, :].data.to("cpu")
+            self.V = self.embedding.embedding.weight[-self.n:, :].data.to("cpu")
+
+        y = self.matrix_factorization(x)
+
+        return y
+
     def evaluate(self, x, y):
         torch_fn = torch.mean if self.mean else torch.sum
+        
         loss = 0
         loss += self.lambda_ * torch_fn(torch.square(torch.matmul(self.user_P, self.U.T) - torch.matmul(self.user_W, self.X)))
         loss += self.lambda_ * torch_fn(torch.square(torch.matmul(self.item_P, self.V.T) - torch.matmul(self.item_W, self.Y)))
-        loss += self.alpha * torch_fn(torch.square((y - self.forward(x)).to("cpu")))
+        loss += self.alpha * torch_fn(torch.square((y - self.matrix_factorization(x)).to("cpu")))
         loss += self.beta * (torch_fn(torch.square(self.U)) + torch_fn(torch.square(self.V)))
         loss = loss.to(self.device)
-        return torch_fn(torch.square(self.forward(x) - y))
-        #loss = F.mse_loss(self.forward(x), y)
         return loss
