@@ -18,38 +18,27 @@ class GMFpp(Module):
                  weight_decay:float = 1e-6,
                  criterion:F = F.mse_loss,
                  save_hyperparameters:bool = True):
-        """ 
-        Hyperparameters setting.
-
-        :param field_dims (list): List of field dimensions. 
-
-        :param embed_dim (int): Embeddings dimensions. Default: 8
-
-        :param activation (str): Activation Function. Default: "relu".
-
-        :param lr (float): Learning rate. Default: 1e-3
-
-        :param weight_decay (float): L2 regularization weight decay: Default: 1e-3
-
-        :param criterion (F): Objective function. Default: F.mse_loss
-        """
         super().__init__(lr, weight_decay, criterion)
 
+        # Stacked Denoising Autoencoder 
+        # User SDAE for user feature reconstruction
         self.user_ae = DAE(**user_ae_params)
-        self.item_ae = DAE(**item_ae_params)
-        for i, module in enumerate(self.user_ae.decoder.mlp):
-            if type(module) == torch.nn.Linear:
-                try:
-                    latent_dim
-                except:
-                    latent_dim = self.user_ae.decoder.mlp[i].weight.shape[1]
-                else:
-                    pass
+        self.user_ae.save_hyperparameters = False
         self.user_feature_dim = self.user_ae.decoder.mlp[0].weight.shape[0]
+        # Item SFAE for item feature reconstruction
+        self.item_ae = DAE(**item_ae_params)
+        self.item_ae.save_hyperparameters = False
         self.item_feature_dim = self.item_ae.decoder.mlp[0].weight.shape[0]
 
+        # Obtain latent factor dimension
+        for i, module in enumerate(self.user_ae.decoder.mlp):
+            if type(module) == torch.nn.Linear:
+                try: latent_dim
+                except: latent_dim = self.user_ae.decoder.mlp[i].weight.shape[1]
+                else: pass
+
         # Embedding layer
-        self.embedding = FeaturesEmbedding(field_dims, latent_dim)
+        self.embedding = FeaturesEmbedding(field_dims, embed_dim)
 
         # Singlelayer perceptrons
         self.nn = MultilayerPerceptrons(input_dim = latent_dim + embed_dim, 
@@ -67,7 +56,7 @@ class GMFpp(Module):
 
         :return (torch.tensor): Output prediction tensors of shape (batch_size, 1)
         """
-        # Seperate
+        # Partition user and item features
         user_feature = x[:, 2:self.user_feature_dim + 2]
         item_feature = x[:, -self.item_feature_dim:]
         x = x[:, :2].int()
@@ -95,7 +84,7 @@ class GMFpp(Module):
         return y
 
     def evaluate(self, x, y): 
-        # Seperate
+        # Partition user and item features
         user_feature = x[:, 2:self.user_feature_dim + 2]
         item_feature = x[:, -self.item_feature_dim:]
 
