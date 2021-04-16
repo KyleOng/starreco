@@ -6,81 +6,100 @@ import torch.nn.functional as F
 from starreco.model import (FeaturesEmbedding, 
                             MultilayerPerceptrons,
                             Module)
-from .ae import AE
 from .dae import DAE
 
 class MLPpp(Module):
     """
-    Multilayer Perceptrons plus plus
+    Neural Collaborative Filtering Framework's Multilayer Perceptrons ++
     """
-    def __init__(self, user_lookup:torch.Tensor, item_lookup:torch.Tensor, user_ae:Union[AE, DAE], item_ae:Union[AE, DAE], 
-                 activation:str = "relu",
-                 dropout = 0.5,
-                 lr:float = 1e-2,
-                 weight_decay:float = 0,
+    def __init__(self, user_ae_params:dict, item_ae_params:dict, field_dims:list, 
+                 embed_dim:int = 16,
+                 hidden_dims:list = [32, 16, 8], 
+                 activations:Union[str, list] = "relu", 
+                 dropouts:Union[float, list] = 0.5, 
+                 batch_norm:bool = True,
+                 lr:float = 1e-3,
+                 weight_decay:float = 1e-6,
                  criterion:F = F.mse_loss,
                  save_hyperparameters:bool = True):
-        """
-        Hyperparameters setting.
-
-        :param user_ae (AE/DAE): User feature Autoencoder.
-
-        :param item_ae (AE/DAE): Item feature Autoencoder.
-
-        :param activation (str): Activation Function. Default: "relu".
-
-        :param lr (float): Learning rate. Default: 1e-3
-
-        :param weight_decay (float): L2 regularization weight decay: Default: 1e-3
-
-        :param criterion (F): Objective function. Default: F.mse_loss
-        """
         super().__init__(lr, weight_decay, criterion)
-        self.user_lookup = user_lookup
-        self.item_lookup = item_lookup
 
-        self.user_ae = user_ae
+       # Stacked Denoising Autoencoder 
+        # User SDAE for user feature reconstruction
+        self.user_ae = DAE(**user_ae_params)
+        self.user_ae.save_hyperparameters = False
+        self.user_feature_dim = self.user_ae.decoder.mlp[0].weight.shape[0]
+        # Item SFAE for item feature reconstruction
+        self.item_ae = DAE(**item_ae_params)
+        self.item_ae.save_hyperparameters = False
+        self.item_feature_dim = self.item_ae.decoder.mlp[0].weight.shape[0]
+
+        # Obtain latent factor dimension
         for i, module in enumerate(self.user_ae.decoder.mlp):
             if type(module) == torch.nn.Linear:
-                try:
-                    latent_dim
-                except:
-                    latent_dim = self.user_ae.decoder.mlp[i].weight.shape[1]
-                else:
-                    pass
-                self.user_ae.decoder.mlp[i].weight.requires_grad = False
-                self.user_ae.decoder.mlp[i].bias.requires_grad = False
+                try: latent_dim
+                except: latent_dim = self.user_ae.decoder.mlp[i].weight.shape[1]
+                else: pass
 
-        self.item_ae = item_ae
-        for i, module in enumerate(self.item_ae.decoder.mlp):
-            if type(module) == torch.nn.Linear:
-                self.item_ae.decoder.mlp[i].weight.requires_grad = False
-                self.item_ae.decoder.mlp[i].bias.requires_grad = False
+        # Embedding layer
+        self.embedding = FeaturesEmbedding(field_dims, embed_dim)
 
         # Multilayer perceptrons
-        # Number of nodes in the input layers = latent_dim * 2
-        self.mlp = MultilayerPerceptrons(input_dim = latent_dim * 2, 
-                                         activations = activation, 
-                                         dropouts = dropout,
-                                         output_layer = "relu")
+        self.nn = MultilayerPerceptrons(input_dim = embed_dim * 2 + latent_dim * 2, 
+                                        hidden_dims = hidden_dims, 
+                                        activations = activations, 
+                                        dropouts = dropouts,
+                                        output_layer = "relu",
+                                        batch_norm = batch_norm)
+        
+        # Save hyperparameters to checkpoint
+        if save_hyperparameters:
+            self.save_hyperparameters()
 
     def forward(self, x):
         """
         Perform operations.
 
-        :x (torch.tensor): Input tensors of shape (batch_size, 2).
+        :x (torch.tensor): Input tensors of shape (batch_size, 2) user and item.
 
         :return (torch.tensor): Output prediction tensors of shape (batch_size, 1)
         """
-        # Device is determined during training
-        user_x = torch.index_select(self.user_lookup.to(self.device), 0, x[:, 0])
-        item_x = torch.index_select(self.item_lookup.to(self.device), 0, x[:, 1])
+        # Partition user and item features
+        user_feature = x[:, 2:self.user_feature_dim + 2]
+        item_feature = x[:, -self.item_feature_dim:]
+        x = x[:, :2].int()
 
-        user_latent = self.user_ae.encode(user_x)
-        item_latent = self.item_ae.encode(item_x)
+         # Obtain latent factor
+        user_latent = self.user_ae.encode(user_feature)
+        item_latent = self.item_ae.encode(item_feature)
 
-        # Concatenate embeddings
+        # Generate embeddings
+        embed = self.embedding(x)
+        # Seperate user (1st column) and item (2nd column) embeddings from generated embeddings
+        user_embed = embed[:, 0]
+        item_embed = embed[:, 1]
+
+        # Concat latent factor and embeddings
+        user_latent = torch.cat([user_latent, user_embed], dim = 1)
+        item_latent = torch.cat([item_latent, item_embed], dim = 1)
+
+        # Concat user and item latent factors
         concat = torch.cat([user_latent, item_latent], dim = 1)
 
-        # Prediction
-        return self.mlp(concat)
+        # Feed element wise product to generalized non-linear layer
+        y = self.nn(concat)
+
+        return y
+
+    def evaluate(self, x, y): 
+        # Partition user and item features
+        user_feature = x[:, 2:self.user_feature_dim + 2]
+        item_feature = x[:, -self.item_feature_dim:]
+
+        user_loss = self.user_ae.evaluate(user_feature, user_feature)
+        item_loss = self.item_ae.evaluate(item_feature, item_feature)
+        mlp_loss = super().evaluate(x, y)
+
+        loss = user_loss + item_loss + mlp_loss 
+
+        return loss
