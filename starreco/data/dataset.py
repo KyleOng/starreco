@@ -34,7 +34,7 @@ class BaseDataset:
         dataset_path = self._datasets_path + file_name
 
         # Get file from HTTP request
-        response = requests.get(url, stream=True)
+        response = requests.get(url, stream = True)
         total_url_file_size = int(response.headers.get("content-length", 0))
 
         # A flag determine whether to download the dataset
@@ -56,7 +56,7 @@ class BaseDataset:
             try:                    
                 # Streaming, so we can iterate over the response.
                 block_size = 1024 # 1 Kilobyte
-                progress_bar = tqdm(total= total_url_file_size, unit="iB", unit_scale=True)
+                progress_bar = tqdm(total= total_url_file_size, unit="iB", unit_scale = True)
 
                 with open(dataset_path, "wb") as file:
                     for data in response.iter_content(block_size):
