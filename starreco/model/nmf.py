@@ -5,105 +5,82 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from starreco.model import (FeaturesEmbedding, 
-                            MultilayerPerceptrons, 
-                            Module)
+from .module import BaseModule
+from .layer import FeaturesEmbedding, MultilayerPerceptrons
 from .gmf import GMF
 from .ncf import NCF
 
-class NMF(Module):
+class NMF(torch.nn.Module):
     """
-    Generalized Matrix Factorization
+    Neural Matrix Factorization
     """
-    def __init__(self, gmf_params:dict, ncf_params:dict,
-                 gmf_state_dict:dict = None,
-                 ncf_state_dict:dict = None,
-                 pretrain:bool = False,
-                 lr:float = 1e-2,
-                 weight_decay:float = 1e-6,
-                 criterion:F = F.mse_loss,
-                 save_hyperparameters:bool = True):
-        """ 
-        Hyperparameters setting.
+    def __init__(self, gmf, ncf,
+                 pretrain:bool = False):
+        super().__init__()
+        self.gmf = copy.deepcopy(gmf)
+        self.ncf = copy.deepcopy(ncf)
 
-        :param embed_dim (int): Embeddings dimensions. Default: 8
-
-        :param activation (str): Activation Function. Default: "relu".
-
-        :param lr (float): Learning rate. Default: 1e-3
-
-        :param weight_decay (float): L2 regularization weight decay: Default: 1e-3
-
-        :param criterion (F): Objective function. Default: F.mse_loss
-        """
-        super().__init__(lr, weight_decay, criterion)
-
-        # Construct GMF model structure
-        gmf_params["save_hyperparameters"] = False
-        self.gmf = GMF(**gmf_params)
-        # Load GMF pretrained weights
-        if gmf_state_dict:
-            self.gmf.load_state_dict(gmf_state_dict)
-
-        # Construct NCF model structure
-        ncf_params["save_hyperparameters"] = False
-        self.ncf = NCF(**ncf_params)
-        # Load NCF pretrained weights
-        if ncf_state_dict:
-            self.ncf.load_state_dict(ncf_state_dict)
-
-        # Freeze embedding weights
+        # Freeze embedding weights if pretrain
         if pretrain:
             self.gmf.embedding.embedding.weight.requires_grad = False
             self.ncf.embedding.embedding.weight.requires_grad = False
 
         # Remove GMF output layer
-        self.gmf.nn = None
+        self.gmf.slp = None
 
         # Add GMF embedding dim to `input_dim`
         input_dim = self.gmf.embedding.embedding.weight.shape[1]
 
         # Remove NCF output layer and freeze hidden weights and biases
-        ncf_nn_blocks = []
-        for i, module in enumerate(self.ncf.nn.mlp):
+        ncf_mlp_blocks = []
+        for i, module in enumerate(self.ncf.mlp.mlp):
             # Freeze weights and bias if pretrain
-            if hasattr(self.ncf.nn.mlp[i], "weight") and pretrain:
-                self.ncf.nn.mlp[i].weight.requires_grad = False
-            if hasattr(self.ncf.nn.mlp[i], "bias"):
-                self.ncf.nn.mlp[i].bias.requires_grad = False
+            if hasattr(self.ncf.mlp.mlp[i], "weight") and pretrain:
+                self.ncf.mlp.mlp[i].weight.requires_grad = False
+            if hasattr(self.ncf.mlp.mlp[i], "bias") and pretrain:
+                self.ncf.mlp.mlp[i].bias.requires_grad = False
             if type(module) == torch.nn.Linear:
                 if module.out_features == 1:
                     # Add NCF last hidden input dim to `input_dim`
                     input_dim += module.in_features 
                     break
-            ncf_nn_blocks.append(module)
-        self.ncf.nn = torch.nn.Sequential(*ncf_nn_blocks)
+            ncf_mlp_blocks.append(module)
+        self.ncf.mlp = torch.nn.Sequential(*ncf_mlp_blocks)
         
         # Singlelayer perceptrons
         # input_dim = GMF embedding dim + NCF last hidden input dim
-        self.nn = MultilayerPerceptrons(input_dim = input_dim, 
-                                        output_layer = "relu")
-
-        # Save hyperparameters to checkpoint
-        if save_hyperparameters:
-            self.save_hyperparameters()
+        self.slp = MultilayerPerceptrons(input_dim = input_dim, 
+                                         output_layer = "relu")
     
     def forward(self, x):
-        """
-        Perform operations.
+        # GMF part
+        gmf_x_embed = self.gmf.embedding(x)
+        gmf_user_embed = gmf_x_embed[:, 0]
+        gmf_item_embed = gmf_x_embed[:, 1]
+        # Element wise product between embeddings
+        gmf_product = gmf_user_embed *  gmf_item_embed
 
-        :x (torch.tensor): Input tensors of shape (batch_size, 2) user and item.
+        # NCF part
+        # Get output of last hidden layer
+        ncf_last_hidden = self.ncf(x)
 
-        :return (torch.tensor): Output prediction tensors of shape (batch_size, 1)
-        """
-        gmf_embedding = self.gmf.embedding(x)
-        gmf_user_embedding = gmf_embedding[:, 0]
-        gmf_item_embedding = gmf_embedding[:, 1]
-        gmf_x = gmf_user_embedding *  gmf_item_embedding 
-        
-        ncf_x = self.ncf(x)
+        # Concatenate GMF's element wise product and NCF's last hidden layer output
+        concat = torch.cat([gmf_product, ncf_last_hidden], dim = 1)
 
-        concat = torch.cat([gmf_x, ncf_x], dim = 1)
-        y = self.nn(concat)
+        # Feed to generalized non-linear layer
+        y = self.slp(concat)
 
         return y
+
+class NMFModule(BaseModule):
+    def __init__(self, gmf:GMF, ncf:NCF,
+                 pretrain:bool = False,
+                 lr:float = 1e-2,
+                 weight_decay:float = 1e-6,
+                 criterion:F = F.mse_loss,
+                 save_hyperparameters:bool = True):
+        super().__init__(lr, weight_decay, criterion)
+        self.model = NMF(gmf, ncf, pretrain)
+        self.save_hyperparameters()
+    
+        

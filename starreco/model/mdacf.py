@@ -4,37 +4,24 @@ import torch
 import torch.nn.functional as F
 import pytorch_lightning as pl
 
-from starreco.model import (Module,
-                            FeaturesEmbedding)
+from .module import BaseModule
+from .layer import FeaturesEmbedding
 
-class MDACF(Module):
+class MDACF(torch.nn.Module):
     """
     Marginalized Denoising Autoencoder Collaborative Filtering
     """
     def __init__(self, user_feature:torch.Tensor, item_feature:torch.Tensor,
                  embed_dim:int = 8, 
-                 alpha:Union[int,float] = 0.8, 
-                 beta:Union[int,float] = 3e-3,
-                 lambda_:Union[int,float] = 0.3,
-                 corrupt_ratio:Union[int,float] = 0.3,
-                 mean:bool = True,
-                 lr:float = 1e-2,
-                 weight_decay:float = 0,
-                 criterion:F = F.mse_loss,
-                 save_hyperparameters:bool = True):
-
-        super().__init__(lr, weight_decay, criterion)
+                 corrupt_ratio:Union[int,float] = 0.3):
+        super().__init__()
 
         # Using the same notation from the paper for easy reference
         self.m, self.p = user_feature.shape
         self.n, self.q = item_feature.shape
         self.X = user_feature.T
         self.Y = item_feature.T
-        self.alpha = alpha
-        self.beta = beta
-        self.lambda_ = lambda_
         self.corrupt_ratio = corrupt_ratio
-        self.mean = mean
 
         # marginalized Autoencoder
         # Create weights matrices and projection matrices
@@ -49,10 +36,7 @@ class MDACF(Module):
         # Obtain values only without gradient
         self.U = self.embedding.embedding.weight[:self.m, :].data
         self.V = self.embedding.embedding.weight[-self.n:, :].data
-
-        # Save hyperparameters to checkpoint
-        if save_hyperparameters:
-            self.save_hyperparameters()
+            
 
     def update_projections(_, X, W, U):
         """
@@ -140,13 +124,33 @@ class MDACF(Module):
 
         return y
 
+class MDACFModule(BaseModule):
+    def __init__(self, user_feature:torch.Tensor, item_feature:torch.Tensor,
+                 embed_dim:int = 8, 
+                 corrupt_ratio:Union[int,float] = 0.3,
+                 alpha:Union[int,float] = 0.8, 
+                 beta:Union[int,float] = 3e-3,
+                 lambda_:Union[int,float] = 0.3,
+                 mean:bool = False,
+                 lr:float = 1e-2,
+                 weight_decay:float = 0,
+                 criterion:F = F.mse_loss,
+                 save_hyperparameters:bool = True):
+        super().__init__(lr, weight_decay, criterion)
+        self.model = MDACF(user_feature, item_feature, embed_dim)
+        self.alpha = alpha
+        self.beta = beta
+        self.lambda_ = lambda_
+        self.mean = mean
+        self.save_hyperparameters()
+
     def evaluate(self, x, y):
         torch_fn = torch.mean if self.mean else torch.sum
         
         loss = 0
-        loss += self.lambda_ * torch_fn(torch.square(torch.matmul(self.user_P, self.U.T) - torch.matmul(self.user_W, self.X)))
-        loss += self.lambda_ * torch_fn(torch.square(torch.matmul(self.item_P, self.V.T) - torch.matmul(self.item_W, self.Y)))
-        loss += self.alpha * torch_fn(torch.square((y - self.matrix_factorization(x)).to("cpu")))
-        loss += self.beta * (torch_fn(torch.square(self.U)) + torch_fn(torch.square(self.V)))
+        loss += self.lambda_ * torch_fn(torch.square(torch.matmul(self.model.user_P, self.model.U.T) - torch.matmul(self.model.user_W, self.model.X)))
+        loss += self.lambda_ * torch_fn(torch.square(torch.matmul(self.model.item_P, self.model.V.T) - torch.matmul(self.model.item_W, self.model.Y)))
+        loss += self.alpha * torch_fn(torch.square((y - self.model.matrix_factorization(x)).to("cpu")))
+        loss += self.beta * (torch_fn(torch.square(self.model.U)) + torch_fn(torch.square(self.model.V)))
         loss = loss.to(self.device)
         return loss

@@ -2,7 +2,7 @@ import pytorch_lightning as pl
 import torch
 import time
 
-class Module(pl.LightningModule):
+class BaseModule(pl.LightningModule):
     def __init__(self, lr, weight_decay, criterion):
         super().__init__()
         self.lr = lr
@@ -16,9 +16,13 @@ class Module(pl.LightningModule):
        
         return optimizer
     
+    def forward(self, x):
+        return self.model(x)
+
     def evaluate(self, x, y):
         y_hat = self.forward(x)
         loss = self.criterion(y_hat, y)
+
         return loss
 
     def training_step(self, batch, batch_idx):
@@ -33,7 +37,7 @@ class Module(pl.LightningModule):
         
         loss = self.evaluate(x, y)
     
-        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
+        self.log("train_loss", loss, on_step = True, on_epoch = True, prog_bar = True)
         return loss
     
     def validation_step(self, batch, batch_idx):
@@ -47,7 +51,7 @@ class Module(pl.LightningModule):
         y = y.view(y.shape[0], -1)
         loss = self.evaluate(x, y)
         
-        self.log("valid_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
+        self.log("valid_loss", loss, on_step = True, on_epoch = True, prog_bar = True)
         return loss
     
     def test_step(self, batch, batch_idx):
@@ -61,4 +65,4 @@ class Module(pl.LightningModule):
         y = y.view(y.shape[0], -1)
         loss = self.evaluate(x, y)
         
-        self.log("test_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
+        self.log("test_loss", loss, on_step = True, on_epoch = True, prog_bar = True)

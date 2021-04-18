@@ -8,12 +8,16 @@ from .module import BaseModule
 from .layer import FeaturesEmbedding, MultilayerPerceptrons
 from .sdae import SDAE, SDAEModule
 
-class GMFPP(torch.nn.Module):
+class NCFPP(torch.nn.Module):
     """
-    Generalized Matrix Factorization ++
+    Neural Collaborative Filtering/Multilayer Perceptrons ++
     """
-    def __init__(self, user_ae:SDAE, item_ae:SDAE, field_dims:list,
-                 embed_dim: int = 8):
+    def __init__(self, user_ae:SDAE, item_ae:SDAE, field_dims:list, 
+                 embed_dim:int = 16,
+                 hidden_dims:list = [32, 16, 8], 
+                 activations:Union[str, list] = "relu", 
+                 dropouts:Union[float, list] = 0.5, 
+                 batch_norm:bool = True):
         super().__init__()
         self.user_ae = copy.deepcopy(user_ae)
         self.item_ae = copy.deepcopy(item_ae)
@@ -31,9 +35,13 @@ class GMFPP(torch.nn.Module):
         # Embedding layer
         self.embedding = FeaturesEmbedding(field_dims, embed_dim)
 
-        # Singlelayer perceptrons
-        self.slp = MultilayerPerceptrons(input_dim = latent_dim + embed_dim, 
-                                         output_layer = "relu")
+        # Multilayer perceptrons
+        self.mlp = MultilayerPerceptrons(input_dim = embed_dim * 2 + latent_dim * 2, 
+                                         hidden_dims = hidden_dims, 
+                                         activations = activations, 
+                                         dropouts = dropouts,
+                                         output_layer = "relu",
+                                         batch_norm = batch_norm)
 
     def forward(self, x):
         # Partition user and item features
@@ -46,31 +54,36 @@ class GMFPP(torch.nn.Module):
         item_latent = self.item_ae.encode(item_feature)
 
         # Generate embeddings
-        x_embed = self.embedding(x)
+        embed = self.embedding(x)
         # Seperate user (1st column) and item (2nd column) embeddings from generated embeddings
-        user_embed = x_embed[:, 0]
-        item_embed = x_embed[:, 1]
+        user_embed = embed[:, 0]
+        item_embed = embed[:, 1]
 
         # Concat latent factor and embeddings
         user_latent = torch.cat([user_latent, user_embed], dim = 1)
         item_latent = torch.cat([item_latent, item_embed], dim = 1)
 
-        # Element wise product between user and item embeddings
-        product = user_latent * item_latent
+        # Concat user and item latent factors
+        concat = torch.cat([user_latent, item_latent], dim = 1)
 
         # Feed element wise product to generalized non-linear layer
-        y = self.mlp(product)
+        y = self.mlp(concat)
 
         return y
 
-class GMFPPModule(BaseModule):
-    def __init__(self, user_ae:SDAE, item_ae:SDAE, field_dims:list,
-                 embed_dim: int = 8,
-                 lr:float = 1e-2,
+class NCFPPModule(BaseModule):
+    def __init__(self, user_ae, item_ae, field_dims:list, 
+                 embed_dim:int = 16,
+                 hidden_dims:list = [32, 16, 8], 
+                 activations:Union[str, list] = "relu", 
+                 dropouts:Union[float, list] = 0.5, 
+                 batch_norm:bool = True,
+                 lr:float = 1e-3,
                  weight_decay:float = 1e-6,
-                 criterion:F = F.mse_loss):
+                 criterion:F = F.mse_loss,
+                 save_hyperparameters:bool = True):
         super().__init__(lr, weight_decay, criterion)
-        self.model = GMFPP(user_ae, item_ae, field_dims, embed_dim)
+        self.model = NCFPP(user_ae, item_ae, field_dims, embed_dim, hidden_dims, activations, dropouts, batch_norm)
         self.save_hyperparameters()
 
     def evaluate(self, x, y): 
@@ -79,8 +92,8 @@ class GMFPPModule(BaseModule):
         item_feature = x[:, -self.model.item_feature_dim:]
         user_loss = self.criterion(self.model.user_ae.forward(user_feature), user_feature)
         item_loss = self.criterion(self.model.item_ae.forward(item_feature), item_feature)
-        gmf_loss = super().evaluate(x, y)
+        ncf_loss = super().evaluate(x, y)
 
-        loss = user_loss + item_loss + gmf_loss 
+        loss = user_loss + item_loss + ncf_loss 
 
         return loss
