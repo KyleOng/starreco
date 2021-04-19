@@ -56,7 +56,7 @@ class BaseDataModule(pl.LightningDataModule):
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
             self.X, self.y, stratify = self.y, test_size = 0.2, random_state = random_state
         ) 
-        self.X_valid, self.X_test, self.y_valid, self.y_test = train_test_split(
+        self.X_val, self.X_test, self.y_val, self.y_test = train_test_split(
             self.X_test, self.y_test, stratify = self.y_test, test_size = 0.5, random_state = random_state
         ) 
 
@@ -83,8 +83,8 @@ class BaseDataModule(pl.LightningDataModule):
         Validate dataloader.
         """
 
-        valid_ds = TensorDataset(self.X_valid, self.y_valid)
-        return DataLoader(valid_ds, batch_size = self.batch_size)
+        val_ds = TensorDataset(self.X_val, self.y_val)
+        return DataLoader(val_ds, batch_size = self.batch_size)
 
     def test_dataloader(self):
         """
@@ -110,8 +110,8 @@ class SparseDataModule(BaseDataModule):
         Validate dataloader for sparse dataset.
         """
 
-        valid_ds = SparseDataset(self.X_valid, self.y_valid)
-        return DataLoader(valid_ds, 
+        val_ds = SparseDataset(self.X_val, self.y_val)
+        return DataLoader(val_ds, 
                           batch_size = self.batch_size, 
                           collate_fn = sparse_batch_collate)
 
@@ -140,10 +140,10 @@ class CFDataModule(BaseDataModule):
         """
 
         self.X_train = torch.tensor(self.X_train).type(torch.LongTensor)
-        self.X_valid = torch.tensor(self.X_valid).type(torch.LongTensor)
+        self.X_val = torch.tensor(self.X_val).type(torch.LongTensor)
         self.X_test = torch.tensor(self.X_test).type(torch.LongTensor)
         self.y_train = torch.tensor(self.y_train).type(torch.FloatTensor)
-        self.y_valid = torch.tensor(self.y_valid).type(torch.FloatTensor)
+        self.y_val = torch.tensor(self.y_val).type(torch.FloatTensor)
         self.y_test = torch.tensor(self.y_test).type(torch.FloatTensor)
         
     def setup(self, stage:str = None):
@@ -231,8 +231,8 @@ class RCDataModule(SparseDataModule):
             self.X_train.T[0], self.X_train.T[1], self.y_train, 
             self.dataset.rating.num_users, self.dataset.rating.num_items
         )
-        self.X_valid = ratings_to_sparse(
-            self.X_valid.T[0], self.X_valid.T[1], self.y_valid, 
+        self.X_val = ratings_to_sparse(
+            self.X_val.T[0], self.X_val.T[1], self.y_val, 
             self.dataset.rating.num_users, self.dataset.rating.num_items
         )
         self.X_test = ratings_to_sparse(
@@ -242,7 +242,7 @@ class RCDataModule(SparseDataModule):
 
         if self.transpose:
             self.X_train = self.X_train.T
-            self.X_valid = self.X_valid.T
+            self.X_val = self.X_val.T
             self.X_test = self.X_test.T
         
     def setup(self, stage:str = None):
@@ -257,7 +257,7 @@ class RCDataModule(SparseDataModule):
 
         # Since reconstruction input = output, set y = x
         self.y_train = self.X_train
-        self.y_valid = self.X_valid
+        self.y_val = self.X_val
         self.y_test = self.X_test
 
 class RCSIDataModule(RCDataModule):
@@ -298,11 +298,11 @@ class RCSIDataModule(RCDataModule):
         self.feature_dim = features.shape[1]
 
         self.X_train = hstack([self.X_train, features])
-        self.X_valid = hstack([self.X_valid, features])
+        self.X_val = hstack([self.X_val, features])
         self.X_test = hstack([self.X_test, features])
 
         self.y_train = hstack([self.y_train, features])
-        self.y_valid = hstack([self.y_valid, features])
+        self.y_val = hstack([self.y_val, features])
         self.y_test = hstack([self.y_test, features])
     
     def setup(self, stage:str = None):
