@@ -38,6 +38,7 @@ class BaseModule(pl.LightningModule):
         loss = self.evaluate(x, y)
     
         self.log("train_loss", loss, on_step = True, on_epoch = True, prog_bar = True)
+
         return loss
     
     def validation_step(self, batch, batch_idx):
@@ -51,7 +52,8 @@ class BaseModule(pl.LightningModule):
         y = y.view(y.shape[0], -1)
         loss = self.evaluate(x, y)
         
-        self.log("valid_loss", loss, on_step = True, on_epoch = True, prog_bar = True)
+        self.log("val_loss", loss, on_step = True, on_epoch = True, prog_bar = True)
+        
         return loss
     
     def test_step(self, batch, batch_idx):
@@ -63,6 +65,22 @@ class BaseModule(pl.LightningModule):
 
         x = x.view(x.shape[0], -1)
         y = y.view(y.shape[0], -1)
-        loss = self.evaluate(x, y)
+        y_hat = self.forward(x)
+        loss = torch.sqrt(self.criterion(y_hat, y))
         
-        self.log("test_loss", loss, on_step = True, on_epoch = True, prog_bar = True)
+        self.log("test_loss", loss, prog_bar = True)
+
+    def get_progress_bar_dict(self):
+        # Don't show the version number
+        items = super().get_progress_bar_dict()
+        items.pop("v_num", None)
+
+        if "train_loss" in self.trainer.callback_metrics:
+            train_loss = self.trainer.callback_metrics["train_loss"].item()
+            items["train_loss"] = train_loss
+
+        if "val_loss" in self.trainer.callback_metrics:
+            val_loss = self.trainer.callback_metrics["val_loss"].item()
+            items["val_loss"] = val_loss
+
+        return items

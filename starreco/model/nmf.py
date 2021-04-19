@@ -75,7 +75,7 @@ class NMF(torch.nn.Module):
 class NMFModule(BaseModule):
     def __init__(self, gmf:GMF, ncf:NCF,
                  pretrain:bool = False,
-                 lr:float = 1e-2,
+                 lr:float = 1e-3,
                  weight_decay:float = 1e-6,
                  criterion:F = F.mse_loss,
                  save_hyperparameters:bool = True):

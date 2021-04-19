@@ -132,7 +132,7 @@ class MDACFModule(BaseModule):
                  beta:Union[int,float] = 3e-3,
                  lambda_:Union[int,float] = 0.3,
                  mean:bool = False,
-                 lr:float = 1e-2,
+                 lr:float = 1e-3,
                  weight_decay:float = 0,
                  criterion:F = F.mse_loss,
                  save_hyperparameters:bool = True):

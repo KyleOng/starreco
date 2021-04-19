@@ -59,14 +59,14 @@ class GMFPP(torch.nn.Module):
         product = user_latent * item_latent
 
         # Feed element wise product to generalized non-linear layer
-        y = self.mlp(product)
+        y = self.slp(product)
 
         return y
 
 class GMFPPModule(BaseModule):
     def __init__(self, user_ae:SDAE, item_ae:SDAE, field_dims:list,
                  embed_dim: int = 8,
-                 lr:float = 1e-2,
+                 lr:float = 1e-3,
                  weight_decay:float = 1e-6,
                  criterion:F = F.mse_loss):
         super().__init__(lr, weight_decay, criterion)

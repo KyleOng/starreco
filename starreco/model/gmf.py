@@ -40,7 +40,7 @@ class GMF(torch.nn.Module):
 class GMFModule(BaseModule):
      def __init__(self, field_dims:list, 
                   embed_dim:int = 8, 
-                  lr:float = 1e-2,
+                  lr:float = 1e-3,
                   weight_decay:float = 1e-6,
                   criterion:F = F.mse_loss):
         super().__init__(lr, weight_decay, criterion)
