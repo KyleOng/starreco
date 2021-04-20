@@ -11,19 +11,21 @@ Features
 ---
 + With up to 25+ recommendation models across 20 publications.
 + GPU acceleration execution.
-+ Reducing memory usage for large sparse matrix.
-+ Simple and understandable code comments.
++ Reducing memory usage for large sparse matrices.
++ Simple and understandable code.
 + Easy extension and code reusability.
 
 Click [here](#start) to get started!
 
 Background
 ---
-Star classification is a type of ratings scale commonly used by reviewers to rate certain items such as films, TV shows, restaurants, and hotels. These ratings can directly reflect customers' interest, and businesses are able to use them to build rating-based recommendations. This recommendation technique is also known as the **Collaborative Filtering (CF)** technique, which recommendations are generated based on user-item interaction. The underlying assumption for CF-based technique is:
+Star classification is a type of ratings scale commonly used by reviewers to rate certain items such as films, TV shows, restaurants, and hotels. These ratings can directly reflect customers' interest, and we can use them to build rating-based recommendations. In recent years, RS research has proposed a wide variety of artificial intelligence techniques, ranging from traditional matrix factorization (MF) to complex deep neural networks (DNN). 
 
-> The likelihood of two persons, who have the same interests, having the same opinion is higher than two random person.
+Collaborative Filtering (CF) is one of the two recommendation techniques, which are widely employed in rating-based recommendations. However, traditional CF methods such as MF, have limited learning capabilities as they only consider the linear combination between user and item latent vectors. To learn non-linear relationships, methods like Neural Collaborative Filtering (NCF) have incorporated DNN into traditional CF methods. Even so, the core of these methods are still CF and CF methods usually suffer from data sparsity and cold start problems. To tackle these problems, several studies have integrated side information into CF methods, which constructed a hybrid-based RS.
 
-Several studies have shown that incorporating side information can alleviate the problem of cold start and data sparsity in many CF-based techniques. This form a group known as the **Hybrid-based (HB)** technique. Additionally, deep learning has been actively used in the recommendation field, which further enhance its accuracy and performance. Hence, the purpose of this repository is to recreate some of the well-known models and evaluate them in an understandable, coherent and unified manner.
+Purpose
+---
+The purpose of this repository is to recreate some of the notable models and evaluate them in an understandable, coherent and unified manner.
 
 Research Models
 ---
