@@ -35,6 +35,7 @@ class SparseDataset(Dataset):
     def __len__(self):
         return self.data.shape[0]
     
+    
 def sparse_batch_collate(batch:list): 
     """
     Collate function which to transform scipy coo matrix to pytorch sparse tensor

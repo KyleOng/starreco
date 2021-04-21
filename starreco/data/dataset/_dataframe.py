@@ -1,45 +1,7 @@
 import pandas as pd 
 import numpy as np
-
-class DataframeMixin:
-    """
-    Mixin class for pandas dataframe.
-
-    :param df (pd.DataFrame): Dataframe.
-
-    :param column (str): Column name.
-
-    Warning: This class should not be used directly. Use derived class instead.
-    """
-
-    cat_columns = num_columns = set_columns = []
-
-    def __init__(self, df:pd.DataFrame, column:str):
-        self.df = df if df is not None else pd.DataFrame(columns = [column])
-        self.column = column
-        
-    def map_column(self, map:dict, join:str = "left"):
-        """
-        Mapping operation.
-
-        :param map (dict): A dictionary which store mapping values which maps to the `self.df[self.column]`
-
-        :join (str): Type of table join to be performed between `self.df` and `df_map` 一 a dataframe created from `map`. Table join will be performed if `df[self.column].values` do not store the same shape and element as `map.values()`. Table join will also be disregard if set as None. Default: "left"
-        """
-
-        df = self.df.copy()
-        self.map_ = map
-        df[self.column] = df[self.column].map(map)
-        if join:
-            # Perform table join if `df[self.column].values` do not store the same shape and element as `map.values()`
-            if not np.array_equal(df[self.column].values, list(map.values())):
-                # Create a dataframe from `map`
-                df_map = pd.DataFrame(map.values(), columns = [self.column])
-                # Table join between `df_map` and `self.df`
-                df = df_map.merge(df, on = self.column, how = join)
-        return df.sort_values(self.column)
-            
-class User(DataframeMixin):
+           
+class User:
     """
     User dataframe class.
 
@@ -48,10 +10,14 @@ class User(DataframeMixin):
     :param column (str): User column.
     """
 
+    cat_columns = num_columns = set_columns = []
+
     def __init__(self, df, column):
-        super().__init__(df, column)
-        
-class Item(DataframeMixin):
+        self.df = df
+        self.column = column
+
+
+class Item:
     """
     Item dataframe class.
 
@@ -60,9 +26,13 @@ class Item(DataframeMixin):
     :param column (str): Item column.
     """
 
+    cat_columns = num_columns = set_columns = []
+
     def __init__(self, df, column):
-        super().__init__(df, column)
-        
+        self.df = df
+        self.column = column
+
+
 class Rating:
     """
     Rating dataframe class.
@@ -80,7 +50,7 @@ class Rating:
     :param num_items (int): Number of items.
     """
 
-    def __init__(self, df, user, item, column):
+    def __init__(self, df, column, user = None, item = None):
         self.df = df
         self.user = user
         self.item = item
@@ -108,7 +78,7 @@ class Rating:
     @property
     def reindex(self):
         """
-        Return reindexed `self.df` on `self.user.column` and `self.item.column`
+        Return `self.df` with reindexed `self.user.column` and `self.item.column`
         """
 
         return self._reindex(
@@ -159,3 +129,23 @@ class Rating:
         """
 
         return self._select_related(self.item.df, self.item.column)
+
+
+def df_map_column(df:pd.DataFrame, column:str, arg:dict, join:str = "left"):
+    """
+    Map `df[column]` with according to `arg`.
+
+    :param arg (dict): Mapping correspondence.
+
+    :join (str): Type of table join to be performed between `df` and `df_map` 一 a dataframe created from `arg`. Table join will be performed if `df[column].values` do not store the same shape and element as `arg.values()`. Table join will also be disregard if set as None. Default: "left"
+    """
+    df = df.copy()
+    df[column] = df[column].map(arg)
+    if join:
+        # Perform table join if `df[column].values` do not store the same shape and element as `arg.values()`
+        if not np.array_equal(df[column].values, list(arg.values())):
+            # Create a dataframe from `map`
+            df_map = pd.DataFrame(arg.values(), columns = [column])
+            # Table join between `df_map` and `df`
+            df = df_map.merge(df, on = column, how = join)
+    return df.sort_values(column)
