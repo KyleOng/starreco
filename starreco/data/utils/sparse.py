@@ -77,8 +77,7 @@ class SparseDataset(Dataset):
 
     def __init__(self, 
                  data:Union[np.ndarray, coo_matrix, csr_matrix], 
-                 targets:Union[np.ndarray, coo_matrix, csr_matrix]
-                 ):
+                 targets:Union[np.ndarray, coo_matrix, csr_matrix]):
         
         # Transform data coo_matrix to csr_matrix for indexing
         if type(data) == coo_matrix:
