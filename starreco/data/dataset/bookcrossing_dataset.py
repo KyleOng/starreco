@@ -2,8 +2,7 @@ import zipfile
 
 import pandas as pd
 
-from ._dataframe import User, Item, Rating
-from ._dataset import BaseDataset
+from ._dataset import BaseDataset, User, Item, Rating
 
 class BookCrossingDataset(BaseDataset):
     """
