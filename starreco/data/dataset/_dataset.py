@@ -1,11 +1,32 @@
-import urllib
 import os
 import re
+import urllib
 
 import pandas as pd
 import numpy as np
 import requests
 from tqdm import tqdm
+
+
+def df_map_column(df:pd.DataFrame, column:str, arg:dict, join:str = "left"):
+    """
+    Map `df[column]` with according to `arg`.
+
+    :param arg (dict): Mapping correspondence.
+
+    :join (str): Type of table join to be performed between `df` and `df_map` 一 a dataframe created from `arg`. Table join will be performed if `df[column].values` do not store the same shape and element as `arg.values()`. Table join will also be disregard if set as None. Default: "left"
+    """
+    df = df.copy()
+    df[column] = df[column].map(arg)
+    if join:
+        # Perform table join if `df[column].values` do not store the same shape and element as `arg.values()`
+        if not np.array_equal(df[column].values, list(arg.values())):
+            # Create a dataframe from `map`
+            df_map = pd.DataFrame(arg.values(), columns = [column])
+            # Table join between `df_map` and `df`
+            df = df_map.merge(df, on = column, how = join)
+    return df.sort_values(column)
+
 
 class User:
     """
@@ -76,7 +97,6 @@ class Rating:
         
         Warning: This method should not be used directly.
         """
-
         df = df.copy()
         df[column] = df[column].astype("category").cat.codes
         return df
@@ -86,7 +106,6 @@ class Rating:
         """
         Return `self.df` with reindexed `self.user.column` and `self.item.column`
         """
-
         return self._reindex(
             self._reindex(self.df, self.user.column), 
             self.item.column
@@ -97,7 +116,6 @@ class Rating:
         """
         Return a map dictionary which store reindexed user values.
         """
-
         return {v: i for i, v in
         enumerate(self.df[self.user.column].astype("category").cat.categories)}
         
@@ -106,7 +124,6 @@ class Rating:
         """
         Return a map dictionary which store reindexed item values.
         """
-
         return {v: i for i, v in
         enumerate(self.df[self.item.column].astype("category").cat.categories)}
     
@@ -116,7 +133,6 @@ class Rating:
 
         Warning: This method should not be used directly.
         """
-
         merge = self.df.merge(parent_df, on = column, how = "left")
         return merge[parent_df.columns]
     
@@ -125,7 +141,6 @@ class Rating:
         """
         Return a dataframe which "follow" the foreign-key relationship on `self.user.column` between parent class 一 `self.user.df` and foreign class 一 `self.df`.
         """
-
         return self._select_related(self.user.df, self.user.column)
     
     @property
@@ -133,28 +148,7 @@ class Rating:
         """
         Return a dataframe which "follow" the foreign-key relationship on `self.item.column` between parent class 一 `self.item.df` and foreign class 一 `self.df`. 
         """
-
         return self._select_related(self.item.df, self.item.column)
-
-
-def df_map_column(df:pd.DataFrame, column:str, arg:dict, join:str = "left"):
-    """
-    Map `df[column]` with according to `arg`.
-
-    :param arg (dict): Mapping correspondence.
-
-    :join (str): Type of table join to be performed between `df` and `df_map` 一 a dataframe created from `arg`. Table join will be performed if `df[column].values` do not store the same shape and element as `arg.values()`. Table join will also be disregard if set as None. Default: "left"
-    """
-    df = df.copy()
-    df[column] = df[column].map(arg)
-    if join:
-        # Perform table join if `df[column].values` do not store the same shape and element as `arg.values()`
-        if not np.array_equal(df[column].values, list(arg.values())):
-            # Create a dataframe from `map`
-            df_map = pd.DataFrame(arg.values(), columns = [column])
-            # Table join between `df_map` and `df`
-            df = df_map.merge(df, on = column, how = join)
-    return df.sort_values(column)
 
 
 class BaseDataset:
@@ -174,7 +168,6 @@ class BaseDataset:
 
         :param url: url to download the dataset
         """
-
         # Obtain the characters after the last "/" as filename
         file_name = url.split("/")[-1]
         dataset_path = self._download_path + file_name
