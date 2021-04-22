@@ -4,6 +4,7 @@ import pandas as pd
 
 from ._dataset import BaseDataset, User, Item, Rating
 
+
 class BookCrossingDataset(BaseDataset):
     """
     Dataset class for Book Crossing.
@@ -13,7 +14,6 @@ class BookCrossingDataset(BaseDataset):
         """
         Import Book Crossing rating, user and item dataframes. 
         """
-
         # Download dataset from url and store as zipfile
         dataset_path = super().download_data("http://www2.informatik.uni-freiburg.de/~cziegler/BX/BX-CSV-Dump.zip")
         zf = zipfile.ZipFile(dataset_path)

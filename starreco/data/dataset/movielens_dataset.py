@@ -4,6 +4,7 @@ import pandas as pd
 
 from ._dataset import BaseDataset, User, Item, Rating
 
+
 class MovielensDataset(BaseDataset):
     """
     Dataset class for Movielens.
@@ -13,7 +14,6 @@ class MovielensDataset(BaseDataset):
         """
         Import Movielens rating, user and item dataframes. 
         """
-
         # Download dataset from url and store as zipfile
         dataset_path = super().download_data(f"http://files.grouplens.org/datasets/movielens/ml-1m.zip")
         zf = zipfile.ZipFile(dataset_path)
