@@ -156,7 +156,7 @@ class BaseDataset:
     Base class for dataset.
     """
     
-    _download_path = os.path.realpath(__file__).replace("data/dataset/_dataset.py", "dataset/")
+    _download_path = os.path.realpath(__file__).replace("data/dataset/dataset.py", "dataset/")
 
     def __init__(self):
         # Import data when class object is created

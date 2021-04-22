@@ -2,7 +2,7 @@ import zipfile
 
 import pandas as pd
 
-from ._dataset import BaseDataset, User, Item, Rating
+from .dataset import BaseDataset, User, Item, Rating
 
 
 class MovielensDataset(BaseDataset):
