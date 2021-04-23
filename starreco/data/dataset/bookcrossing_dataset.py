@@ -34,6 +34,6 @@ class BookCrossingDataset(BaseDataset):
         # Rating dataframe
         rating = pd.read_csv(zf.open("BX-Book-Ratings.csv"), delimiter = ";",
         escapechar = "\\", encoding = "ISO-8859-1")
-        rating = Rating(rating, user, item, "Book-Rating")
+        rating = Rating(rating, "Book-Rating", user, item)
 
         return rating, user, item
