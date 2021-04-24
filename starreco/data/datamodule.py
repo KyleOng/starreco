@@ -1,8 +1,7 @@
 from typing import Union
 
-import pytorch_lightning as pl 
 import torch
-from torchvision import transforms
+import pytorch_lightning as pl 
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 from scipy.sparse import hstack, csr_matrix, coo_matrix, issparse
@@ -112,7 +111,7 @@ class StarDataModule(pl.LightningDataModule):
                 test_size = 0.2, 
                 random_state = random_state
             ) 
-            self.X_val, self.X_test, self.user_val, self.user_X_test, \
+            self.X_val, self.X_test, self.user_X_val, self.user_X_test, \
             self.item_X_val, self.item_X_test, self.y_val, self.y_test = \
             train_test_split(
                 self.X_test, 
