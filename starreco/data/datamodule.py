@@ -1,9 +1,11 @@
+from typing import Union
+
 import pytorch_lightning as pl 
 import torch
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
-from scipy.sparse import hstack, csr_matrix, coo_matrix
+from scipy.sparse import hstack, csr_matrix, coo_matrix, issparse
 
 from starreco.preprocessing import Preprocessor
 from .dataset import BookCrossingDataset, MovielensDataset
@@ -14,73 +16,127 @@ class StarDataModule(pl.LightningDataModule):
     starreco custom DataModule class.
     """
 
-    _dataset_options = ["ml-1m", "book-crossing"]
+    _downloads = ["ml-1m", "book-crossing"]
 
     def __init__(self, 
-                 option:str = "ml-1m", 
-                 matrix_form:bool = False,
-                 matrix_transpose:bool = False,
-                 add_features:bool = False,
-                 batch_size:int = 256):
+                 download:str = "ml-1m",
+                 batch_size:int = 256,
+                 features_join:bool = False,
+                 matrix_transform:bool = False,
+                 matrix_transpose:bool = False):
+        assert download in self._downloads, \
+        (f"`download` = '{download}' not include in prefixed dataset downloads. Choose from {self._downloads}.")
+        
+        assert not(not matrix_transform and matrix_transpose), \
+        ("`matrix_transform` and 'matrix_transpose` must be either False:False, True:False or True:True, cannot be False:True.")
 
-        assert option in self._dataset_options, (f"'{option}' not include in prefixed dataset options. Choose from {self._dataset_options}.")
+        self.batch_size = batch_size
+        self.features_join = features_join
+        self.matrix_transform = matrix_transform
+        self.matrix_transpose = matrix_transpose
         
         # Download dataset
-        if option == "ml-1m":
+        if download == "ml-1m": 
             self.dataset = MovielensDataset()
-        elif option == "book-crossing": 
+        elif download == "book-crossing": 
             self.dataset = BookCrossingDataset()
 
-        self.matrix_form = matrix_form
-        self.matrix_transpose = matrix_transpose
-        self.add_features = add_features
-        self.batch_size = batch_size
         super().__init__()
     
     def prepare_data(self):
         """
-        Prepare X and y dataset. 
+        Prepare X and y dataset, along with user and item side information.
         """
         ratings = self.dataset.rating.reindex
 
         self.X = ratings[[self.dataset.user.column, self.dataset.item.column]].values
         self.y = ratings[self.dataset.rating.column].values
 
-        self.field_dims = [self.dataset.rating.num_users, self.dataset.rating.num_items]
+        # user and item preprocessed features data
+        self.user = Preprocessor(
+            df = df_map_column(
+                self.dataset.user.df, self.dataset.user.column, 
+                self.dataset.rating.user_map, 
+                "left"
+            ), 
+            cat_columns = self.dataset.user.cat_columns,
+            num_columns = self.dataset.user.num_columns, 
+            set_columns = self.dataset.user.set_columns
+        ).transform()
 
-        if self.add_features:
-            user_preprocessor = Preprocessor(
-                df = df_map_column(
-                    self.dataset.user.df, self.dataset.user.column, self.dataset.rating.user_map, "left"
-                ), 
+        self.item = Preprocessor(
+            df = df_map_column(
+                self.dataset.item.df, 
+                self.dataset.item.column, 
+                self.dataset.rating.item_map, "left"
+            ), 
+            cat_columns = self.dataset.item.cat_columns,
+            num_columns = self.dataset.item.num_columns, 
+            set_columns = self.dataset.item.set_columns
+        ).transform()
+
+        # user_X and item_X, which are features mapped to X, only accessable for non-matrix X.
+        if not self.matrix_transform and self.features_join:
+            self.user_X = Preprocessor(
+                self.dataset.rating.user_select_related,
                 cat_columns = self.dataset.user.cat_columns,
                 num_columns = self.dataset.user.num_columns, 
                 set_columns = self.dataset.user.set_columns
-            )
-            item_preprocessor = Preprocessor(
-                df = df_map_column(
-                    self.dataset.item.df, self.dataset.item.column, self.dataset.rating.item_map, "left"
-                ), 
+            ).transform()
+
+            self.item_X = Preprocessor(
+                self.dataset.rating.item_select_related,
                 cat_columns = self.dataset.item.cat_columns,
                 num_columns = self.dataset.item.num_columns, 
                 set_columns = self.dataset.item.set_columns
-            )
-            self.user_X = user_preprocessor.transform()
-            self.item_X = item_preprocessor.transform()
+            ).transform()
 
     def split(self, random_state:int = 77):
         """
         Perform train/validate/test split. 
         
         :param random_state (int): A seed to sklearn's random number generator which to generate the splits. This ensures that the splits generated as reproducable. Default: 77
+
+        Note: General rule of thumb 60/20/20 train valid test split 
         """
-        # General rule of thumb 60/20/20 train valid test split 
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
-            self.X, self.y, stratify = self.y, test_size = 0.2, random_state = random_state
-        ) 
-        self.X_val, self.X_test, self.y_val, self.y_test = train_test_split(
-            self.X_test, self.y_test, stratify = self.y_test, test_size = 0.5, random_state = random_state
-        ) 
+        if not self.matrix_transform and self.features_join:
+            self.X_train, self.X_test, self.user_X_train, self.user_X_test, \
+            self.item_X_train, self.item_X_test, self.y_train, self.y_test = \
+            train_test_split(
+                self.X, 
+                self.user_X, 
+                self.item_X, 
+                self.y, 
+                stratify = self.y, 
+                test_size = 0.2, 
+                random_state = random_state
+            ) 
+            self.X_val, self.X_test, self.user_val, self.user_X_test, \
+            self.item_X_val, self.item_X_test, self.y_val, self.y_test = \
+            train_test_split(
+                self.X_test, 
+                self.user_X_test, 
+                self.item_X_test, 
+                self.y_test, 
+                stratify = self.y_test, 
+                test_size = 0.5, 
+                random_state = random_state
+            ) 
+        else:
+            self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
+                self.X, 
+                self.y, 
+                stratify = self.y, 
+                test_size = 0.2, 
+                random_state = random_state
+            ) 
+            self.X_val, self.X_test, self.y_val, self.y_test = train_test_split(
+                self.X_test, 
+                self.y_test, 
+                stratify = self.y_test, 
+                test_size = 0.5, 
+                random_state = random_state
+            )                 
 
     def to_matrix(self):
         """
@@ -118,44 +174,89 @@ class StarDataModule(pl.LightningDataModule):
         """
         self.prepare_data()
         self.split()
-        if self.matrix_form:
-            self.to_matrix()      
+        if self.matrix_transform: 
+            self.to_matrix()
 
     def train_dataloader(self):
         """
         Train dataloader.
         """
-        if type(self.X_train) in [csr_matrix, coo_matrix] or type(self.y_train) in [csr_matrix, coo_matrix]:
-            train_ds = SparseDataset(self.X_train, self.y_train)
-            train_dl = DataLoader(train_ds, batch_size = self.batch_size, collate_fn = sparse_batch_collate)
-        else:
-            train_ds = MatrixDataset(self.X_train, self.y_train)
-            train_dl = DataLoader(train_ds, batch_size = self.batch_size)
+        train_data = [self.X_train, self.y_train]
 
-        return train_dl
+        if self.features_join:
+            if self.matrix_transform:
+                if not self.matrix_transpose:
+                    train_data.insert(1, self.user)
+                else:
+                    train_data.insert(1, self.item)
+            else:
+                train_data.insert(1, self.user_X_train)
+                train_data.insert(2, self.item_X_train)
+
+        train_dls = []
+        for train_datum in train_data:
+            if issparse(train_datum):
+                train_ds = SparseDataset(train_datum)
+                train_dl = DataLoader(train_ds, batch_size = self.batch_size, collate_fn = sparse_batch_collate)
+            else:
+                train_ds = MatrixDataset(train_datum)
+                train_dl = DataLoader(train_ds, batch_size = self.batch_size)
+            train_dls.append(train_dl)
+
+        return zip(*train_dls)
                           
     def val_dataloader(self):
         """
-        Validate dataloader.
+        val dataloader.
         """
-        if type(self.X_val) in [csr_matrix, coo_matrix] or type(self.y_val) in [csr_matrix, coo_matrix]:
-            val_ds = SparseDataset(self.X_val, self.y_val)
-            val_dl = DataLoader(val_ds, batch_size = self.batch_size, collate_fn = sparse_batch_collate)
-        else:
-            val_ds = MatrixDataset(self.X_val, self.y_val)
-            val_dl = DataLoader(val_ds, batch_size = self.batch_size)
+        val_data = [self.X_val, self.y_val]
 
-        return val_dl
+        if self.features_join:
+            if self.matrix_transform:
+                if not self.matrix_transpose:
+                    val_data.insert(1, self.user)
+                else:
+                    val_data.insert(1, self.item)
+            else:
+                val_data.insert(1, self.user_X_val)
+                val_data.insert(2, self.item_X_val)
+
+        val_dls = []
+        for val_datum in val_data:
+            if issparse(val_datum):
+                val_ds = SparseDataset(val_datum)
+                val_dl = DataLoader(val_ds, batch_size = self.batch_size, collate_fn = sparse_batch_collate)
+            else:
+                val_ds = MatrixDataset(val_datum)
+                val_dl = DataLoader(val_ds, batch_size = self.batch_size)
+            val_dls.append(val_dl)
+
+        return zip(*val_dls)
 
     def test_dataloader(self):
         """
-        Test dataloader.
+        test dataloader.
         """
-        if type(self.X_test) in [csr_matrix, coo_matrix] or type(self.y_test) in [csr_matrix, coo_matrix]:
-            test_ds = SparseDataset(self.X_test, self.y_test)
-            test_dl = DataLoader(test_ds, batch_size = self.batch_size, collate_fn = sparse_batch_collate)
-        else:
-            test_ds = MatrixDataset(self.X_test, self.y_test)
-            test_dl = DataLoader(test_ds, batch_size = self.batch_size)
+        test_data = [self.X_test, self.y_test]
 
-        return test_dl
+        if self.features_join:
+            if self.matrix_transform:
+                if not self.matrix_transpose:
+                    test_data.insert(1, self.user)
+                else:
+                    test_data.insert(1, self.item)
+            else:
+                test_data.insert(1, self.user_X_test)
+                test_data.insert(2, self.item_X_test)
+
+        test_dls = []
+        for test_datum in test_data:
+            if issparse(test_datum):
+                test_ds = SparseDataset(test_datum)
+                test_dl = DataLoader(test_ds, batch_size = self.batch_size, collate_fn = sparse_batch_collate)
+            else:
+                test_ds = MatrixDataset(test_datum)
+                test_dl = DataLoader(test_ds, batch_size = self.batch_size)
+            test_dls.append(test_dl)
+
+        return zip(*test_dls)
