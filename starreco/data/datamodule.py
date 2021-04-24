@@ -68,7 +68,8 @@ class StarDataModule(pl.LightningDataModule):
             df = df_map_column(
                 self.dataset.item.df, 
                 self.dataset.item.column, 
-                self.dataset.rating.item_map, "left"
+                self.dataset.rating.item_map, 
+                "left"
             ), 
             cat_columns = self.dataset.item.cat_columns,
             num_columns = self.dataset.item.num_columns, 
@@ -207,7 +208,7 @@ class StarDataModule(pl.LightningDataModule):
                           
     def val_dataloader(self):
         """
-        val dataloader.
+        Validation dataloader.
         """
         val_data = [self.X_val, self.y_val]
 
@@ -235,7 +236,7 @@ class StarDataModule(pl.LightningDataModule):
 
     def test_dataloader(self):
         """
-        test dataloader.
+        Testing dataloader.
         """
         test_data = [self.X_test, self.y_test]
 
