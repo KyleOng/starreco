@@ -26,7 +26,7 @@ class MF(torch.nn.Module):
         dot = torch.mm(user_embed, item_embed.T)
         # Obtain diagonal part of the dot product result
         diagonal = dot.diag()
-        # Reshape to match evaluation shape
+        # Reshape to match output shape
         y = diagonal.view(diagonal.shape[0], -1)
 
         return y

@@ -12,7 +12,7 @@ class NCF(torch.nn.Module):
     Neural Collaborative Filtering
     """
     def __init__(self, field_dims:list, 
-                 embed_dim:int = 16,
+                 embed_dim:int = 8,
                  hidden_dims:list = [32, 16, 8], 
                  activations:Union[str, list] = "relu", 
                  dropouts:Union[float, list] = 0.5, 
@@ -44,7 +44,7 @@ class NCF(torch.nn.Module):
 
 class NCFModule(BaseModule):
      def __init__(self, field_dims:list, 
-                 embed_dim:int = 16,
+                 embed_dim:int = 8,
                  hidden_dims:list = [32, 16, 8], 
                  activations:Union[str, list] = "relu", 
                  dropouts:Union[float, list] = 0.5, 
