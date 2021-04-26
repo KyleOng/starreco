@@ -3,72 +3,83 @@ import torch
 import time
 
 class BaseModule(pl.LightningModule):
-    def __init__(self, lr, weight_decay, criterion):
+    def __init__(self, 
+                 model, 
+                 lr, 
+                 weight_decay, 
+                 criterion):
         super().__init__()
+        self.model = model
         self.lr = lr
         self.weight_decay = weight_decay
         self.criterion = criterion
+        if self.test_criterion:
+            self.test_criterion = test_criterion
+        else:
+            self.test_criterion = criterion
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), 
-                                     lr = self.lr, 
-                                     weight_decay = self.weight_decay)
-       
+        optimizer = torch.optim.Adam(self.parameters(), lr = self.lr, weight_decay = self.weight_decay)
         return optimizer
-    
-    def forward(self, x):
-        return self.model(x)
+        
+    def _transform(self, tensor):
+        """
+        Transform tensor.
 
-    def evaluate(self, x, y):
-        y_hat = self.forward(x)
-        loss = self.criterion(y_hat, y)
+        Warning: This method should not be used directly.
+        """
+        # Convert tensor to dense if tensor is sparse
+        if tensor.layout == torch.sparse_coo:
+            tensor = tensor.to_dense()
+
+        # Reshape tensor
+        return tensor.view(tensor.shape[0], -1)
+
+    def backward_loss(self, *batch):
+        """
+        Calculate loss for backward propagation.
+        """
+        y_hat = self.model.forward(*batch[:-1])
+        loss = self.criterion(y_hat, batch[-1])
+
+        return loss
+
+    def logger_loss(self, *batch):
+        """
+        Calculate loss for logger and evaluation. 
+        """
+        y_hat = self.model.forward(*batch[:-1])
+        loss = self.criterion(y_hat, batch[-1])
 
         return loss
 
     def training_step(self, batch, batch_idx):
-        x, y = batch
+        batch = [self._transform(tensor) for tensor in batch]
 
-        # Convert sparse tensor into dense
-        x = x.to_dense() if x.layout == torch.sparse_coo else x
-        y = y.to_dense() if y.layout == torch.sparse_coo else y
-        
-        x = x.view(x.shape[0], -1)
-        y = y.view(y.shape[0], -1)
-        
-        loss = self.evaluate(x, y)
-    
+        loss = self.backward_loss(*batch)
         self.log("train_loss", loss, on_step = True, on_epoch = True, prog_bar = True)
+
+        _loss = self.logger_loss(*batch)
+        self.log(f"train_{self.criterion__name__.lower()}", _loss)
 
         return loss
     
     def validation_step(self, batch, batch_idx):
-        x, y = batch
-        
-        # Convert sparse tensor into dense
-        x = x.to_dense() if x.layout == torch.sparse_coo else x
-        y = y.to_dense() if y.layout == torch.sparse_coo else y
-            
-        x = x.view(x.shape[0], -1)
-        y = y.view(y.shape[0], -1)
-        loss = self.evaluate(x, y)
-        
+        batch = [self._transform(tensor) for tensor in batch]
+
+        loss = self.backward_loss(*batch)
         self.log("val_loss", loss, on_step = True, on_epoch = True, prog_bar = True)
+
+        _loss = self.logger_loss(*batch)
+        self.log(f"val_{self.criterion__name__.lower()}", _loss)
         
         return loss
-    
+
     def test_step(self, batch, batch_idx):
-        x, y = batch
-
-        # Convert sparse tensor into dense
-        x = x.to_dense() if x.layout == torch.sparse_coo else x
-        y = y.to_dense() if y.layout == torch.sparse_coo else y
-
-        x = x.view(x.shape[0], -1)
-        y = y.view(y.shape[0], -1)
-        y_hat = self.forward(x)
-        loss = torch.sqrt(self.criterion(y_hat, y))
+        batch = [self._transform(tensor) for tensor in batch]
         
-        self.log("test_loss", loss, prog_bar = True)
+        _loss = self.logger_loss(*batch)
+        self.log("test_loss", _loss, prog_bar = True)
 
     def get_progress_bar_dict(self):
         # Don't show the version number
