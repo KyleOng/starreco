@@ -10,6 +10,7 @@ from starreco.preprocessing import Preprocessor
 from .dataset import BookCrossingDataset, MovielensDataset
 from .utils import MatrixDataset, SparseDataset, sparse_coo_to_tensor, sparse_batch_collate, ratings_to_sparse_matrix, df_map_column
 
+
 class StarDataModule(pl.LightningDataModule):
     """
     starreco custom DataModule class.
@@ -22,7 +23,8 @@ class StarDataModule(pl.LightningDataModule):
                  batch_size:int = 256,
                  features_join:bool = False,
                  matrix_transform:bool = False,
-                 matrix_transpose:bool = False):
+                 matrix_transpose:bool = False,
+                 num_workers:int = 0):
         assert download in self._downloads, \
         (f"`download` = '{download}' not include in prefixed dataset downloads. Choose from {self._downloads}.")
         
@@ -33,6 +35,7 @@ class StarDataModule(pl.LightningDataModule):
         self.features_join = features_join
         self.matrix_transform = matrix_transform
         self.matrix_transpose = matrix_transpose
+        self.num_workers = num_workers
         
         # Download dataset
         if download == "ml-1m": 
@@ -200,7 +203,7 @@ class StarDataModule(pl.LightningDataModule):
                 train_dl = DataLoader(train_ds, batch_size = self.batch_size, collate_fn = sparse_batch_collate)
             else:
                 train_ds = MatrixDataset(train_datum)
-                train_dl = DataLoader(train_ds, batch_size = self.batch_size)
+                train_dl = DataLoader(train_ds, batch_size = self.batch_size, num_workers = self.num_workers)
             train_dls.append(train_dl)
 
         return zip(*train_dls)
@@ -228,7 +231,7 @@ class StarDataModule(pl.LightningDataModule):
                 val_dl = DataLoader(val_ds, batch_size = self.batch_size, collate_fn = sparse_batch_collate)
             else:
                 val_ds = MatrixDataset(val_datum)
-                val_dl = DataLoader(val_ds, batch_size = self.batch_size)
+                val_dl = DataLoader(val_ds, batch_size = self.batch_size, num_workers = self.num_workers)
             val_dls.append(val_dl)
 
         return zip(*val_dls)
@@ -256,7 +259,7 @@ class StarDataModule(pl.LightningDataModule):
                 test_dl = DataLoader(test_ds, batch_size = self.batch_size, collate_fn = sparse_batch_collate)
             else:
                 test_ds = MatrixDataset(test_datum)
-                test_dl = DataLoader(test_ds, batch_size = self.batch_size)
+                test_dl = DataLoader(test_ds, batch_size = self.batch_size, num_workers = self.num_workers)
             test_dls.append(test_dl)
 
         return zip(*test_dls)
