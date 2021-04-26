@@ -1,6 +1,7 @@
-import pytorch_lightning as pl
 import torch
 import time
+import pytorch_lightning as pl
+
 
 class BaseModule(pl.LightningModule):
     def __init__(self, 
@@ -13,10 +14,6 @@ class BaseModule(pl.LightningModule):
         self.lr = lr
         self.weight_decay = weight_decay
         self.criterion = criterion
-        if self.test_criterion:
-            self.test_criterion = test_criterion
-        else:
-            self.test_criterion = criterion
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr = self.lr, weight_decay = self.weight_decay)
@@ -56,36 +53,37 @@ class BaseModule(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         batch = [self._transform(tensor) for tensor in batch]
 
-        loss = self.backward_loss(*batch)
-        self.log("train_loss", loss, on_step = True, on_epoch = True, prog_bar = True)
+        backward_loss = self.backward_loss(*batch)
+        self.log("train_loss", backward_loss, on_step = False, on_epoch = True, prog_bar = True)
 
-        _loss = self.logger_loss(*batch)
-        self.log(f"train_{self.criterion__name__.lower()}", _loss)
+        logger_loss = self.logger_loss(*batch)
+        self.log("train_loss_", logger_loss, on_step = False, on_epoch = True, prog_bar = True)
 
-        return loss
-    
+        return backward_loss
+
     def validation_step(self, batch, batch_idx):
         batch = [self._transform(tensor) for tensor in batch]
 
-        loss = self.backward_loss(*batch)
-        self.log("val_loss", loss, on_step = True, on_epoch = True, prog_bar = True)
+        backward_loss = self.backward_loss(*batch)
+        self.log("val_loss", backward_loss, prog_bar = True)
 
-        _loss = self.logger_loss(*batch)
-        self.log(f"val_{self.criterion__name__.lower()}", _loss)
-        
-        return loss
+        logger_loss = self.logger_loss(*batch)
+        self.log("val_loss_", logger_loss, prog_bar = True)
+
+        return backward_loss
 
     def test_step(self, batch, batch_idx):
         batch = [self._transform(tensor) for tensor in batch]
         
-        _loss = self.logger_loss(*batch)
-        self.log("test_loss", _loss, prog_bar = True)
+        logger_loss = self.logger_loss(*batch)
+        self.log("test_loss", logger_loss)
 
     def get_progress_bar_dict(self):
         # Don't show the version number
         items = super().get_progress_bar_dict()
         items.pop("v_num", None)
 
+        """
         if "train_loss" in self.trainer.callback_metrics:
             train_loss = self.trainer.callback_metrics["train_loss"].item()
             items["train_loss"] = train_loss
@@ -93,5 +91,6 @@ class BaseModule(pl.LightningModule):
         if "val_loss" in self.trainer.callback_metrics:
             val_loss = self.trainer.callback_metrics["val_loss"].item()
             items["val_loss"] = val_loss
+        """
 
         return items
