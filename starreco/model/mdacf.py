@@ -4,11 +4,9 @@ import torch
 import torch.nn.functional as F
 import pytorch_lightning as pl
 
-from .module import BaseModule
-from .layer import FeaturesEmbedding
 from .mf import MF
 
-class MDACF(MF):
+class _MDACF(MF):
     """
     Marginalized Denoising Autoencoder Collaborative Filtering
     """
@@ -16,38 +14,46 @@ class MDACF(MF):
     def __init__(self, 
                  user_dims:list, 
                  item_dims:list,
-                 embed_dim:int,
+                 embed_dim:int, 
                  corrupt_ratio:Union[int,float],
-                 lambda_:Union[int,float]):
+                 alpha:Union[int,float], 
+                 beta:Union[int,float],
+                 lambda_:Union[int,float],
+                 mean:bool,
+                 lr:float,
+                 weight_decay:float,
+                 criterion:F):
 
         # Using the same notation as in the paper for easy reference
         self.m, self.p = user_dims
         self.n, self.q = item_dims 
         self.corrupt_ratio = corrupt_ratio
         self.lambda_ = lambda_
+        self.alpha = alpha
+        self.beta = beta
+        self.mean = mean
 
-        super().__init__([self.m, self.n], embed_dim)
+        super().__init__([self.m, self.n], embed_dim, lr, weight_decay, criterion)
 
-        # marginalized Autoencoder
-        # Create weights matrices and projection matrices
+        # Create weights matrices and projection matrices for marginalized Autoencoder.
         self.user_W = torch.rand(self.p, self.p)
         self.user_P = torch.rand(self.p, embed_dim)
         self.item_W = torch.rand(self.q, self.q)
         self.item_P = torch.rand(self.q, embed_dim)
 
         # Get latent factors
-        # Obtain values only without gradient
-        self.U = self.embedding.embedding.weight[:self.m, :].data
-        self.V = self.embedding.embedding.weight[-self.n:, :].data
+        self.U = self.features_embedding.embedding.weight[:self.m, :].data
+        self.V = self.features_embedding.embedding.weight[-self.n:, :].data
+
+        self.save_hyperparameters()
             
-    def _update_projections(self, 
+    def _update_projections(_, 
                             X:torch.Tensor, 
                             W:torch.Tensor, 
                             U:torch.Tensor):
         """
         Projection matrix optimization.
         """
-
         # P=A/B
         # A=U'U
         A = torch.matmul(U.T, U)
@@ -55,7 +61,7 @@ class MDACF(MF):
         B = torch.matmul(torch.matmul(W, X), U)
         return torch.linalg.solve(A.T, B.T).T
 
-    def _update_weights(self, 
+    def _update_weights(_, 
                         X:torch.Tensor, 
                         P:torch.Tensor, 
                         U:torch.Tensor, 
@@ -66,7 +72,6 @@ class MDACF(MF):
         Weight matrix optimization. 
         Note: The weight optimization algorithm is inspired by mDA.
         """
-
         # mDA pseudo code in MATLAB
         # MATLAB: q=[ones(d-1,1).*(1-p); 1];
         q = torch.ones((d, 1)) * (1 - p)
@@ -93,71 +98,57 @@ class MDACF(MF):
         return torch.linalg.solve(EQ, ES)
 
     def forward(self, 
-                x:torch.Tensor, 
-                user:torch.Tensor, 
-                item:torch.Tensor):
+                x:torch.Tensor):
         
         # Marginalized Autoencoder
         # Update weights and projection matrices only in training mode
         if self.training:
-            # Defined X (user feature) and Y (item feature), notation same as in paper
-            if user.shape != [self.m, self.p]:
-                X = user.T  
-            else:
-                X = user
-
-            if item.shape != [self.n, self.q]:
-                Y = item.T 
-            else:
-                Y = item
-
             # Update weights and projections matrices
-            self.user_W = self._update_weights(X, self.user_P, self.U, self.p, self.lambda_, self.corrupt_ratio)
-            self.item_W = self.update_weights(Y, self.item_P, self.V, self.q, self.lambda_, self.corrupt_ratio)
-            self.user_P = self.update_projections(X, self.user_W, self.U)
-            self.item_P = self.update_projections(Y, self.item_W, self.V)
+            self.user_W = self._update_weights(self.user.T, self.user_P, self.U, self.p, self.lambda_, self.corrupt_ratio)
+            self.item_W = self._update_weights(self.item.T, self.item_P, self.V, self.q, self.lambda_, self.corrupt_ratio)
+            self.user_P = self._update_projections(self.user.T, self.user_W, self.U)
+            self.item_P = self._update_projections(self.item.T, self.item_W, self.V)
 
-            # Get new latent factors
-            # Obtain values only without gradient
-            self.U = self.embedding.embedding.weight[:self.m, :].data.to("cpu")
-            self.V = self.embedding.embedding.weight[-self.n:, :].data.to("cpu")
+            # Get latent factors
+            self.U = self.features_embedding.embedding.weight[:self.m, :].data
+            self.V = self.features_embedding.embedding.weight[-self.n:, :].data
 
         y = super().forward(x)
-
         return y
 
-class MDACFModule(BaseModule):
+    def backward_loss(self, *batch):
+        x, y = batch
+        torch_fn = torch.mean if self.mean else torch.sum
+            
+        loss = 0
+        loss += self.lambda_ * torch_fn(torch.square(torch.matmul(self.user_P, self.U.T) - torch.matmul(self.user_W, self.user.T)))
+        loss += self.lambda_ * torch_fn(torch.square(torch.matmul(self.item_P, self.V.T) - torch.matmul(self.item_W, self.item.T)))
+        loss += self.alpha * torch_fn(torch.square(y - super().forward(x)))
+        loss += self.beta * (torch_fn(torch.square(self.U)) + torch_fn(torch.square(self.V)))
+
+        return loss
+
+    def logger_loss(self, *batch):
+        y_hat = super().forward(*batch[:-1])
+        loss = self.criterion(y_hat, batch[-1])
+
+        return loss
+
+        
+class MDACF(_MDACF):
     def __init__(self, 
                  user:torch.Tensor, 
                  item:torch.Tensor,
                  embed_dim:int = 8, 
                  corrupt_ratio:Union[int,float] = 0.3,
-                 lambda_:Union[int,float] = 0.3,
                  alpha:Union[int,float] = 0.8, 
                  beta:Union[int,float] = 3e-3,
+                 lambda_:Union[int,float] = 0.3,
                  mean:bool = False,
                  lr:float = 1e-3,
                  weight_decay:float = 0,
-                 criterion:F = F.mse_loss,
-                 save_hyperparameters:bool = True):
-        super().__init__(lr, weight_decay, criterion)
-        self.model = MDACF(user, item, embed_dim, corrupt_ratio, lambda_)
-        self.alpha = alpha
-        self.beta = beta
-        self.mean = mean
-        self.save_hyperparameters()
-
-    def evaluate(self, 
-                 x:torch.Tensor,
-                 user:torch.Tensor, 
-                 item:torch.Tensor 
-                 y:torch.Tensor):
-        torch_fn = torch.mean if self.mean else torch.sum
-        
-        loss = 0
-        loss += self.model.lambda_ * torch_fn(torch.square(torch.matmul(self.model.user_P, self.model.U.T) - torch.matmul(self.model.user_W, user)))
-        loss += self.model.lambda_ * torch_fn(torch.square(torch.matmul(self.model.item_P, self.model.V.T) - torch.matmul(self.model.item_W, item)))
-        loss += self.alpha * torch_fn(torch.square((y - super(type(self.model), self.model).forward(x)).to("cpu")))
-        loss += self.beta * (torch_fn(torch.square(self.model.U)) + torch_fn(torch.square(self.model.V)))
-        loss = loss.to(self.device)
-        return loss
+                 criterion:F = F.mse_loss):
+        super().__init__(user.shape, item.shape, embed_dim, corrupt_ratio, alpha, beta, lambda_, mean, lr, weight_decay, criterion)
+        # Need to change
+        self.user = user
+        self.item = item
