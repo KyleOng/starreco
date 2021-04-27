@@ -3,6 +3,7 @@ from typing import Union
 import torch
 import pytorch_lightning as pl 
 from torch.utils.data import DataLoader
+from pytorch_lightning.trainer.supporters import CombinedLoader
 from sklearn.model_selection import train_test_split
 from scipy.sparse import hstack, csr_matrix, coo_matrix, issparse
 
@@ -205,6 +206,7 @@ class StarDataModule(pl.LightningDataModule):
                 train_ds = MatrixDataset(train_datum)
                 train_dl = DataLoader(train_ds, batch_size = self.batch_size, num_workers = self.num_workers)
             train_dls.append(train_dl)
+
         return train_dls
                           
     def val_dataloader(self):
@@ -233,7 +235,7 @@ class StarDataModule(pl.LightningDataModule):
                 val_dl = DataLoader(val_ds, batch_size = self.batch_size, num_workers = self.num_workers)
             val_dls.append(val_dl)
 
-        return zip(*val_dls)
+        return CombinedLoader(val_dls, "max_size_cycle")
 
     def test_dataloader(self):
         """
@@ -261,4 +263,4 @@ class StarDataModule(pl.LightningDataModule):
                 test_dl = DataLoader(test_ds, batch_size = self.batch_size, num_workers = self.num_workers)
             test_dls.append(test_dl)
 
-        return zip(*test_dls)
+        return CombinedLoader(test_dls, "max_size_cycle")
