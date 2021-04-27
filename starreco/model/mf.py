@@ -4,17 +4,22 @@ import torch.nn.functional as F
 from .module import BaseModule
 from .layer import FeaturesEmbedding
 
-class MF(torch.nn.Module):
+class MF(BaseModule):
     """
     Matrix Factorization
     """
 
     def __init__(self, field_dims:list, 
-                 embed_dim:int = 8):
-        super().__init__()
+                 embed_dim:int = 8, 
+                 lr:float = 1e-3,
+                 weight_decay:float = 1e-6,
+                 criterion:F = F.mse_loss):
+        super().__init__(lr, weight_decay, criterion)
 
         # Embedding layer
         self.features_embedding = FeaturesEmbedding(field_dims, embed_dim)
+
+        self.save_hyperparameters()
 
     def forward(self, x):
         # Generate embeddings
@@ -31,18 +36,4 @@ class MF(torch.nn.Module):
 
         return y
 
-class MFModule(BaseModule):
-    """
-    Matrix Factorization Module
-    """
-
-    def __init__(self, field_dims:list, 
-                 embed_dim:int = 8, 
-                 lr:float = 1e-3,
-                 weight_decay:float = 1e-6,
-                 criterion:F = F.mse_loss):
-        model = MF(field_dims, embed_dim)
-        super().__init__(model, lr, weight_decay, criterion)
-        self.save_hyperparameters()
-    
 
