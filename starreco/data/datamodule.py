@@ -24,7 +24,7 @@ class StarDataModule(pl.LightningDataModule):
                  features_join:bool = False,
                  matrix_transform:bool = False,
                  matrix_transpose:bool = False,
-                 num_workers:int = 0):
+                 num_workers:int = 1):
         assert download in self._downloads, \
         (f"`download` = '{download}' not include in prefixed dataset downloads. Choose from {self._downloads}.")
         
@@ -205,8 +205,7 @@ class StarDataModule(pl.LightningDataModule):
                 train_ds = MatrixDataset(train_datum)
                 train_dl = DataLoader(train_ds, batch_size = self.batch_size, num_workers = self.num_workers)
             train_dls.append(train_dl)
-
-        return zip(*train_dls)
+        return train_dls
                           
     def val_dataloader(self):
         """
