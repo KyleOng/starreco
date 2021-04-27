@@ -5,12 +5,10 @@ import pytorch_lightning as pl
 
 class BaseModule(pl.LightningModule):
     def __init__(self, 
-                 model, 
                  lr, 
                  weight_decay, 
                  criterion):
         super().__init__()
-        self.model = model
         self.lr = lr
         self.weight_decay = weight_decay
         self.criterion = criterion
@@ -36,7 +34,7 @@ class BaseModule(pl.LightningModule):
         """
         Calculate loss for backward propagation.
         """
-        y_hat = self.model.forward(*batch[:-1])
+        y_hat = self.forward(*batch[:-1])
         loss = self.criterion(y_hat, batch[-1])
 
         return loss
@@ -45,7 +43,7 @@ class BaseModule(pl.LightningModule):
         """
         Calculate loss for logger and evaluation. 
         """
-        y_hat = self.model.forward(*batch[:-1])
+        y_hat = self.forward(*batch[:-1])
         loss = self.criterion(y_hat, batch[-1])
 
         return loss
@@ -65,10 +63,10 @@ class BaseModule(pl.LightningModule):
         batch = [self._transform(tensor) for tensor in batch]
 
         backward_loss = self.backward_loss(*batch)
-        self.log("val_loss", backward_loss, prog_bar = True)
+        self.log("val_loss", backward_loss, prog_bar = True, logger = True)
 
         logger_loss = self.logger_loss(*batch)
-        self.log("val_loss_", logger_loss, prog_bar = True)
+        self.log("val_loss_", logger_loss, prog_bar = True, logger = True)
 
         return backward_loss
 
