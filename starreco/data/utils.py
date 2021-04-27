@@ -76,31 +76,39 @@ def sparse_batch_collate(batch:list):
     """
     Collate function which to transform scipy coo matrix to pytorch sparse tensor
     """
-    return [sparse_coo_to_tensor(vstack(data).tocoo()) for data in zip(*batch)]
+    return sparse_coo_to_tensor(vstack(batch).tocoo())
 
             
 class SparseDataset(Dataset):
     """
     Custom Dataset class for scipy sparse matrix
+
+    Warning: This Dataset class is written such that it only accepts 1 argument.
     """
 
-    def __init__(self, *sparses:Union[coo_matrix, csr_matrix]):
-        self.sparses = [sparse.tocsr() if isinstance(sparse, coo_matrix)
-                        else sparse 
-                        for sparse in sparses]
+    def __init__(self, sparse:Union[coo_matrix, csr_matrix]):
+        self.sparse = sparse.tocsr() if isinstance(sparse, coo_matrix) else sparse 
         
     def __getitem__(self, index:int):
-        return [sparse[index] for sparse in self.sparses]
+        return self.sparse[index]
 
     def __len__(self):
-        return self.sparses[0].shape[0]
+        return self.sparse.shape[0]
 
 
 class MatrixDataset(TensorDataset):
     """
     Custom Dataset class for matrix type data, which later transform to `torch.Tensor` during initialization.
+
+    Warning: This Dataset class is written such that it only accepts 1 argument.
     """
 
-    def __init__(self, *matrices:np.array):
-        tensors = [torch.Tensor(matrix) for matrix in matrices]
-        super().__init__(*tensors)
+    def __init__(self, matrix:np.array):
+        self.tensor = torch.Tensor(matrix)
+
+    def __getitem__(self, index:int):
+        return self.tensor[index]
+
+    def __len__(self):
+        return self.tensor.shape[0]
+
