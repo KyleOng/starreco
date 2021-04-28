@@ -4,16 +4,12 @@ sys.path.insert(0,"..")
 
 import torch
 import pytorch_lightning as pl
-from torch.utils.data import DataLoader, TensorDataset, ConcatDataset
-from pytorch_lightning.callbacks import ModelCheckpoint
-from tqdm import tqdm
 
 from starreco.model import *
 from starreco.data import *
-from starreco.data.utils import *
 
 def quick_test(dm, module, gpu = False):
-    trainer = pl.Trainer(gpus = int(gpu), max_epochs = 10, progress_bar_refresh_rate = 50)
+    trainer = pl.Trainer(gpus = int(gpu), max_epochs = 5, progress_bar_refresh_rate = 50)
     trainer.fit(module, dm)
 
 def test_mf():
@@ -21,6 +17,12 @@ def test_mf():
     dm.setup()
     mf = MF([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
     quick_test(dm, mf)
+
+def test_gmf():
+    dm = StarDataModule(download = "ml-1m")
+    dm.setup()
+    gmf = GMF([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
+    quick_test(dm, gmf)
 
 def test_mdacf():
     dm = StarDataModule(download = "ml-1m", batch_size = 1024)
@@ -38,5 +40,6 @@ if __name__ == "__main__":
     model = args.model
 
     if model == "mf": test_mf()
+    elif model == "gmf": test_gmf()
     elif model == "mdacf": test_mdacf()
         
