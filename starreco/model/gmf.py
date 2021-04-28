@@ -9,7 +9,7 @@ from .layer import FeaturesEmbedding, MultilayerPerceptrons
 
 class GMF(BaseModule):
     """
-    Matrix Factorization
+    Generalized Matrix Factorization
     """
 
     def __init__(self, field_dims:list, 
