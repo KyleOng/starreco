@@ -1,5 +1,8 @@
 env
 notebook
 backup
+.ipynb_checkpoints
+checkpoints
+lightning_logs
 starreco/dataset/*
 *.pyc
