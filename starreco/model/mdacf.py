@@ -129,8 +129,10 @@ class _MDACF(MF):
         return loss
 
     def logger_loss(self, *batch):
-        y_hat = super().forward(*batch[:-1])
-        loss = self.criterion(y_hat, batch[-1])
+        x, y = batch
+
+        y_hat = super().forward(x)
+        loss = self.criterion(y_hat, y)
 
         return loss
 
