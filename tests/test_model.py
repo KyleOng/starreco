@@ -8,7 +8,9 @@ import pytorch_lightning as pl
 from starreco.model import *
 from starreco.data import *
 
-def quick_test(dm, module, gpu = False):
+gpu = False
+
+def quick_test(dm, module):
     trainer = pl.Trainer(gpus = int(gpu), max_epochs = 5, progress_bar_refresh_rate = 50)
     trainer.fit(module, dm)
 
@@ -24,6 +26,12 @@ def test_gmf():
     gmf = GMF([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
     quick_test(dm, gmf)
 
+def test_ncf():
+    dm = StarDataModule(download = "ml-1m")
+    dm.setup()
+    ncf = NCF([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
+    quick_test(dm, ncf)
+
 def test_mdacf():
     dm = StarDataModule(download = "ml-1m", batch_size = 1024)
     dm.setup()
@@ -38,8 +46,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     model = args.model
+    gpu = args.gpu
 
     if model == "mf": test_mf()
     elif model == "gmf": test_gmf()
+    elif model == "ncf": test_ncf()
     elif model == "mdacf": test_mdacf()
         
