@@ -55,7 +55,7 @@ class BaseModule(pl.LightningModule):
         self.log("train_loss", backward_loss, on_step = False, on_epoch = True, prog_bar = True)
 
         logger_loss = self.logger_loss(*batch)
-        self.log("train_loss_", logger_loss, on_step = False, on_epoch = True, prog_bar = True)
+        self.log("train_loss_", logger_loss, on_step = False, on_epoch = True, prog_bar = True, logger = True)
 
         return backward_loss
 
