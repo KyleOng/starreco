@@ -158,7 +158,7 @@ class StarDataModule(pl.LightningDataModule):
             self.X_test.T[0], self.X_test.T[1], self.y_test, 
             self.dataset.rating.num_users, self.dataset.rating.num_items
         )
-        
+
         # Transpose X
         if self.matrix_transpose:
             self.X_train = self.X_train.T
@@ -189,10 +189,10 @@ class StarDataModule(pl.LightningDataModule):
 
         if self.features_join:
             if self.matrix_transform:
-                if not self.matrix_transpose:
-                    train_data.insert(1, self.user)
-                else:
+                if self.matrix_transpose:
                     train_data.insert(1, self.item)
+                else:
+                    train_data.insert(1, self.user)
             else:
                 train_data.insert(1, self.user_X_train)
                 train_data.insert(2, self.item_X_train)
@@ -217,10 +217,10 @@ class StarDataModule(pl.LightningDataModule):
 
         if self.features_join:
             if self.matrix_transform:
-                if not self.matrix_transpose:
-                    val_data.insert(1, self.user)
-                else:
+                if self.matrix_transpose:
                     val_data.insert(1, self.item)
+                else:
+                    val_data.insert(1, self.user)
             else:
                 val_data.insert(1, self.user_X_val)
                 val_data.insert(2, self.item_X_val)
@@ -245,10 +245,10 @@ class StarDataModule(pl.LightningDataModule):
 
         if self.features_join:
             if self.matrix_transform:
-                if not self.matrix_transpose:
-                    test_data.insert(1, self.user)
-                else:
+                if self.matrix_transpose:
                     test_data.insert(1, self.item)
+                else:
+                    test_data.insert(1, self.user)
             else:
                 test_data.insert(1, self.user_X_test)
                 test_data.insert(2, self.item_X_test)
