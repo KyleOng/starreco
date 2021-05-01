@@ -90,8 +90,8 @@ def test_gmfpp():
                         features_join = True)
 
     dm.setup()
-    user_ae = SDAE(dm.user_X.shape[-1], hidden_dims = [16, 8])
-    item_ae = SDAE(dm.item_X.shape[-1], hidden_dims = [16, 8])
+    user_ae = SDAE(dm.user_X.shape[-1], hidden_dims = [16, 8], e_activations = "selu")
+    item_ae = SDAE(dm.item_X.shape[-1], hidden_dims = [16, 8], e_activations = "selu")
     gmfpp = GMFPP(user_ae.model, item_ae.model, [dm.dataset.rating.num_items, dm.dataset.rating.num_users])
     return quick_test(dm, gmfpp)
 
@@ -102,9 +102,9 @@ def test_ncfpp():
                         features_join = True)
 
     dm.setup()
-    user_ae = SDAE(dm.user_X.shape[-1], hidden_dims = [16, 8])
-    item_ae = SDAE(dm.item_X.shape[-1], hidden_dims = [16, 8])
-    ncfpp = NCFPP(user_ae.model, item_ae.model, [dm.dataset.rating.num_items, dm.dataset.rating.num_users])
+    user_ae = SDAE(dm.user_X.shape[-1], hidden_dims = [16, 8], e_activations = "selu")
+    item_ae = SDAE(dm.item_X.shape[-1], hidden_dims = [16, 8], e_activations = "selu")
+    ncfpp = NCFPP(user_ae.model, item_ae.model, [dm.dataset.rating.num_items, dm.dataset.rating.num_users], activations = "selu")
     return quick_test(dm, ncfpp)
 
 
@@ -114,8 +114,8 @@ def test_nmfpp(pretrain = False, freeze = True):
                         features_join = True)
     dm.setup()
     
-    user_ae = SDAE(dm.user_X.shape[-1], hidden_dims = [16, 8])
-    item_ae = SDAE(dm.item_X.shape[-1], hidden_dims = [16, 8])
+    user_ae = SDAE(dm.user_X.shape[-1], hidden_dims = [16, 8], e_activations = "selu")
+    item_ae = SDAE(dm.item_X.shape[-1], hidden_dims = [16, 8], e_activations = "selu")
     gmfpp = GMFPP(user_ae.model, item_ae.model, [dm.dataset.rating.num_items, dm.dataset.rating.num_users])
     ncfpp = NCFPP(user_ae.model, item_ae.model, [dm.dataset.rating.num_items, dm.dataset.rating.num_users])
     nmfpp = NMFPP(gmfpp.model, ncfpp.model, freeze_pretrain = freeze)
