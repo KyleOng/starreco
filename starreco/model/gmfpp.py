@@ -64,10 +64,10 @@ class GMFPP(BaseModule):
                  item_ae:SDAEmodel, 
                  field_dims:list,
                  embed_dim: int = 8,
-                 alpha:Union[int,float] = 1e-3, 
-                 beta:Union[int,float] = 1e-3,
+                 alpha:Union[int,float] = 0.1, 
+                 beta:Union[int,float] = 0.1,
                  lr:float = 1e-3,
-                 weight_decay:float = 1e-6,
+                 weight_decay:float = 1e-3,
                  criterion:F = F.mse_loss):
         super().__init__(lr, weight_decay, criterion)
         self.model = GMFPPmodel(user_ae, item_ae, field_dims, embed_dim)
@@ -83,7 +83,7 @@ class GMFPP(BaseModule):
 
         loss = 0
         loss += self.alpha * self.criterion(self.model.user_ae.forward(user_x), user_x)
-        loss += self.beta * self.criterion(self.model.item_ae.forward(item_x), item_x)
+        loss += self.beta  * self.criterion(self.model.item_ae.forward(item_x), item_x)
         loss += super().backward_loss(*batch)
 
         return loss
