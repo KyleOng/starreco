@@ -6,81 +6,84 @@ import torch
 import torch.nn.functional as F
 
 from .module import BaseModule
-from .layer import FeaturesEmbedding, MultilayerPerceptrons
-from .gmf import GMF
-from .ncf import NCF
+from .layer import FeaturesEmbedding, MultilayerPerceptrons, ActivationFunction
+from .gmf import GMFmodel
+from .ncf import NCFmodel
 
-class NMF(torch.nn.Module):
+class NMFmodel(torch.nn.Module):
     """
     Neural Matrix Factorization
     """
-    def __init__(self, gmf, ncf,
-                 pretrain:bool = False):
+    def __init__(self, 
+                 gmf:GMFmodel,
+                 ncf:NCFmodel,
+                 freeze_pretrain:bool):
         super().__init__()
+        
+        # Clone pretrained models
         self.gmf = copy.deepcopy(gmf)
         self.ncf = copy.deepcopy(ncf)
 
-        # Freeze embedding weights if pretrain
-        if pretrain:
-            self.gmf.embedding.embedding.weight.requires_grad = False
-            self.ncf.embedding.embedding.weight.requires_grad = False
+        # Freeze model
+        if freeze_pretrain:
+            for param in self.gmf.parameters():
+                param.requires_grad = False
+            for param in self.ncf.parameters():
+                param.requires_grad = False
 
         # Remove GMF output layer
-        self.gmf.slp = None
+        del self.gmf.net
 
-        # Add GMF embedding dim to `input_dim`
-        input_dim = self.gmf.embedding.embedding.weight.shape[1]
+        # Remove NCF output layer
+        del self.ncf.net.mlp[-1]
+        if type(self.ncf.net.mlp[-1]) == torch.nn.Linear:
+            del self.ncf.net.mlp[-1]
 
-        # Remove NCF output layer and freeze hidden weights and biases
-        ncf_mlp_blocks = []
-        for i, module in enumerate(self.ncf.mlp.mlp):
-            # Freeze weights and bias if pretrain
-            if hasattr(self.ncf.mlp.mlp[i], "weight") and pretrain:
-                self.ncf.mlp.mlp[i].weight.requires_grad = False
-            if hasattr(self.ncf.mlp.mlp[i], "bias") and pretrain:
-                self.ncf.mlp.mlp[i].bias.requires_grad = False
-            if type(module) == torch.nn.Linear:
-                if module.out_features == 1:
-                    # Add NCF last hidden input dim to `input_dim`
-                    input_dim += module.in_features 
-                    break
-            ncf_mlp_blocks.append(module)
-        self.ncf.mlp = torch.nn.Sequential(*ncf_mlp_blocks)
-        
-        # Singlelayer perceptrons
-        # input_dim = GMF embedding dim + NCF last hidden input dim
-        self.slp = MultilayerPerceptrons(input_dim = input_dim, 
+        # Get input dim 
+        input_dim = self.gmf.features_embedding.embedding.embedding_dim 
+        for i in range(0, len(self.ncf.net.mlp))[::-1]:
+            if type(self.ncf.net.mlp[i]) == torch.nn.Linear:
+                input_dim += self.ncf.net.mlp[i].out_features
+                break
+        # Hybrid network
+        self.net = MultilayerPerceptrons(input_dim = input_dim, 
                                          output_layer = "relu")
     
     def forward(self, x):
-        # GMF part
-        gmf_x_embed = self.gmf.embedding(x)
-        gmf_user_embed = gmf_x_embed[:, 0]
-        gmf_item_embed = gmf_x_embed[:, 1]
-        # Element wise product between embeddings
-        gmf_product = gmf_user_embed *  gmf_item_embed
+        # GMF part: Element wise product between embeddings
+        gmf_product = self.gmf.element_wise_product(x)
 
-        # NCF part
-        # Get output of last hidden layer
-        ncf_last_hidden = self.ncf(x)
+        # NCF part: Get output of last hidden layer
+        ncf_last_hidden = self.ncf.forward(x)
 
         # Concatenate GMF's element wise product and NCF's last hidden layer output
         concat = torch.cat([gmf_product, ncf_last_hidden], dim = 1)
 
         # Feed to generalized non-linear layer
-        y = self.slp(concat)
+        y = self.net(concat)
 
         return y
+    
 
-class NMFModule(BaseModule):
-    def __init__(self, gmf:GMF, ncf:NCF,
-                 pretrain:bool = False,
+class NMF(BaseModule):
+    """
+    Neural Matrix Factorization
+    """
+    def __init__(self, 
+                 gmf:GMFmodel,
+                 ncf:NCFmodel,
+                 freeze_pretrain:bool = True,
                  lr:float = 1e-3,
                  weight_decay:float = 1e-6,
-                 criterion:F = F.mse_loss,
-                 save_hyperparameters:bool = True):
+                 criterion:F = F.mse_loss):
+        
         super().__init__(lr, weight_decay, criterion)
-        self.model = NMF(gmf, ncf, pretrain)
+        self.model = NMFmodel(gmf, ncf, freeze_pretrain)
         self.save_hyperparameters()
-    
+
+    def forward(self, x):
+        return self.model.forward(x)
+
+
+
         
