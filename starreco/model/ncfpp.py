@@ -6,94 +6,97 @@ import torch.nn.functional as F
 
 from .module import BaseModule
 from .layer import FeaturesEmbedding, MultilayerPerceptrons
-from .sdae import SDAE, SDAEModule
+from .sdae import SDAEmodel
 
-class NCFPP(torch.nn.Module):
+class NCFPPmodel(torch.nn.Module):
     """
-    Neural Collaborative Filtering/Multilayer Perceptrons ++
+    Neural Collaborative Filtering Multilayer Perceptrons ++ model
     """
-    def __init__(self, user_ae:SDAE, item_ae:SDAE, field_dims:list, 
-                 embed_dim:int = 16,
-                 hidden_dims:list = [32, 16, 8], 
-                 activations:Union[str, list] = "relu", 
-                 dropouts:Union[float, list] = 0.5, 
-                 batch_norm:bool = True):
+    def __init__(self, 
+                 user_ae:SDAEmodel, 
+                 item_ae:SDAEmodel, 
+                 field_dims:list, 
+                 embed_dim:int,
+                 hidden_dims:list, 
+                 activations:Union[str, list], 
+                 dropouts:Union[int, float, list], 
+                 batch_norm:bool):
         super().__init__()
         self.user_ae = copy.deepcopy(user_ae)
         self.item_ae = copy.deepcopy(item_ae)
 
-        self.user_feature_dim = self.user_ae.decoder.mlp[0].weight.shape[0]
-        self.item_feature_dim = self.item_ae.decoder.mlp[0].weight.shape[0]
-
-        # Obtain latent factor dimension
-        for i, module in enumerate(self.user_ae.decoder.mlp):
-            if type(module) == torch.nn.Linear:
-                try: latent_dim
-                except: latent_dim = self.user_ae.decoder.mlp[i].weight.shape[1]
-                else: pass
-
         # Embedding layer
-        self.embedding = FeaturesEmbedding(field_dims, embed_dim)
+        self.features_embedding = FeaturesEmbedding(field_dims, embed_dim)
 
-        # Multilayer perceptrons
-        self.mlp = MultilayerPerceptrons(input_dim = embed_dim * 2 + latent_dim * 2, 
+        # Get latent representation dimension
+        latent_dim = self.user_ae.decoder.mlp[0].in_features and self.item_ae.decoder.mlp[0].in_features 
+        # Network 
+        self.net = MultilayerPerceptrons(input_dim = embed_dim * 2 + latent_dim * 2, 
                                          hidden_dims = hidden_dims, 
                                          activations = activations, 
                                          dropouts = dropouts,
                                          output_layer = "relu",
                                          batch_norm = batch_norm)
 
-    def forward(self, x):
-        # Partition user and item features
-        user_feature = x[:, 2:self.user_feature_dim + 2]
-        item_feature = x[:, -self.item_feature_dim:]
-        x = x[:, :2].int()
-
-         # Obtain latent factor
-        user_latent = self.user_ae.encode(user_feature)
-        item_latent = self.item_ae.encode(item_feature)
+    def encode_concatenate(self, x, user_x, item_x):
+        # Obtain latent factor z
+        user_z = self.user_ae.encode(user_x)
+        item_z = self.item_ae.encode(item_x)
 
         # Generate embeddings
-        embed = self.embedding(x)
+        x_embed = self.features_embedding(x.int())
+
         # Seperate user (1st column) and item (2nd column) embeddings from generated embeddings
-        user_embed = embed[:, 0]
-        item_embed = embed[:, 1]
+        user_embed = x_embed[:, 0]
+        item_embed = x_embed[:, 1]
 
         # Concat latent factor and embeddings
-        user_latent = torch.cat([user_latent, user_embed], dim = 1)
-        item_latent = torch.cat([item_latent, item_embed], dim = 1)
+        user_repr = torch.cat([user_z, user_embed], dim = 1)
+        item_repr = torch.cat([item_z, item_embed], dim = 1)
 
-        # Concat user and item latent factors
-        concat = torch.cat([user_latent, item_latent], dim = 1)
+        return torch.cat([user_repr, item_repr], dim = 1)
 
+    def forward(self, x, user_x, item_x):
+        # Element wise product between user and items embeddings
+        concat = self.encode_concatenate(x, user_x, item_x)
+        
         # Feed element wise product to generalized non-linear layer
-        y = self.mlp(concat)
+        y = self.net(concat)
 
         return y
 
-class NCFPPModule(BaseModule):
-    def __init__(self, user_ae, item_ae, field_dims:list, 
-                 embed_dim:int = 16,
+
+class NCFPP(BaseModule):
+    def __init__(self, 
+                 user_ae:SDAEmodel, 
+                 item_ae:SDAEmodel, 
+                 field_dims:list, 
+                 embed_dim:int = 8,
                  hidden_dims:list = [32, 16, 8], 
                  activations:Union[str, list] = "relu", 
-                 dropouts:Union[float, list] = 0.5, 
+                 dropouts:Union[int, float, list] = 0.5, 
                  batch_norm:bool = True,
+                 alpha:Union[int,float] = 0.1, 
+                 beta:Union[int,float] = 0.1,
                  lr:float = 1e-3,
                  weight_decay:float = 1e-6,
                  criterion:F = F.mse_loss,
                  save_hyperparameters:bool = True):
         super().__init__(lr, weight_decay, criterion)
-        self.model = NCFPP(user_ae, item_ae, field_dims, embed_dim, hidden_dims, activations, dropouts, batch_norm)
+        self.model = NCFPPmodel(user_ae, item_ae, field_dims, embed_dim, hidden_dims, activations, dropouts, batch_norm)
+        self.alpha = alpha
+        self.beta = beta
         self.save_hyperparameters()
 
-    def evaluate(self, x, y): 
-        # Partition user and item features
-        user_feature = x[:, 2:self.model.user_feature_dim + 2]
-        item_feature = x[:, -self.model.item_feature_dim:]
-        user_loss = self.criterion(self.model.user_ae.forward(user_feature), user_feature)
-        item_loss = self.criterion(self.model.item_ae.forward(item_feature), item_feature)
-        ncf_loss = super().evaluate(x, y)
+    def forward(self, *batch):
+        return self.model.forward(*batch)
 
-        loss = user_loss + item_loss + ncf_loss 
+    def backward_loss(self, *batch):
+        x, user_x, item_x, y = batch
+
+        loss = 0
+        loss += self.alpha * self.criterion(self.model.user_ae.forward(user_x), user_x)
+        loss += self.beta * self.criterion(self.model.item_ae.forward(item_x), item_x)
+        loss += super().backward_loss(*batch)
 
         return loss
