@@ -126,30 +126,14 @@ class MultilayerPerceptrons(torch.nn.Module):
     def __init__(self, input_dim:int, 
                  hidden_dims:list = [], 
                  activations:Union[str, list] = "relu",
-                 dropouts:Union[float, list] = 0.5,
-                 apply_last_bndp:bool = True,
-                 output_layer:str = "linear",
+                 dropouts:Union[int, float, list] = 0.5,
                  batch_norm:bool = True,
-                 extra_nodes_in:Union[int,list] = 0,
+                 remove_last_dropout:bool = True,
+                 remove_last_batch_norm:bool = True,
+                 output_layer:str = "linear",
+                 extra_input_dims:Union[int,list] = 0,
                  extra_nodes_out:Union[int,list] = 0,
                  module_type:str = "sequential"):
-        """
-        Multilayer Perceptrons. Default, shallow network.
-
-        :param input_dim (int): Number of input nodes.
-
-        :param hidden_dims (list): List of number of hidden nodes. If output_layer is None, then the last hidden layer will be the output layer. Default: []
-
-        :param activations (str/list): List of activation functions. If type str, then the activation will be repeated len(hidden_dims) times in a list. Default: "relu"
-
-        :param dropouts (float/list): List of dropouts. If type float, then the dropout will be repeated len(hidden_dims) times in a list. If output_layer is None, then dropout will not be applied at the last hidden layer. Default: 0.5
-        
-        :param output_layer (str): Add an additional output layer along with a defined activation function at the end. If None, then the last hidden layer will be the output layer. Default: linear
-
-        :param batch_norm (bool): If True, apply 1D batch normalization on every hidden layer before the activation function. If output_layer is None, then batch normalization will not be applied at the last hidden layer. Default: True
-
-        :param module_type(str): Return module type. Option ["sequential", "modulelist"]. Default: "sequential"
-        """
         super().__init__()
         assert module_type in ["sequential", "modulelist"], "type must be 'sequential' or 'modulelist'"
 
@@ -157,21 +141,20 @@ class MultilayerPerceptrons(torch.nn.Module):
             activations = np.tile([activations], len(hidden_dims))
         if type(dropouts) == float or type(dropouts) == int:
             dropouts = np.tile([dropouts], len(hidden_dims))
-        if type(extra_nodes_in) == int:
-            extra_nodes_in = np.tile([extra_nodes_in], len(hidden_dims))
+        if type(extra_input_dims) == int:
+            extra_input_dims = np.tile([extra_input_dims], len(hidden_dims))
         if type(extra_nodes_out) == int:
             extra_nodes_out = np.tile([extra_nodes_out], len(hidden_dims))
         mlp_blocks = []
         for i, hidden_dim in enumerate(hidden_dims):
             # Append linear layer         
-            mlp_blocks.append(torch.nn.Linear(input_dim + extra_nodes_in[i], 
+            mlp_blocks.append(torch.nn.Linear(input_dim + extra_input_dims[i], 
                                               hidden_dim + extra_nodes_out[i]))
             # Append batch normalization
             # Batch normalization will not be applied to the last hidden layer (output layer is None)
             if batch_norm:
-                mlp_blocks.append(torch.nn.BatchNorm1d(hidden_dim))
-                if i == len(hidden_dims) - 1 and not apply_last_bndp:
-                    mlp_blocks = mlp_blocks[:-1]
+                if i + int(remove_last_batch_norm) != len(hidden_dims):
+                    mlp_blocks.append(torch.nn.BatchNorm1d(hidden_dim))
             # Append activation function
             activation = activations[i].lower()
             if activation != "linear": 
@@ -179,9 +162,8 @@ class MultilayerPerceptrons(torch.nn.Module):
             # Append dropout layers
             # Dropout will not be applied to the last hidden layer (output layer is None)
             if dropouts[i] > 0 and dropouts[i] <= 1:
-                mlp_blocks.append(torch.nn.Dropout(dropouts[i]))
-                if i == len(hidden_dims) - 1 and not apply_last_bndp:
-                    mlp_blocks = mlp_blocks[:-1]
+                if i + int(remove_last_dropout) != len(hidden_dims):
+                    mlp_blocks.append(torch.nn.Dropout(dropouts[i]))
             input_dim = hidden_dim
         
         if output_layer:
