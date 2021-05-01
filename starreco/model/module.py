@@ -56,7 +56,7 @@ class BaseModule(pl.LightningModule):
 
         logger_loss = self.logger_loss(*batch)
         self.log("train_loss_", logger_loss, on_step = False, on_epoch = True, prog_bar = True, logger = True)
-
+        
         return backward_loss
 
     def validation_step(self, batch, batch_idx):
