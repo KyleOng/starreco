@@ -79,7 +79,7 @@ class NCFPP(BaseModule):
                  alpha:Union[int,float] = 0.1, 
                  beta:Union[int,float] = 0.1,
                  lr:float = 1e-3,
-                 weight_decay:float = 1e-6,
+                 weight_decay:float = 1e-3,
                  criterion:F = F.mse_loss,
                  save_hyperparameters:bool = True):
         super().__init__(lr, weight_decay, criterion)
@@ -96,7 +96,7 @@ class NCFPP(BaseModule):
 
         loss = 0
         loss += self.alpha * self.criterion(self.model.user_ae.forward(user_x), user_x)
-        loss += self.beta * self.criterion(self.model.item_ae.forward(item_x), item_x)
+        loss += self.beta  * self.criterion(self.model.item_ae.forward(item_x), item_x)
         loss += super().backward_loss(*batch)
 
         return loss
