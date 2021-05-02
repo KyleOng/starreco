@@ -67,8 +67,7 @@ def test_mdacf():
 
 
 def test_sdae(matrix_transpose = False, features_join = False):
-    dm = StarDataModule(download = "ml-1m", 
-                        batch_size = 1024, 
+    dm = StarDataModule(download = "ml-1m",  
                         features_join = features_join,
                         matrix_transform = True,
                         matrix_transpose = matrix_transpose)
@@ -86,31 +85,28 @@ def test_sdae(matrix_transpose = False, features_join = False):
 
 def test_gmfpp():
     dm = StarDataModule(download = "ml-1m", 
-                        batch_size = 1024,
                         features_join = True)
 
     dm.setup()
-    user_ae = SDAE(dm.user_X.shape[-1], hidden_dims = [16, 8], e_activations = "selu")
-    item_ae = SDAE(dm.item_X.shape[-1], hidden_dims = [16, 8], e_activations = "selu")
-    gmfpp = GMFPP(user_ae.model, item_ae.model, [dm.dataset.rating.num_items, dm.dataset.rating.num_users])
+    user_ae = SDAE(dm.user_X.shape[-1], hidden_dims = [16], e_activations = "selu", e_dropouts = 0.5, d_dropouts = 0.5, latent_dropout = 0.5, batch_norm = False, std = 1, noise_factor = 0.3)
+    item_ae = SDAE(dm.item_X.shape[-1], hidden_dims = [16], e_activations = "selu", e_dropouts = 0.5, d_dropouts = 0.5, latent_dropout = 0.5, batch_norm = False, std = 1, noise_factor = 0.3)
+    gmfpp = GMFPP(user_ae.model, item_ae.model, [dm.dataset.rating.num_items, dm.dataset.rating.num_users], 16)
     return quick_test(dm, gmfpp)
 
 
 def test_ncfpp():
     dm = StarDataModule(download = "ml-1m", 
-                        batch_size = 1024,
                         features_join = True)
 
     dm.setup()
-    user_ae = SDAE(dm.user_X.shape[-1], hidden_dims = [16, 8], e_activations = "selu")
-    item_ae = SDAE(dm.item_X.shape[-1], hidden_dims = [16, 8], e_activations = "selu")
+    user_ae = SDAE(dm.user_X.shape[-1], hidden_dims = [8], e_activations = "selu", std = 0.01, noise_factor = 1)
+    item_ae = SDAE(dm.item_X.shape[-1], hidden_dims = [8], e_activations = "selu", std = 0.01, noise_factor = 1)
     ncfpp = NCFPP(user_ae.model, item_ae.model, [dm.dataset.rating.num_items, dm.dataset.rating.num_users], activations = "selu")
     return quick_test(dm, ncfpp)
 
 
 def test_nmfpp(pretrain = False, freeze = True):
     dm = StarDataModule(download = "ml-1m", 
-                        batch_size = 1024,
                         features_join = True)
     dm.setup()
     
