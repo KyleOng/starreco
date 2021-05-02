@@ -30,6 +30,7 @@ class SDAEmodel(torch.nn.Module):
         self.std = std
         self.feature_all = feature_all
         self.noise_all = noise_all
+        self.latent_dropout = latent_dropout
 
         if self.feature_all:
             encoder_extra_input_dims = decoder_extra_input_dims = feature_dim
@@ -50,7 +51,7 @@ class SDAEmodel(torch.nn.Module):
                                              module_type = "modulelist")
 
         # Dropout layer in latent space
-        if latent_dropout:
+        if self.latent_dropout:
             self.dropout = torch.nn.Dropout(latent_dropout)
 
         # Decoder layer 
@@ -111,7 +112,8 @@ class SDAEmodel(torch.nn.Module):
 
         for i in range(dense_refeeding):
             x = self.encode(x, feature)
-            x = self.dropout(x)
+            if self.latent_dropout:
+                x = self.dropout(x)
             x = self.decode(x, feature)
         return x
 
