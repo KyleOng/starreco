@@ -159,6 +159,10 @@ class BaseDataset:
         # A flag determine whether to download the dataset
         download_flag = False
 
+        # If download directory not exist, make directory
+        if not os.path.exists(self._download_path):
+            os.makedirs(self._download_path)
+
         # If dataset does not exist or partially download, flag set to True, else False.
         if os.path.isfile(dataset_path):
             total_exist_file_size = int(os.path.getsize(dataset_path)) # Get exist file size
