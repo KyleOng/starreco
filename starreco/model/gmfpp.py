@@ -64,10 +64,10 @@ class GMFPP(BaseModule):
                  item_ae:SDAEmodel, 
                  field_dims:list,
                  embed_dim: int = 8,
-                 alpha:Union[int,float] = 0.1, 
-                 beta:Union[int,float] = 0.1,
+                 alpha:Union[int,float] = 1, 
+                 beta:Union[int,float] = 1,
                  lr:float = 1e-3,
-                 weight_decay:float = 1e-3,
+                 weight_decay:float = 1e-6,
                  criterion:F = F.mse_loss):
         super().__init__(lr, weight_decay, criterion)
         self.model = GMFPPmodel(user_ae, item_ae, field_dims, embed_dim)
