@@ -72,7 +72,9 @@ class BaseModule(pl.LightningModule):
 
     def test_step(self, batch, batch_idx):
         batch = [self._transform(tensor) for tensor in batch]
-        
+
+        self.logger.log_graph(self, batch[:-1])
+
         logger_loss = self.logger_loss(*batch)
         self.log("test_loss", logger_loss)
 
