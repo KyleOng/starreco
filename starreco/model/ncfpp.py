@@ -35,8 +35,10 @@ class NCFPPmodel(torch.nn.Module):
                                          hidden_dims = hidden_dims, 
                                          activations = activations, 
                                          dropouts = dropouts,
-                                         output_layer = "relu",
-                                         batch_norm = batch_norm)
+                                         batch_norm = batch_norm,
+                                         remove_last_dropout = False,
+                                         remove_last_batch_norm = False,
+                                         output_layer = "relu")
 
     def encode_concatenate(self, x, user_x, item_x):
         # Obtain latent factor z
@@ -76,10 +78,10 @@ class NCFPP(BaseModule):
                  activations:Union[str, list] = "relu", 
                  dropouts:Union[int, float, list] = 0.5, 
                  batch_norm:bool = True,
-                 alpha:Union[int,float] = 0.1, 
-                 beta:Union[int,float] = 0.1,
+                 alpha:Union[int,float] = 1, 
+                 beta:Union[int,float] = 1,
                  lr:float = 1e-3,
-                 weight_decay:float = 1e-3,
+                 weight_decay:float = 1e-6,
                  criterion:F = F.mse_loss,
                  save_hyperparameters:bool = True):
         super().__init__(lr, weight_decay, criterion)
