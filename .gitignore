@@ -6,3 +6,4 @@ checkpoints
 lightning_logs
 starreco/dataset/*
 *.pyc
+training_logs

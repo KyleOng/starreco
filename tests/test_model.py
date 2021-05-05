@@ -3,20 +3,26 @@ import sys
 sys.path.insert(0,"..")
 
 import torch
+import torch.nn.functional as F
 import pytorch_lightning as pl
+from pytorch_lightning.loggers import TensorBoardLogger
 
 from starreco.model import *
 from starreco.data import *
 
+model = "mf"
 gpu = False
 epoch = 5
 
 def quick_test(dm, module):
-    trainer = pl.Trainer(gpus = int(gpu), 
+    logger = TensorBoardLogger("training_logs", name = model, log_graph = True)
+    trainer = pl.Trainer(logger=logger,
+                         gpus = int(gpu), 
                          max_epochs = epoch, 
                          progress_bar_refresh_rate = 2)
     trainer.fit(module, dm)
     trainer.test(module, datamodule = dm)
+
     return module
 
 
@@ -96,12 +102,16 @@ def test_gmfpp():
 
 def test_ncfpp():
     dm = StarDataModule(download = "ml-1m", 
+                        batch_size = 1024,
                         features_join = True)
 
     dm.setup()
-    user_ae = SDAE(dm.user_X.shape[-1], hidden_dims = [8], e_activations = "selu", std = 0.01, noise_factor = 1)
-    item_ae = SDAE(dm.item_X.shape[-1], hidden_dims = [8], e_activations = "selu", std = 0.01, noise_factor = 1)
-    ncfpp = NCFPP(user_ae.model, item_ae.model, [dm.dataset.rating.num_items, dm.dataset.rating.num_users], activations = "selu")
+    user_ae = SDAE(dm.user_X.shape[-1], hidden_dims = [32], e_activations = "selu", d_activations = "relu", e_dropouts = 0.5, 
+                   d_dropouts = 0.5, latent_dropout = 0.5, batch_norm = False, std = 0.01, noise_factor = 0.3)
+    item_ae = SDAE(dm.item_X.shape[-1], hidden_dims = [32], e_activations = "selu", d_activations = "relu", e_dropouts = 0.5,
+                   d_dropouts = 0.5, latent_dropout = 0.5, batch_norm = False, std = 0.01, noise_factor = 0.3)
+    ncfpp = NCFPP(user_ae.model, item_ae.model, [dm.dataset.rating.num_items, dm.dataset.rating.num_users], 16, [128, 64, 32], 
+                  batch_norm = False, activations = "selu", weight_decay = 1e-3, alpha = 1e-6, beta = 1e-6)
     return quick_test(dm, ncfpp)
 
 
