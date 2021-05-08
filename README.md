@@ -26,9 +26,9 @@ Star classification is a type of ratings scale commonly used by reviewers to rat
 
 Collaborative Filtering (CF) is one of the two recommendation techniques, which are widely employed in rating-based recommendations. However, traditional CF methods such as MF, have limited learning capabilities as they only consider the linear combination between user and item latent vectors. To learn non-linear relationships, methods like Neural Collaborative Filtering (NCF) have incorporated DNN into traditional CF methods. Even so, the core of these methods are still CF and CF methods usually suffer from data sparsity and cold start problems. To tackle these problems, several studies have integrated side information into CF methods, which constructed a hybrid-based RS.
 
-Purpose
+Architecture
 ---
-The purpose of this repository is to recreate some of the notable models and evaluate them in an understandable, coherent and unified manner.
+
 
 Research Models
 ---
