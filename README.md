@@ -33,12 +33,6 @@ The purpose of this repository is to recreate some of the notable models and eva
 
 Research Models
 ---
-<p align="center">
-  <img width = "60%" src="asset/venn_diagram.png">
-  <br>
-  <b>Figure:</b> Venn diagram of chosen hybrid and non-hybrid recommendation models.
-</p>
-
 Current supported research models:
 <table>
   <tr>
