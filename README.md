@@ -5,17 +5,14 @@
 # starreco
 ![version] ![pytorch] ![lightning] [![License](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
-**starreco** is a Pytorch and lightning implementation for a series of SOTA deep learning rating-based recommendation systems. This repository also serves as a part of the author's master thesis work's literature review. 
-
-Name
----
 **starreco** stands for **S**tate-of-**T**he-**A**rt **R**eview **Reco**mmendation System.
 
-**starreco** focuses on reviewing recommendation systems generated based on **star** classification, which is a type of rating scale seen in many rating systems.
+**starreco** is a Pytorch and lightning implementation for a series of SOTA deep learning rating-based recommendation systems. This repository also serves as a part of the author's master thesis work's literature review. 
 
 Features
 ---
-+ With up to 25+ recommendation models across 20 publications.
++ Up to 25+ recommendation models across 20 publications.
++ Built on top of Pytorch lightning. [Why Pytorch lightning?](https://github.com/PyTorchLightning/pytorch-lightning)
 + GPU acceleration execution.
 + Reducing memory usage for large sparse matrices.
 + Simple and understandable code.
@@ -29,9 +26,9 @@ Star classification is a type of ratings scale commonly used by reviewers to rat
 
 Collaborative Filtering (CF) is one of the two recommendation techniques, which are widely employed in rating-based recommendations. However, traditional CF methods such as MF, have limited learning capabilities as they only consider the linear combination between user and item latent vectors. To learn non-linear relationships, methods like Neural Collaborative Filtering (NCF) have incorporated DNN into traditional CF methods. Even so, the core of these methods are still CF and CF methods usually suffer from data sparsity and cold start problems. To tackle these problems, several studies have integrated side information into CF methods, which constructed a hybrid-based RS.
 
-Purpose
+Architecture
 ---
-The purpose of this repository is to recreate some of the notable models and evaluate them in an understandable, coherent and unified manner.
+
 
 Research Models
 ---
