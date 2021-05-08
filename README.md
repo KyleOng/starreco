@@ -28,7 +28,11 @@ Collaborative Filtering (CF) is one of the two recommendation techniques, which 
 
 Architecture
 ---
-
+<p align="center">
+  <img src="asset/architecture.png" alt="starrreco v0.1 architecture">
+  <br>
+  <b>Figure</b>: starreco simple architecture
+</p>
 
 Research Models
 ---
