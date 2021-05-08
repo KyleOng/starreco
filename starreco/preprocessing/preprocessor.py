@@ -30,6 +30,7 @@ class CustomMultiLabelBinarizer(MultiLabelBinarizer):
             X = np.array(X, dtype = "object")
         return super().fit_transform(X.flatten())
 
+
 class Preprocessor:
     """
     Preprocessing class.
