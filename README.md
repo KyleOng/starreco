@@ -5,7 +5,11 @@
 # starreco
 ![version] ![pytorch] ![lightning] [![License](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
-Pytorch and lightning implementation for a series of deep learning rating or `star` based `reco`mmendation systems. This work also acts as a part of the master thesis work's literature review. 
+**starreco** is a Pytorch and lightning implementation for a series of SOTA deep learning rating-based recommendation systems. 
+
+**starreco** stands for **S**tate-of-**T**he-**A**art **R**eview **Reco**mmendation System, which is also a part of the master thesis work's literature review. 
+
+**starreco** also focuses on **star** classification rating-based **reco**mmendation system, hence the name.
 
 Features
 ---
