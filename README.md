@@ -11,7 +11,8 @@
 
 Features
 ---
-+ With up to 25+ recommendation models across 20 publications.
++ Up to 25+ recommendation models across 20 publications.
++ Built on top of Pytorch lightning. [Why Pytorch lightning?](https://github.com/PyTorchLightning/pytorch-lightning)
 + GPU acceleration execution.
 + Reducing memory usage for large sparse matrices.
 + Simple and understandable code.
