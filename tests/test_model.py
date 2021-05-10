@@ -109,23 +109,25 @@ def test_ncfpp(params = False):
     else:
         ncf = NCF([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
         ncfpp = NCFPP(user_ae.hparams, item_ae.hparams, ncf.hparams)
-    
     return quick_test(dm, ncfpp)
 
 
-def test_nmfpp(pretrain = False, freeze = True):
+def test_nmfpp(pretrain = False, freeze = True, params = False):
     dm = StarDataModule(features_join = True)
     dm.setup()
-    
-    user_ae = SDAE(dm.user_X.shape[-1])
-    item_ae = SDAE(dm.item_X.shape[-1])
+    user_ae = SDAE(dm.user_X.shape[-1], hidden_dims = [8])
+    item_ae = SDAE(dm.item_X.shape[-1], hidden_dims = [8])
     if pretrain:
-        gmf = test_gmf()
-        ncf = test_ncf()
+        gmfpp = test_gmfpp(params)
+        ncfpp = test_ncfpp(params)
+        nmfpp = NMFPP(gmfpp.hparams, ncfpp.hparams, gmfpp.state_dict(), ncfpp.state_dict(), freeze_pretrain = freeze)
     else:
-        gmfpp = GMFPP(user_ae.model, item_ae.model, [dm.dataset.rating.num_items, dm.dataset.rating.num_users])
-        ncfpp = NCFPP(user_ae.model, item_ae.model, [dm.dataset.rating.num_items, dm.dataset.rating.num_users])
-    nmfpp = NMFPP(gmfpp.model, ncfpp.model, freeze_pretrain = freeze)
+        gmf = GMF([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
+        gmfpp = GMFPP(user_ae.hparams, item_ae.hparams, gmf.hparams)
+        ncf = NCF([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
+        ncfpp = NCFPP(user_ae.hparams, item_ae.hparams, ncf.hparams)
+        nmfpp = NMFPP(gmfpp.hparams, ncfpp.hparams)
+
     return quick_test(dm, nmfpp)
 
 
@@ -157,4 +159,8 @@ if __name__ == "__main__":
     elif model == "ncfpp": test_ncfpp()
     elif model == "ncfpp_params": test_ncfpp(True)
     elif model == "nmfpp": test_nmfpp()
+    elif model == "nmfpp_pretrain": test_nmfpp(True, False)
+    elif model == "nmfpp_pretrain_params": test_nmfpp(True, False, True)
+    elif model == "nmfpp_freeze_pretrain": test_nmfpp(True, True)
+    elif model == "nmfpp_freeze_pretrain_params": test_nmfpp(True, True, True)
         
