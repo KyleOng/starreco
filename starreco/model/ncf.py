@@ -7,19 +7,25 @@ import torch.nn.functional as F
 from .module import BaseModule
 from .layer import FeaturesEmbedding, MultilayerPerceptrons
 
-class NCFmodel(torch.nn.Module):
+
+class NCF(BaseModule):
     """
-    Neural Collaborative Filtering model
+    Neural Collaborative Filtering lightning module
     """
 
     def __init__(self, field_dims:list, 
-                 embed_dim:int,
-                 hidden_dims:list, 
-                 activations:Union[str, list], 
-                 dropouts:Union[int, float, list], 
-                 batch_norm:bool):
-        super().__init__()
-
+                 embed_dim:int = 8,
+                 hidden_dims:list = [32, 16, 8], 
+                 activations:Union[str, list] = "relu", 
+                 dropouts:Union[int, float, list] = 0.5, 
+                 batch_norm:bool = True,
+                 lr:float = 1e-3,
+                 weight_decay:float = 1e-6,
+                 criterion:F = F.mse_loss,
+                 save_hyperparameters:bool = True):
+        super().__init__(lr, weight_decay, criterion)
+        self.save_hyperparameters()
+        
         # Embedding layer
         self.features_embedding = FeaturesEmbedding(field_dims, embed_dim)
 
@@ -45,27 +51,4 @@ class NCFmodel(torch.nn.Module):
         y = self.net(concat)
 
         return y
-
-
-class NCF(BaseModule):
-    """
-    Neural Collaborative Filtering lightning module
-    """
-
-    def __init__(self, field_dims:list, 
-                 embed_dim:int = 8,
-                 hidden_dims:list = [32, 16, 8], 
-                 activations:Union[str, list] = "relu", 
-                 dropouts:Union[int, float, list] = 0.5, 
-                 batch_norm:bool = True,
-                 lr:float = 1e-3,
-                 weight_decay:float = 1e-6,
-                 criterion:F = F.mse_loss,
-                 save_hyperparameters:bool = True):
-        super().__init__(lr, weight_decay, criterion)
-        self.model = NCFmodel(field_dims, embed_dim, hidden_dims, activations, dropouts, batch_norm)
-        self.save_hyperparameters()
-
-    def forward(self, x):
-        return self.model.forward(x)
         

@@ -7,14 +7,19 @@ import torch.nn.functional as F
 from .module import BaseModule
 from .layer import FeaturesEmbedding, MultilayerPerceptrons
 
-class GMFmodel(torch.nn.Module):
+
+class GMF(BaseModule):
     """
-    Generalized Matrix Factorization model
+    Generalized Matrix Factorization
     """
 
     def __init__(self, field_dims:list, 
-                 embed_dim:int):
-        super().__init__()
+                 embed_dim:int = 8, 
+                 lr:float = 1e-3,
+                 weight_decay:float = 1e-6,
+                 criterion:F = F.mse_loss):
+        super().__init__(lr, weight_decay, criterion)
+        self.save_hyperparameters()
 
         # Embedding layer
         self.features_embedding = FeaturesEmbedding(field_dims, embed_dim)
@@ -41,21 +46,4 @@ class GMFmodel(torch.nn.Module):
         y = self.net(product)
 
         return y
-    
-class GMF(BaseModule):
-    """
-    Generalized Matrix Factorization lightning module
-    """
-
-    def __init__(self, field_dims:list, 
-                 embed_dim:int = 8, 
-                 lr:float = 1e-3,
-                 weight_decay:float = 1e-6,
-                 criterion:F = F.mse_loss):
-        super().__init__(lr, weight_decay, criterion)
-        self.model = GMFmodel(field_dims, embed_dim)
-        self.save_hyperparameters()
-
-    def forward(self, *batch):
-        return self.model.forward(*batch)
         

@@ -4,11 +4,10 @@ import torch
 import torch.nn.functional as F
 import pytorch_lightning as pl
 
-from .module import BaseModule
-from .mf import MFmodel
+from .mf import MF
 
   
-class MDACFmodel(MFmodel):
+class _MDACF(MF):
     """
     Marginalized Denoising Autoencoder Collaborative Filtering model
     """
@@ -16,16 +15,24 @@ class MDACFmodel(MFmodel):
     def __init__(self, 
                  user_dims:list, 
                  item_dims:list,
-                 embed_dim:int, 
-                 corrupt_ratio:Union[int,float],
-                 lambda_:Union[int,float]):
+                 embed_dim:int = 8, 
+                 corrupt_ratio:Union[int,float] = 0.3,
+                 alpha:Union[int,float] = 0.8, 
+                 beta:Union[int,float] = 3e-3,
+                 lambda_:Union[int,float] = 0.3,
+                 lr:float = 1e-3,
+                 weight_decay:float = 0,
+                 criterion:F = F.mse_loss):
         # Using the same notation as in the paper for easy reference
         self.m, self.p = user_dims
         self.n, self.q = item_dims 
         self.corrupt_ratio = corrupt_ratio
+        self.alpha = alpha
+        self.beta = beta
         self.lambda_ = lambda_
 
-        super().__init__([self.m, self.n], embed_dim)
+        super().__init__([self.m, self.n], embed_dim, lr, weight_decay, criterion)
+        self.save_hyperparameters()
 
         # Create weights matrices and projection matrices for marginalized Autoencoder.
         self.user_W = torch.nn.Parameter(torch.rand(self.p, self.p), requires_grad = False)
@@ -56,12 +63,13 @@ class MDACFmodel(MFmodel):
                         U:torch.Tensor, 
                         d:int, 
                         lambda_:Union[int, float],
-                        p:Union[int, float],
-                        device:torch.device):
+                        p:Union[int, float]):
         """
         Weight matrix optimization. 
         Note: The weight optimization algorithm is inspired by mDA.
         """
+        device = X.device and P.device and U.device
+
         # mDA pseudo code in MATLAB
         # MATLAB: q=[ones(d-1,1).*(1-p); 1];
         q = torch.ones((d, 1)).to(device) * (1 - p)
@@ -91,77 +99,44 @@ class MDACFmodel(MFmodel):
         # Clamp between -1 and 1
         return torch.clamp(W, min = -1, max = 1)
 
-    def forward(self, x, user = None, item = None):
+    def mdae(self):
         # Marginalized Autoencoder
         # Update weights and projection matrices only in training mode
-        if self.training and user is not None and item is not None:
-            # Get data from Parameters
-            user_W = self.user_W.data
-            item_W = self.item_W.data
-            user_P = self.user_P.data
-            item_P = self.item_P.data
-            U = self.features_embedding.embedding.weight[:self.m, :].data
-            V = self.features_embedding.embedding.weight[-self.n:, :].data
 
-            # Update weights and projections matrices
-            self.user_W.data = self._update_weights(user.T, user_P, U, self.p, self.lambda_, self.corrupt_ratio, x.device)
-            self.item_W.data = self._update_weights(item.T, item_P, V, self.q, self.lambda_, self.corrupt_ratio, x.device)
-            self.user_P.data = self._update_projections(user.T, user_W, U)
-            self.item_P.data = self._update_projections(item.T, item_W, V)
+        # Get data from Parameters
+        user_W = self.user_W.data
+        item_W = self.item_W.data
+        user_P = self.user_P.data
+        item_P = self.item_P.data
+        U = self.features_embedding.embedding.weight[:self.m, :].data
+        V = self.features_embedding.embedding.weight[-self.n:, :].data
 
-        y = super().forward(x)
-        return y
-
-
-class _MDACF(BaseModule):
-    """
-    Marginalized Denoising Autoencoder Collaborative Filtering base lightning module
-
-    Warning: This class should not be used directly.
-    """
-
-    def __init__(self, 
-                 user_dims:list, 
-                 item_dims:list,
-                 embed_dim:int = 8, 
-                 corrupt_ratio:Union[int,float] = 0.3,
-                 alpha:Union[int,float] = 0.8, 
-                 beta:Union[int,float] = 3e-3,
-                 lambda_:Union[int,float] = 0.3,
-                 lr:float = 1e-3,
-                 weight_decay:float = 0,
-                 criterion:F = F.mse_loss):
-        super().__init__(lr, weight_decay, criterion)
-        self.model = MDACFmodel(user_dims, item_dims, embed_dim, corrupt_ratio, lambda_)
-        self.alpha = alpha
-        self.beta = beta
-        self.lambda_ = lambda_
-        self.save_hyperparameters()
-
-    def forward_(self, x):
-        return self.model.forward(x, self.user, self.item)
-
-    def forward(self, x):
-        return self.model.forward(x)
+        # Update weights and projections matrices
+        self.user_W.data = self._update_weights(self.user.T, user_P, U, self.p, self.lambda_, self.corrupt_ratio)
+        self.item_W.data = self._update_weights(self.item.T, item_P, V, self.q, self.lambda_, self.corrupt_ratio)
+        self.user_P.data = self._update_projections(self.user.T, user_W, U)
+        self.item_P.data = self._update_projections(self.item.T, item_W, V)
 
     def backward_loss(self, *batch):
         x, y = batch
 
-        if self.training:
-            self.forward_(x)
+        if self.current_epoch == 0:
+            self.user = self.user.to(self.device)
+            self.item = self.item.to(self.device)
 
-        user_W = self.model.user_W.data
-        item_W = self.model.item_W.data
-        user_P = self.model.user_P.data
-        item_P = self.model.item_P.data
-        U = self.model.features_embedding.embedding.weight[:self.model.m, :].data
-        V = self.model.features_embedding.embedding.weight[-self.model.n:, :].data
-        user = self.user.to(self.device)
-        item = self.item.to(self.device)
+        if self.training:
+            self.mdae()
+
+        user_W = self.user_W.data
+        item_W = self.item_W.data
+        user_P = self.user_P.data
+        item_P = self.item_P.data
+        U = self.features_embedding.embedding.weight[:self.m, :].data
+        V = self.features_embedding.embedding.weight[-self.n:, :].data
         
         loss = 0
-        loss += self.lambda_ * torch.sum(torch.square(torch.matmul(user_P, U.T) - torch.matmul(user_W, user.T)))
-        loss += self.lambda_ * torch.sum(torch.square(torch.matmul(item_P, V.T) - torch.matmul(item_W, item.T)))
+        loss += self.lambda_ * torch.sum(torch.square(torch.matmul(user_P, U.T) - torch.matmul(user_W, self.user.T)))
+        loss += self.lambda_ * torch.sum(torch.square(torch.matmul(item_P, V.T) - torch.matmul(item_W, self.item.T)))
         loss += self.alpha * torch.sum(torch.square(y - self.forward(x)))
         loss += self.beta * (torch.sum(torch.square(U)) + torch.sum(torch.square(V)))
 

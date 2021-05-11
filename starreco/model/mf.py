@@ -4,14 +4,17 @@ import torch.nn.functional as F
 from .module import BaseModule
 from .layer import FeaturesEmbedding
 
-class MFmodel(torch.nn.Module):
+class MF(BaseModule):
     """
-    Matrix Factorization model
+    Matrix Factorization
     """
-
     def __init__(self, field_dims:list, 
-                 embed_dim:int):
-        super().__init__()
+                 embed_dim:int = 8, 
+                 lr:float = 1e-3,
+                 weight_decay:float = 1e-6,
+                 criterion:F = F.mse_loss):
+        super().__init__(lr, weight_decay, criterion)
+        self.save_hyperparameters()
 
         # Embedding layer
         self.features_embedding = FeaturesEmbedding(field_dims, embed_dim)
@@ -30,21 +33,3 @@ class MFmodel(torch.nn.Module):
         y = dot.view(dot.shape[0], -1)
 
         return y
-
-
-class MF(BaseModule):
-    """
-    Matrix Factorization lightning module
-    """
-
-    def __init__(self, field_dims:list, 
-                 embed_dim:int = 8, 
-                 lr:float = 1e-3,
-                 weight_decay:float = 1e-6,
-                 criterion:F = F.mse_loss):
-        super().__init__(lr, weight_decay, criterion)
-        self.model = MFmodel(field_dims, embed_dim)
-        self.save_hyperparameters()
-
-    def forward(self, x):
-        return self.model.forward(x)
