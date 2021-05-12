@@ -130,6 +130,6 @@ dmypy.json
 
 # ==============
 backup
-results/
+results
 tests/*/
 starreco/dataset
