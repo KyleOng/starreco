@@ -1,0 +1,7 @@
+criterion: !!python/name:torch.nn.functional.mse_loss ''
+embed_dim: 64
+field_dims:
+- 6040
+- 3706
+lr: 0.001
+weight_decay: 1.0e-06

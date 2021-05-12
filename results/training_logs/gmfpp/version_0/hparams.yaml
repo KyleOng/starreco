@@ -1,0 +1,24 @@
+alpha: 1
+beta: 1
+criterion: &id001 !!python/name:torch.nn.functional.mse_loss ''
+gmf_hparams: !!python/object/new:pytorch_lightning.utilities.parsing.AttributeDict
+  dictitems:
+    criterion: *id001
+    embed_dim: 8
+    field_dims:
+    - 6040
+    - 3706
+    lr: 0.001
+    weight_decay: 1.0e-06
+item_ae_hparams:
+  hidden_dims:
+  - 16
+  input_output_dim: 18
+  std: 0.01
+lr: 0.001
+user_ae_hparams:
+  hidden_dims:
+  - 16
+  input_output_dim: 30
+  std: 0.01
+weight_decay: 1.0e-06
