@@ -19,7 +19,7 @@ def quick_test(dm, module):
                          progress_bar_refresh_rate = 2)
     trainer.fit(module, dm)
     trainer.test(module, datamodule = dm)
-
+    pdb.set_trace()
     return module
 
 
@@ -112,7 +112,25 @@ def test_ncfpp(params = False):
     return quick_test(dm, ncfpp)
 
 
-def test_nmfpp(pretrain = False, freeze = True, params = False):
+def test_nmfpp(params = False):
+    dm = StarDataModule(features_join = True)
+
+    dm.setup()
+    user_ae = SDAE(dm.user_X.shape[-1], hidden_dims = [8])
+    item_ae = SDAE(dm.item_X.shape[-1], hidden_dims = [8])
+    if params:
+        nmf = test_nmf(True, True)
+        nmfpp = NMFPP(user_ae.hparams, item_ae.hparams, nmf.hparams, nmf.state_dict())
+    else:
+        gmf = GMF([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
+        ncf = NCF([dm.dataset.rating.num_users, dm.dataset.rating.num_items], hidden_dims = [8, 4])
+        nmf = NMF(gmf.hparams, ncf.hparams, gmf.state_dict(), ncf.state_dict(), freeze_pretrain = True)
+        nmfpp = NMFPP(user_ae.hparams, item_ae.hparams, nmf.hparams, nmf.state_dict())
+    pdb.set_trace()
+    return quick_test(dm, nmfpp)
+
+
+def test_nmfs(pretrain = False, freeze = True, params = False):
     dm = StarDataModule(features_join = True)
     dm.setup()
     user_ae = SDAE(dm.user_X.shape[-1], hidden_dims = [8])
@@ -120,15 +138,15 @@ def test_nmfpp(pretrain = False, freeze = True, params = False):
     if pretrain:
         gmfpp = test_gmfpp(params)
         ncfpp = test_ncfpp(params)
-        nmfpp = NMFPP(gmfpp.hparams, ncfpp.hparams, gmfpp.state_dict(), ncfpp.state_dict(), freeze_pretrain = freeze)
+        nmfs = NMFS(gmfpp.hparams, ncfpp.hparams, gmfpp.state_dict(), ncfpp.state_dict(), freeze_pretrain = freeze)
     else:
         gmf = GMF([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
         gmfpp = GMFPP(user_ae.hparams, item_ae.hparams, gmf.hparams)
         ncf = NCF([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
         ncfpp = NCFPP(user_ae.hparams, item_ae.hparams, ncf.hparams)
-        nmfpp = NMFPP(gmfpp.hparams, ncfpp.hparams)
+        nmfs = NMFS(gmfpp.hparams, ncfpp.hparams)
 
-    return quick_test(dm, nmfpp)
+    return quick_test(dm, nmfs)
 
 
 if __name__ == "__main__":
@@ -159,8 +177,10 @@ if __name__ == "__main__":
     elif model == "ncfpp": test_ncfpp()
     elif model == "ncfpp_params": test_ncfpp(True)
     elif model == "nmfpp": test_nmfpp()
-    elif model == "nmfpp_pretrain": test_nmfpp(True, False)
-    elif model == "nmfpp_pretrain_params": test_nmfpp(True, False, True)
-    elif model == "nmfpp_freeze_pretrain": test_nmfpp(True, True)
-    elif model == "nmfpp_freeze_pretrain_params": test_nmfpp(True, True, True)
+    elif model == "nmfpp_params": test_nmfpp(True)
+    elif model == "nmfs": test_nmfs()
+    elif model == "nmfs_pretrain": test_nmfs(True, False)
+    elif model == "nmfs_pretrain_params": test_nmfs(True, False, True)
+    elif model == "nmfs_freeze_pretrain": test_nmfs(True, True)
+    elif model == "nmfs_freeze_pretrain_params": test_nmfs(True, True, True)
         
