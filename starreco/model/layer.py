@@ -133,9 +133,9 @@ class MultilayerPerceptrons(torch.nn.Module):
                  output_layer:str = "linear",
                  extra_input_dims:Union[int,list] = 0,
                  extra_nodes_out:Union[int,list] = 0,
-                 module_type:str = "sequential"):
+                 mlp_type:str = "sequential"):
         super().__init__()
-        assert module_type in ["sequential", "modulelist"], "type must be 'sequential' or 'modulelist'"
+        assert mlp_type in ["sequential", "modulelist"], "type must be 'sequential' or 'modulelist'"
 
         if type(activations) == str:
             activations = np.tile([activations], len(hidden_dims))
@@ -171,9 +171,9 @@ class MultilayerPerceptrons(torch.nn.Module):
             if output_layer != "linear":
                 mlp_blocks.append(ActivationFunction(output_layer))
             
-        if module_type == "sequential":
+        if mlp_type == "sequential":
             self.mlp = torch.nn.Sequential(*mlp_blocks) 
-        elif module_type == "modulelist":
+        elif mlp_type == "modulelist":
             self.mlp = torch.nn.ModuleList(mlp_blocks)
 
     def forward(self, x):
