@@ -1,11 +1,10 @@
 from typing import Union
 
-import torch
 import pytorch_lightning as pl 
 from torch.utils.data import DataLoader
 from pytorch_lightning.trainer.supporters import CombinedLoader
 from sklearn.model_selection import train_test_split
-from scipy.sparse import hstack, csr_matrix, coo_matrix, issparse
+from scipy.sparse import issparse
 
 from starreco.preprocessing import Preprocessor
 from .dataset import BookCrossingDataset, MovielensDataset
@@ -25,6 +24,7 @@ class StarDataModule(pl.LightningDataModule):
                  features_join:bool = False,
                  matrix_transform:bool = False,
                  matrix_transpose:bool = False,
+                 train_val_test_split:list = [60, 20 ,20],
                  num_workers:int = 1):
         assert download in self._downloads, \
         (f"`download` = '{download}' not include in prefixed dataset downloads. Choose from {self._downloads}.")
@@ -32,10 +32,13 @@ class StarDataModule(pl.LightningDataModule):
         assert not(not matrix_transform and matrix_transpose), \
         ("`matrix_transform` and 'matrix_transpose` must be either False:False, True:False or True:True, cannot be False:True.")
 
+        assert sum(train_val_test_split) == 100, "The sum of `train_val_test_split` must be 100."
+
         self.batch_size = batch_size
         self.features_join = features_join
         self.matrix_transform = matrix_transform
         self.matrix_transpose = matrix_transpose
+        self.train_split, self.val_split, self.test_split = train_val_test_split
         self.num_workers = num_workers
         
         # Download dataset
@@ -103,44 +106,49 @@ class StarDataModule(pl.LightningDataModule):
 
         Note: General rule of thumb 60/20/20 train valid test split 
         """
+        train_val_split = (self.val_split + self.test_split)/ (self.train_split + self.val_split + self.test_split)
+        val_test_split = self.val_split/(self.val_split + self.test_split)
+
         if not self.matrix_transform and self.features_join:
-            self.X_train, self.X_test, self.user_X_train, self.user_X_test, \
-            self.item_X_train, self.item_X_test, self.y_train, self.y_test = \
+            self.X_train, self.X_val, self.user_X_train, self.user_X_val, \
+            self.item_X_train, self.item_X_val, self.y_train, self.y_val = \
             train_test_split(
                 self.X, 
                 self.user_X, 
                 self.item_X, 
                 self.y, 
                 stratify = self.y, 
-                test_size = 0.2, 
+                test_size = train_val_split, 
                 random_state = random_state
-            ) 
-            self.X_val, self.X_test, self.user_X_val, self.user_X_test, \
-            self.item_X_val, self.item_X_test, self.y_val, self.y_test = \
-            train_test_split(
-                self.X_test, 
-                self.user_X_test, 
-                self.item_X_test, 
-                self.y_test, 
-                stratify = self.y_test, 
-                test_size = 0.5, 
-                random_state = random_state
-            ) 
+            )
+            if self.test_split:
+                self.X_val, self.X_test, self.user_X_val, self.user_X_test, \
+                self.item_X_val, self.item_X_test, self.y_val, self.y_test = \
+                train_test_split(
+                    self.X_val, 
+                    self.user_X_val, 
+                    self.item_X_val, 
+                    self.y_val, 
+                    stratify = self.y_val, 
+                    test_size = val_test_split, 
+                    random_state = random_state
+                ) 
         else:
-            self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
+            self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(
                 self.X, 
                 self.y, 
                 stratify = self.y, 
-                test_size = 0.2, 
+                test_size = train_val_split, 
                 random_state = random_state
             ) 
-            self.X_val, self.X_test, self.y_val, self.y_test = train_test_split(
-                self.X_test, 
-                self.y_test, 
-                stratify = self.y_test, 
-                test_size = 0.5, 
-                random_state = random_state
-            )                 
+            if self.test_split:
+                self.X_val, self.X_test, self.y_val, self.y_test = train_test_split(
+                    self.X_val, 
+                    self.y_val, 
+                    stratify = self.y_val, 
+                    test_size = val_test_split, 
+                    random_state = random_state
+                )                 
 
     def to_matrix(self):
         """
@@ -154,21 +162,25 @@ class StarDataModule(pl.LightningDataModule):
             self.X_val.T[0], self.X_val.T[1], self.y_val, 
             self.dataset.rating.num_users, self.dataset.rating.num_items
         )
-        self.X_test = ratings_to_sparse_matrix(
-            self.X_test.T[0], self.X_test.T[1], self.y_test, 
-            self.dataset.rating.num_users, self.dataset.rating.num_items
-        )
+
+        if self.test_split:
+            self.X_test = ratings_to_sparse_matrix(
+                self.X_test.T[0], self.X_test.T[1], self.y_test, 
+                self.dataset.rating.num_users, self.dataset.rating.num_items
+            )
 
         # Transpose X
         if self.matrix_transpose:
             self.X_train = self.X_train.T
             self.X_val = self.X_val.T
-            self.X_test = self.X_test.T
+            if self.test_split:
+                self.X_test = self.X_test.T
 
         # Since reconstruction input = output, set y = x
         self.y_train = self.X_train
         self.y_val = self.X_val
-        self.y_test = self.X_test
+        if self.test_split:
+            self.y_test = self.X_test
 
     def setup(self, stage:str = None):
         """
@@ -241,26 +253,29 @@ class StarDataModule(pl.LightningDataModule):
         """
         Testing dataloader.
         """
-        test_data = [self.X_test, self.y_test]
+        if self.test_split:
+            test_data = [self.X_test, self.y_test]
 
-        if self.features_join:
-            if self.matrix_transform:
-                if self.matrix_transpose:
-                    test_data.insert(1, self.item)
+            if self.features_join:
+                if self.matrix_transform:
+                    if self.matrix_transpose:
+                        test_data.insert(1, self.item)
+                    else:
+                        test_data.insert(1, self.user)
                 else:
-                    test_data.insert(1, self.user)
-            else:
-                test_data.insert(1, self.user_X_test)
-                test_data.insert(2, self.item_X_test)
+                    test_data.insert(1, self.user_X_test)
+                    test_data.insert(2, self.item_X_test)
 
-        test_dls = []
-        for test_datum in test_data:
-            if issparse(test_datum):
-                test_ds = SparseDataset(test_datum)
-                test_dl = DataLoader(test_ds, batch_size = self.batch_size, collate_fn = sparse_batch_collate)
-            else:
-                test_ds = MatrixDataset(test_datum)
-                test_dl = DataLoader(test_ds, batch_size = self.batch_size, num_workers = self.num_workers)
-            test_dls.append(test_dl)
+            test_dls = []
+            for test_datum in test_data:
+                if issparse(test_datum):
+                    test_ds = SparseDataset(test_datum)
+                    test_dl = DataLoader(test_ds, batch_size = self.batch_size, collate_fn = sparse_batch_collate)
+                else:
+                    test_ds = MatrixDataset(test_datum)
+                    test_dl = DataLoader(test_ds, batch_size = self.batch_size, num_workers = self.num_workers)
+                test_dls.append(test_dl)
 
-        return CombinedLoader(test_dls, "max_size_cycle")
+            return CombinedLoader(test_dls, "max_size_cycle")
+        else:
+            return None
