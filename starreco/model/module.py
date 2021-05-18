@@ -6,15 +6,15 @@ import pytorch_lightning as pl
 class BaseModule(pl.LightningModule):
     def __init__(self, 
                  lr, 
-                 weight_decay, 
+                 l2_lambda, 
                  criterion):
         super().__init__()
         self.lr = lr
-        self.weight_decay = weight_decay
+        self.l2_lambda = l2_lambda
         self.criterion = criterion
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr = self.lr, weight_decay = self.weight_decay)
+        optimizer = torch.optim.Adam(self.parameters(), lr = self.lr, weight_decay = self.l2_lambda)
         return optimizer
         
     def _transform(self, tensor):
@@ -62,18 +62,19 @@ class BaseModule(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         batch = [self._transform(tensor) for tensor in batch]
 
+        if self.current_epoch == 0 and batch_idx == 0:
+            self.logger.log_graph(self, batch[:-1])
+
         backward_loss = self.backward_loss(*batch)
-        self.log("val_loss", backward_loss, prog_bar = True, logger = True)
+        self.log("val_loss", backward_loss, on_epoch = True, prog_bar = True, logger = True)
 
         logger_loss = self.logger_loss(*batch)
-        self.log("val_loss_", logger_loss, prog_bar = True, logger = True)
+        self.log("val_loss_", logger_loss, on_epoch = True, prog_bar = True, logger = True)
 
         return backward_loss
 
     def test_step(self, batch, batch_idx):
         batch = [self._transform(tensor) for tensor in batch]
-
-        self.logger.log_graph(self, batch[:-1])
 
         logger_loss = self.logger_loss(*batch)
         self.log("test_loss", logger_loss)
