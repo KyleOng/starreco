@@ -3,6 +3,7 @@ from typing import Union
 import numpy as np
 import torch
 
+
 class FeaturesEmbedding(torch.nn.Module):
     def __init__(self, field_dims: list, embed_dim: int):
         """
@@ -28,6 +29,7 @@ class FeaturesEmbedding(torch.nn.Module):
         """
         x = x + x.new_tensor(self.offsets).unsqueeze(0)
         return self.embedding(x)
+
 
 class FeaturesLinear(torch.nn.Module):
     def __init__(self, field_dims, 
@@ -60,6 +62,7 @@ class FeaturesLinear(torch.nn.Module):
 
         return torch.sum(self.linear(x), dim = 1) + self.bias
 
+
 class PairwiseInteraction(torch.nn.Module):
     def __init__(self, reduce_sum:bool = True):
         """
@@ -87,6 +90,7 @@ class PairwiseInteraction(torch.nn.Module):
         if self.reduce_sum:
             ix = torch.sum(ix, dim = 1, keepdim = True)
         return 0.5 * ix
+
 
 class ActivationFunction(torch.nn.Module):
     def __init__(self, name:str = "relu"):
@@ -121,6 +125,7 @@ class ActivationFunction(torch.nn.Module):
         :return (torch.Tensor): Non linear output.
         """
         return self.activation(x)
+
 
 class MultilayerPerceptrons(torch.nn.Module):
     def __init__(self, input_dim:int, 
@@ -187,6 +192,7 @@ class MultilayerPerceptrons(torch.nn.Module):
 
         return self.mlp(x)
 
+
 class CompressedInteraction(torch.nn.Module):
     def __init__(self, input_dim, cross_dims, activation = "relu", split_half = True):
         super().__init__()
@@ -224,6 +230,7 @@ class CompressedInteraction(torch.nn.Module):
             xs.append(x)
         return self.fc(torch.sum(torch.cat(xs, dim=1), 2))
 
+
 class InnerProduct(torch.nn.Module):
     def __init__(self, reduce_sum = True):
         super().__init__()
@@ -247,11 +254,3 @@ class InnerProduct(torch.nn.Module):
         if self.reduce_sum:
             inner_product = torch.sum(inner_product, dim = 2, keepdim = True)
         return inner_product
-
-def weight_init(m):
-    # Weight initialization on specific layer
-    if type(m) == torch.nn.Linear:
-        torch.nn.init.xavier_uniform_(m.weight)
-    
-        if m.bias is not None:
-            torch.nn.init.zeros_(m.bias)
