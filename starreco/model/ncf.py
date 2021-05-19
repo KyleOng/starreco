@@ -20,10 +20,10 @@ class NCF(BaseModule):
                  dropouts:Union[int, float, list] = 0.5, 
                  batch_norm:bool = True,
                  lr:float = 1e-3,
-                 weight_decay:float = 1e-6,
+                 l2_lambda:float = 1e-3,
                  criterion:F = F.mse_loss,
                  save_hyperparameters:bool = True):
-        super().__init__(lr, weight_decay, criterion)
+        super().__init__(lr, l2_lambda, criterion)
         self.save_hyperparameters()
         
         # Embedding layer

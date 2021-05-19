@@ -19,20 +19,20 @@ class _MDACF(MF):
                  corrupt_ratio:Union[int,float] = 0.3,
                  alpha:Union[int,float] = 0.8, 
                  beta:Union[int,float] = 3e-3,
-                 lambda_:Union[int,float] = 0.3,
                  lr:float = 1e-3,
-                 weight_decay:float = 0,
+                 l2_lambda:Union[int,float] = 0.3,
                  criterion:F = F.mse_loss):
         # Using the same notation as in the paper for easy reference
         self.m, self.p = user_dims
         self.n, self.q = item_dims 
+
+        super().__init__([self.m, self.n], embed_dim, lr, 0, criterion)
+        self.save_hyperparameters()
+
         self.corrupt_ratio = corrupt_ratio
         self.alpha = alpha
         self.beta = beta
-        self.lambda_ = lambda_
-
-        super().__init__([self.m, self.n], embed_dim, lr, weight_decay, criterion)
-        self.save_hyperparameters()
+        self.l2_lambda = l2_lambda
 
         # Create weights matrices and projection matrices for marginalized Autoencoder.
         self.user_W = torch.nn.Parameter(torch.rand(self.p, self.p), requires_grad = False)
@@ -112,8 +112,8 @@ class _MDACF(MF):
         V = self.features_embedding.embedding.weight[-self.n:, :].data
 
         # Update weights and projections matrices
-        self.user_W.data = self._update_weights(self.user.T, user_P, U, self.p, self.lambda_, self.corrupt_ratio)
-        self.item_W.data = self._update_weights(self.item.T, item_P, V, self.q, self.lambda_, self.corrupt_ratio)
+        self.user_W.data = self._update_weights(self.user.T, user_P, U, self.p, self.l2_lambda, self.corrupt_ratio)
+        self.item_W.data = self._update_weights(self.item.T, item_P, V, self.q, self.l2_lambda, self.corrupt_ratio)
         self.user_P.data = self._update_projections(self.user.T, user_W, U)
         self.item_P.data = self._update_projections(self.item.T, item_W, V)
 
@@ -135,8 +135,8 @@ class _MDACF(MF):
         V = self.features_embedding.embedding.weight[-self.n:, :].data
         
         loss = 0
-        loss += self.lambda_ * torch.sum(torch.square(torch.matmul(user_P, U.T) - torch.matmul(user_W, self.user.T)))
-        loss += self.lambda_ * torch.sum(torch.square(torch.matmul(item_P, V.T) - torch.matmul(item_W, self.item.T)))
+        loss += self.l2_lambda * torch.sum(torch.square(torch.matmul(user_P, U.T) - torch.matmul(user_W, self.user.T)))
+        loss += self.l2_lambda * torch.sum(torch.square(torch.matmul(item_P, V.T) - torch.matmul(item_W, self.item.T)))
         loss += self.alpha * torch.sum(torch.square(y - self.forward(x)))
         loss += self.beta * (torch.sum(torch.square(U)) + torch.sum(torch.square(V)))
 
@@ -163,10 +163,9 @@ class MDACF(_MDACF):
                  corrupt_ratio:Union[int,float] = 0.3,
                  alpha:Union[int,float] = 0.8, 
                  beta:Union[int,float] = 3e-3,
-                 lambda_:Union[int,float] = 0.3,
                  lr:float = 1e-3,
-                 weight_decay:float = 0,
+                 l2_lambda:Union[int,float] = 0.3,
                  criterion:F = F.mse_loss):
-        super().__init__(user.shape, item.shape, embed_dim, corrupt_ratio, alpha, beta, lambda_, lr, weight_decay, criterion)
+        super().__init__(user.shape, item.shape, embed_dim, corrupt_ratio, alpha, beta, lr, l2_lambda, criterion)
         self.user = user
         self.item = item

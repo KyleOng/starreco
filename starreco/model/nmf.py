@@ -21,9 +21,9 @@ class NMF(BaseModule):
                  ncf_params:dict = None,
                  freeze_pretrain:bool = True,
                  lr:float = 1e-3,
-                 weight_decay:float = 1e-6,
+                 l2_lambda:float = 1e-3,
                  criterion:F = F.mse_loss):
-        super().__init__(lr, weight_decay, criterion)
+        super().__init__(lr, l2_lambda, criterion)
         self.save_hyperparameters(ignore = ["gmf_params", "ncf_params"])
         
         self.gmf = GMF(**gmf_hparams)
@@ -48,13 +48,8 @@ class NMF(BaseModule):
         if type(self.ncf.net.mlp[-1]) == torch.nn.Linear:
             del self.ncf.net.mlp[-1]
 
-        # Get input dim 
-        input_dim = self.gmf.features_embedding.embedding.embedding_dim 
-        for i in range(0, len(self.ncf.net.mlp))[::-1]:
-            if type(self.ncf.net.mlp[i]) == torch.nn.Linear:
-                input_dim += self.ncf.net.mlp[i].out_features
-                break
-        # Hybrid network
+        # Add input dim
+        input_dim = gmf_hparams["embed_dim"] + ncf_hparams["hidden_dims"][-1]
         self.net = MultilayerPerceptrons(input_dim = input_dim, 
                                          output_layer = "relu")
 

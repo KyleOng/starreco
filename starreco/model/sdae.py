@@ -25,9 +25,9 @@ class SDAE(BaseModule):
                  feature_all:bool = True,
                  noise_all:bool = True,
                  lr:float = 1e-3,
-                 weight_decay:float = 1e-3,
+                 l2_lambda:float = 1e-3,
                  criterion:F = F.mse_loss):
-        super().__init__(lr, weight_decay, criterion)
+        super().__init__(lr, l2_lambda, criterion)
         self.save_hyperparameters()
 
         self.dense_refeeding = dense_refeeding
@@ -54,7 +54,7 @@ class SDAE(BaseModule):
                                              remove_last_batch_norm = False,
                                              output_layer = None,
                                              extra_input_dims = encoder_extra_input_dims,
-                                             module_type = "modulelist")
+                                             mlp_type = "modulelist")
 
         # Dropout layer in latent space
         if self.latent_dropout:
@@ -70,7 +70,7 @@ class SDAE(BaseModule):
                                              remove_last_batch_norm = True,
                                              output_layer = None,
                                              extra_input_dims = decoder_extra_input_dims,
-                                             module_type = "modulelist")
+                                             mlp_type = "modulelist")
 
     def add_noise(self, x):
         return x + self.noise_factor * torch.randn(x.size()).to(x.device) * self.std + self.mean
