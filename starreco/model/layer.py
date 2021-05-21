@@ -137,7 +137,7 @@ class MultilayerPerceptrons(torch.nn.Module):
                  remove_last_batch_norm:bool = True,
                  output_layer:str = "linear",
                  extra_input_dims:Union[int,list] = 0,
-                 extra_nodes_out:Union[int,list] = 0,
+                 extra_output_dims:Union[int,list] = 0,
                  mlp_type:str = "sequential"):
         super().__init__()
         assert mlp_type in ["sequential", "modulelist"], "type must be 'sequential' or 'modulelist'"
@@ -148,13 +148,13 @@ class MultilayerPerceptrons(torch.nn.Module):
             dropouts = np.tile([dropouts], len(hidden_dims))
         if type(extra_input_dims) == int:
             extra_input_dims = np.tile([extra_input_dims], len(hidden_dims))
-        if type(extra_nodes_out) == int:
-            extra_nodes_out = np.tile([extra_nodes_out], len(hidden_dims))
+        if type(extra_output_dims) == int:
+            extra_output_dims = np.tile([extra_output_dims], len(hidden_dims))
         mlp_blocks = []
         for i, hidden_dim in enumerate(hidden_dims):
             # Append linear layer         
             mlp_blocks.append(torch.nn.Linear(input_dim + extra_input_dims[i], 
-                                              hidden_dim + extra_nodes_out[i]))
+                                              hidden_dim + extra_output_dims[i]))
             # Append batch normalization
             # Batch normalization will not be applied to the last hidden layer (output layer is None)
             if batch_norm:
