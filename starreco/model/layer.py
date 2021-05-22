@@ -3,46 +3,41 @@ from typing import Union
 import numpy as np
 import torch
 
-
+# Done
 class FeaturesEmbedding(torch.nn.Module):
-    def __init__(self, field_dims: list, embed_dim: int):
-        """
-        Embedd Features.
+    """
+    Feature Embedding class.
 
-        :param field_dims (list): List of field dimension. Each feature contains
-        a total number of unique values.
+    - field_dims (list): List of field dimension. Each feature contains a total number of unique values.
+    - embed_dim (int): Embedding dimension.
+    """
 
-        :param embed_dim (int): Embedding dimension.
-        """
+    def __init__(self, 
+                 field_dims: list, 
+                 embed_dim: int):
         super().__init__()
         self.embedding = torch.nn.Embedding(sum(field_dims), embed_dim)
         self.offsets = np.array((0, *np.cumsum(field_dims)[:-1]), dtype = np.int64)
 
     def forward(self, x):
         """
-        Perform operations.
-
-        :param x (torch.Tensor): Contains inputs of size (batch_size, len(field_dims)).
-
-        :return (torch.Tensor): Contains embeddings of size (batch_size, len(field_dims), 
-        embed_dim).
+        Perform operation.
         """
+
         x = x + x.new_tensor(self.offsets).unsqueeze(0)
         return self.embedding(x)
 
-
+# Done
 class FeaturesLinear(torch.nn.Module):
+    """
+    Linear transformation class.
+
+    - field_dims (list): List of field dimension. Each feature contains a total number of unique values.
+    - output_dim (int): Embedding dimension.
+    """ 
+
     def __init__(self, field_dims, 
                  output_dim:int = 1):
-        """
-        Linear transformation.
-
-        :param field_dims (list): List of field dimension. Each feature contains
-        a total number of unique values.
-
-        :param output_dim (int): Embedding dimension.
-        """ 
-
         super().__init__()
         self.linear = torch.nn.Embedding(sum(field_dims), output_dim)
         self.offsets = np.array((0, *np.cumsum(field_dims)[:-1]), dtype = np.int64)
@@ -51,37 +46,28 @@ class FeaturesLinear(torch.nn.Module):
         
     def forward(self, x):
         """
-        Perform operations.
-
-        :param x (torch.Tensor): Contains inputs of size (batch_size, len(field_dims)).
-
-        :return (torch.Tensor): Contains linear transformation output of size 
-        (batch_size, len(field_dims), embed_dim).
+        Perform operation.
         """
+
         x = x + x.new_tensor(self.offsets).unsqueeze(0)
 
         return torch.sum(self.linear(x), dim = 1) + self.bias
 
-
+# Done
 class PairwiseInteraction(torch.nn.Module):
-    def __init__(self, reduce_sum:bool = True):
-        """
-        Compute Pairwise Interaction for factorization machine.
+    """
+    Pairwise interaction class for factorization machine.
 
-        :param reduce_sum (bool): If True, perform reduce sum.
-        """
+    - reduce_sum (bool): If True, perform reduce sum.
+    """
+
+    def __init__(self, reduce_sum:bool = True):
         super().__init__()
         self.reduce_sum = reduce_sum
 
     def forward(self, x):
         """
-         Perform operations.
-
-        :param x (torch.Tensor): Contains inputs of size (batch_size, len(field_dims),
-        embed_dim).
-
-        :return (torch.Tensor): If reduce_sum is True, return pairwise interaction 
-        output of size (batch_size, 1), else size (batch_size, embed_dim)
+        Perform operation.
         """
         
         square_of_sum = torch.sum(x, dim=1) ** 2
@@ -91,14 +77,15 @@ class PairwiseInteraction(torch.nn.Module):
             ix = torch.sum(ix, dim = 1, keepdim = True)
         return 0.5 * ix
 
-
+# Done
 class ActivationFunction(torch.nn.Module):
-    def __init__(self, name:str = "relu"):
-        """
-        Convert string values to activation function.
+    """
+    Activation Function class which convert string to activation function layer.
 
-        :param name (str): Name of the activation function. 
-        """
+    - name (str): Name of the activation function. 
+    """
+
+    def __init__(self, name:str = "relu"):
         super().__init__()
         
         if (name == "relu"): self.activation = torch.nn.ReLU()
@@ -118,58 +105,88 @@ class ActivationFunction(torch.nn.Module):
 
     def forward(self, x):
         """
-        Perform non linear activation function on input
-
-        :param x (torch.Tensor): Input of any sizes.
-
-        :return (torch.Tensor): Non linear output.
+        Perform operation.
         """
+
         return self.activation(x)
 
-
+# Done
 class MultilayerPerceptrons(torch.nn.Module):
-    def __init__(self, input_dim:int, 
+    """
+    Multilayer Perceptrons with dynamic settings.
+
+    - input_dim (int): Number of neurons in the input layer. 
+    - hidden_dims (list): List of numbers of neurons throughout the hidden layers. 
+    - activations (str/list): List of activation functions. Default: relu.
+    - dropouts (int/float/list): List of dropout values. Default: 0.5.
+    - batch_norm (bool): If True, apply batch normalization in every layer. Batch normalization apply between activation and dropout layer. Default: True.
+    - remove_last_dropout (bool): If True, remove batch normalization at the last hidden layer. Do this if the last hidden layer is the output layer. Default: False.
+    - remove_last_batch_norm (bool): If True, remove dropout at the LAST hidden layer. Do this if the last hidden layer is the output layer. Default: False.
+    - output_layer (str): Activation applied to the output layer which only output 1 neuron. Set as None, if your want your last hidden layer to be the output layer. Default linear.
+    - extra_input_dims (int/list): List of extra input dimension at every layer. Default: 0.
+    - extra_output_dims (int/list): List of extra output dimension at every layer. Extra output dimension is not apply to the output layer, if `output_layer` is set with value.. Default: 0.
+    - mlp_type (str): Return MLP type. Default sequential.
+    """
+
+    def __init__(self, 
+                 input_dim:int, 
                  hidden_dims:list = [], 
                  activations:Union[str, list] = "relu",
                  dropouts:Union[int, float, list] = 0.5,
                  batch_norm:bool = True,
-                 remove_last_dropout:bool = True,
-                 remove_last_batch_norm:bool = True,
+                 remove_last_dropout:bool = False,
+                 remove_last_batch_norm:bool = False,
                  output_layer:str = "linear",
                  extra_input_dims:Union[int,list] = 0,
                  extra_output_dims:Union[int,list] = 0,
                  mlp_type:str = "sequential"):
         super().__init__()
-        assert mlp_type in ["sequential", "modulelist"], "type must be 'sequential' or 'modulelist'"
 
+        # Transform float-to-list arguments to list
         if type(activations) == str:
-            activations = np.tile([activations], len(hidden_dims))
+            activations = [activations] * len(hidden_dims)
         if type(dropouts) == float or type(dropouts) == int:
-            dropouts = np.tile([dropouts], len(hidden_dims))
+            dropouts = [dropouts] * len(hidden_dims)
         if type(extra_input_dims) == int:
-            extra_input_dims = np.tile([extra_input_dims], len(hidden_dims))
+            extra_input_dims = [extra_input_dims] * len(hidden_dims)
         if type(extra_output_dims) == int:
-            extra_output_dims = np.tile([extra_output_dims], len(hidden_dims))
+            extra_output_dims = [extra_output_dims] * len(hidden_dims)
+
+        # Error messages for any violations
+        assert len(extra_input_dims) == len(hidden_dims), "`hidden_dims` and `extra_input_dims` must have equal length."
+        assert len(extra_output_dims) == len(hidden_dims), "`hidden_dims` and `extra_output_dims` must have equal length."
+        assert max(dropouts) >= 0 and max(dropouts) <= 1, "maximum `dropouts` must in between 0 and 1,"
+        assert mlp_type in ["sequential", "modulelist"], "`mlp_type` must be 'sequential' or 'modulelist'"
+
         mlp_blocks = []
-        for i, hidden_dim in enumerate(hidden_dims):
+        for i in range(len(hidden_dims)):
+            input_dim += extra_input_dims[i]
+            output_dim = hidden_dims[i]
+            output_dim += extra_output_dims[i]
+
             # Append linear layer         
-            mlp_blocks.append(torch.nn.Linear(input_dim + extra_input_dims[i], 
-                                              hidden_dim + extra_output_dims[i]))
+            mlp_blocks.append(torch.nn.Linear(input_dim, output_dim))
+
             # Append batch normalization
             # Batch normalization will not be applied to the last hidden layer (output layer is None)
             if batch_norm:
                 if i + int(remove_last_batch_norm) != len(hidden_dims):
-                    mlp_blocks.append(torch.nn.BatchNorm1d(hidden_dim))
+                    mlp_blocks.append(torch.nn.BatchNorm1d(output_dim))
+
             # Append activation function
             activation = activations[i].lower()
+            # No activation appended if activation is linear
             if activation != "linear": 
                 mlp_blocks.append(ActivationFunction(activation))
+
             # Append dropout layers
             # Dropout will not be applied to the last hidden layer (output layer is None)
             if dropouts[i] > 0 and dropouts[i] <= 1:
                 if i + int(remove_last_dropout) != len(hidden_dims):
                     mlp_blocks.append(torch.nn.Dropout(dropouts[i]))
-            input_dim = hidden_dim
+            
+            # Replace input dim with current output_dim
+            input_dim = output_dim
         
         if output_layer:
             mlp_blocks.append(torch.nn.Linear(input_dim, 1))
@@ -183,18 +200,27 @@ class MultilayerPerceptrons(torch.nn.Module):
 
     def forward(self, x):
         """
-        Perform operations.
-
-        :param x: torch.FloatTensor. Contains inputs of size (batch_size, layers[0]).
-
-        :return: torch.FloatTensor. Contains embeddings of size (batch_size, layers[-1]), 
+        Perform operation.
         """
 
         return self.mlp(x)
 
-
+# Testing
 class CompressedInteraction(torch.nn.Module):
-    def __init__(self, input_dim, cross_dims, activation = "relu", split_half = True):
+    """
+    Compressed Interaction class.
+
+    - input_dim (int): Number of neurons in the input layer. 
+    - cross_dims (list): List of number of neuron for cross dimensions.
+    - activations (str/list): List of activation functions. Default: relu.
+    - split_half (bool): If True, convolution output is splitted into half of the 1st dimension.
+    """
+
+    def __init__(self, 
+                 input_dim:int, 
+                 cross_dims:list, 
+                 activation:str = "relu", 
+                 split_half:bool = True):
         super().__init__()
         self.num_layers = len(cross_dims)
         self.split_half = split_half
@@ -216,6 +242,10 @@ class CompressedInteraction(torch.nn.Module):
         self.fc = torch.nn.Linear(fc_input_dim, 1)
         
     def forward(self, x):
+        """
+        Perform operation.
+        """
+
         xs = list()
         x0, h = x.unsqueeze(2), x
         for i in range(self.num_layers):
@@ -230,13 +260,23 @@ class CompressedInteraction(torch.nn.Module):
             xs.append(x)
         return self.fc(torch.sum(torch.cat(xs, dim=1), 2))
 
-
+# Testing
 class InnerProduct(torch.nn.Module):
-    def __init__(self, reduce_sum = True):
+    """
+    Inner Product class.
+
+    - reduce_sum (bool): If True, perform reduce sum.
+    """
+
+    def __init__(self, reduce_sum:bool = True):
         super().__init__()
         self.reduce_sum = reduce_sum
 
     def forward(self, x):
+        """
+        Perform operation.
+        """
+
         embed_list = x
         row = []
         col = []
