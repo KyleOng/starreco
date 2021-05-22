@@ -20,10 +20,7 @@ class FeaturesEmbedding(torch.nn.Module):
         self.offsets = np.array((0, *np.cumsum(field_dims)[:-1]), dtype = np.int64)
 
     def forward(self, x):
-        """
-        Perform operation.
-        """
-
+        """ Perform operation."""
         x = x + x.new_tensor(self.offsets).unsqueeze(0)
         return self.embedding(x)
 
@@ -45,10 +42,7 @@ class FeaturesLinear(torch.nn.Module):
         self.bias = torch.nn.Parameter(torch.zeros((output_dim,)))
         
     def forward(self, x):
-        """
-        Perform operation.
-        """
-
+        """ Perform operation."""
         x = x + x.new_tensor(self.offsets).unsqueeze(0)
 
         return torch.sum(self.linear(x), dim = 1) + self.bias
@@ -66,10 +60,7 @@ class PairwiseInteraction(torch.nn.Module):
         self.reduce_sum = reduce_sum
 
     def forward(self, x):
-        """
-        Perform operation.
-        """
-        
+        """ Perform operation."""        
         square_of_sum = torch.sum(x, dim=1) ** 2
         sum_of_square = torch.sum(x ** 2, dim=1)
         ix = square_of_sum - sum_of_square
@@ -104,10 +95,7 @@ class ActivationFunction(torch.nn.Module):
         else: raise ValueError("Unknown non-linearity type")
 
     def forward(self, x):
-        """
-        Perform operation.
-        """
-
+        """ Perform operation."""
         return self.activation(x)
 
 # Done
@@ -199,10 +187,7 @@ class MultilayerPerceptrons(torch.nn.Module):
             self.mlp = torch.nn.ModuleList(mlp_blocks)
 
     def forward(self, x):
-        """
-        Perform operation.
-        """
-
+        """ Perform operation."""
         return self.mlp(x)
 
 # Testing
@@ -242,10 +227,7 @@ class CompressedInteraction(torch.nn.Module):
         self.fc = torch.nn.Linear(fc_input_dim, 1)
         
     def forward(self, x):
-        """
-        Perform operation.
-        """
-
+        """ Perform operation."""
         xs = list()
         x0, h = x.unsqueeze(2), x
         for i in range(self.num_layers):
@@ -273,10 +255,7 @@ class InnerProduct(torch.nn.Module):
         self.reduce_sum = reduce_sum
 
     def forward(self, x):
-        """
-        Perform operation.
-        """
-
+        """ Perform operation."""
         embed_list = x
         row = []
         col = []
