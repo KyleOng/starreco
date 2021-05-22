@@ -107,7 +107,7 @@ class MultilayerPerceptrons(torch.nn.Module):
     - hidden_dims (list): List of numbers of neurons throughout the hidden layers. 
     - activations (str/list): List of activation functions. Default: relu.
     - dropouts (int/float/list): List of dropout values. Default: 0.5.
-    - batch_norm (bool): If True, apply batch normalization in every layer. Batch normalization apply between activation and dropout layer. Default: True.
+    - batch_norm (bool): If True, apply batch normalization in every layer. Batch normalization is applied between activation and dropout layer. Default: True.
     - remove_last_dropout (bool): If True, remove batch normalization at the last hidden layer. Do this if the last hidden layer is the output layer. Default: False.
     - remove_last_batch_norm (bool): If True, remove dropout at the LAST hidden layer. Do this if the last hidden layer is the output layer. Default: False.
     - output_layer (str): Activation applied to the output layer which only output 1 neuron. Set as None, if your want your last hidden layer to be the output layer. Default linear.
