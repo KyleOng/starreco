@@ -112,7 +112,7 @@ class MultilayerPerceptrons(torch.nn.Module):
     - remove_last_batch_norm (bool): If True, remove dropout at the LAST hidden layer. Do this if the last hidden layer is the output layer. Default: False.
     - output_layer (str): Activation applied to the output layer which only output 1 neuron. Set as None, if your want your last hidden layer to be the output layer. Default linear.
     - extra_input_dims (int/list): List of extra input dimension at every layer. Default: 0.
-    - extra_output_dims (int/list): List of extra output dimension at every layer. Extra output dimension is not apply to the output layer, if `output_layer` is set with value.. Default: 0.
+    - extra_output_dims (int/list): List of extra output dimension at every layer. Extra output dimension is not applied to the output layer, if `output_layer` is set with value. Default: 0.
     - mlp_type (str): Return MLP type. Default sequential.
     """
 
