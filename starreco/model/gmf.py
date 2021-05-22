@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from .module import BaseModule
 from .layer import FeaturesEmbedding, MultilayerPerceptrons
 
-
+# Done
 class GMF(BaseModule):
     """
     Generalized Matrix Factorization
