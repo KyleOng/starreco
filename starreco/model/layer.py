@@ -105,7 +105,7 @@ class MultilayerPerceptrons(torch.nn.Module):
     - dropouts (int/float/list): List of dropout values. Default: 0.5.
     - batch_norm (bool): If True, apply batch normalization in every layer. Batch normalization is applied between activation and dropout layer. Default: True.
     - remove_last_dropout (bool): If True, remove batch normalization at the last hidden layer. Do this if the last hidden layer is the output layer. Default: False.
-    - remove_last_batch_norm (bool): If True, remove dropout at the LAST hidden layer. Do this if the last hidden layer is the output layer. Default: False.
+    - remove_last_batch_norm (bool): If True, remove dropout at the last hidden layer. Do this if the last hidden layer is the output layer. Default: False.
     - output_layer (str): Activation applied to the output layer which only output 1 neuron. Set as None, if your want your last hidden layer to be the output layer. Default linear.
     - extra_input_dims (int/list): List of extra input dimension at every layer. Default: 0.
     - extra_output_dims (int/list): List of extra output dimension at every layer. Extra output dimension is not applied to the output layer, if `output_layer` is set with value. Default: 0.
@@ -187,6 +187,26 @@ class MultilayerPerceptrons(torch.nn.Module):
 
 # Done
 class StackedDenoisingAutoEncoder(torch.nn.Module):
+    """
+    Stacked Denoising AutoEncoder class with dynamic setting.
+
+    - input_output_dim (int): Number of neurons in the input and output layer.
+    - hidden_dims (list): List of number of neurons throughout the encoder and decoder (reverse list) hidden layers. Default: [512, 256, 128].
+    - e_activations (str/list): List of activation functions in the encoder layers. Default: relu.
+    - d_activations (str/list): List of activation functions in the decoder layers. Default: relu.
+    - e_dropouts (int/float/list): List of dropout values in the encoder layers. Default: 0.
+    - d_dropouts (int/float/list): List of dropout values in the decoder layers. Default: 0.
+    - dropout (float): Dropout value in the latent space. Default 0.5.
+    - batch_norm (bool): If True, apply batch normalization in all hidden layers. Default: True.
+    - extra_input_dims (int): Extra input neuron. Default: 0.
+    - extra_input_all (bool): If True, extra input neurons are added to all input and hidden layers, else only to input layer. Default: False.
+    - noise_factor (int/float): Probability of noises to be added to the input. Noise is not applied to extra input neurons and during training only. Default: 0.3.
+    - noise_all (bool): If True, noise are added to inputs in all input and hidden layers, else only to input layer. Default: False.
+    - mean (int/float): Gaussian noise mean. Default: 0.
+    - std (int/float): Gaussian noise standard deviation: 1.
+
+    """
+
     def __init__(self, 
                  input_output_dim:int,
                  hidden_dims:list = [512, 256, 128], 
@@ -196,7 +216,7 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
                  d_dropouts:Union[int, float, list] = 0,
                  dropout:float = 0.5,
                  batch_norm:bool = True,
-                 extra_input_dims:int = 0,
+                 extra_input_dim:int = 0,
                  extra_input_all:bool = False,
                  noise_factor:Union[int, float] = 0.3,
                  noise_all:bool = True,
@@ -211,9 +231,9 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
         self.noise_all = noise_all
 
         if self.extra_input_all:
-            encoder_extra_input_dims = decoder_extra_input_dims = extra_input_dims
+            encoder_extra_input_dims = decoder_extra_input_dims = extra_input_dim
         else:
-            encoder_extra_input_dims = [extra_input_dims] + [0] * (len(hidden_dims) - 1)
+            encoder_extra_input_dims = [extra_input_dim] + [0] * (len(hidden_dims) - 1)
             decoder_extra_input_dims = 0
 
         # Encoder layer
