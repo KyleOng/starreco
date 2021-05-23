@@ -9,7 +9,7 @@ from .layer import FeaturesEmbedding, MultilayerPerceptrons
 from .gmf import GMF
 from .ncf import NCF
     
-
+# Done
 class NMF(BaseModule):
     """
     Neural Matrix Factorization
@@ -50,8 +50,7 @@ class NMF(BaseModule):
 
         # Add input dim
         input_dim = gmf_hparams["embed_dim"] + ncf_hparams["hidden_dims"][-1]
-        self.net = MultilayerPerceptrons(input_dim = input_dim, 
-                                         output_layer = "relu")
+        self.net = MultilayerPerceptrons(input_dim = input_dim, output_layer = "relu")
 
     def forward(self, x):
         # GMF part: Element wise product between embeddings

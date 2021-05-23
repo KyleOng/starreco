@@ -13,7 +13,8 @@ class GMF(BaseModule):
     Generalized Matrix Factorization
     """
 
-    def __init__(self, field_dims:list, 
+    def __init__(self, 
+                 field_dims:list, 
                  embed_dim:int = 8, 
                  lr:float = 1e-3,
                  l2_lambda:float = 1e-6,
