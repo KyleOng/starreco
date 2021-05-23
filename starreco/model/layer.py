@@ -4,11 +4,11 @@ import numpy as np
 import torch
 
 # Done
-class FeaturesEmbedding(torch.nn.Module):
+class extrasEmbedding(torch.nn.Module):
     """
-    Feature Embedding class.
+    extra Embedding class.
 
-    - field_dims (list): List of field dimension. Each feature contains a total number of unique values.
+    - field_dims (list): List of field dimension. Each extra contains a total number of unique values.
     - embed_dim (int): Embedding dimension.
     """
 
@@ -24,11 +24,11 @@ class FeaturesEmbedding(torch.nn.Module):
         return self.embedding(x)
 
 # Done
-class FeaturesLinear(torch.nn.Module):
+class extrasLinear(torch.nn.Module):
     """
     Linear transformation class.
 
-    - field_dims (list): List of field dimension. Each feature contains a total number of unique values.
+    - field_dims (list): List of field dimension. Each extra contains a total number of unique values.
     - output_dim (int): Embedding dimension.
     """ 
 
@@ -185,7 +185,108 @@ class MultilayerPerceptrons(torch.nn.Module):
     def forward(self, x):
         return self.mlp(x)
 
-# Testing
+# Done
+class StackedDenoisingAutoEncoder(torch.nn.Module):
+    def __init__(self, 
+                 input_output_dim:int,
+                 hidden_dims:list = [512, 256, 128], 
+                 e_activations:Union[str, list] = "relu", 
+                 d_activations:Union[str, list] = "relu", 
+                 e_dropouts:Union[int, float, list] = 0,
+                 d_dropouts:Union[int, float, list] = 0,
+                 dropout:float = 0.5,
+                 batch_norm:bool = True,
+                 extra_input_dims:int = 0,
+                 extra_input_all:bool = False,
+                 noise_factor:Union[int, float] = 0.3,
+                 noise_all:bool = True,
+                 mean:Union[int, float] = 0,
+                 std:Union[int, float] = 1):
+        super().__init__()
+
+        self.noise_factor = noise_factor
+        self.mean = mean
+        self.std = std
+        self.extra_input_all = extra_input_all
+        self.noise_all = noise_all
+
+        if self.extra_input_all:
+            encoder_extra_input_dims = decoder_extra_input_dims = extra_input_dims
+        else:
+            encoder_extra_input_dims = [extra_input_dims] + [0] * (len(hidden_dims) - 1)
+            decoder_extra_input_dims = 0
+
+        # Encoder layer
+        self.encoder = MultilayerPerceptrons(input_dim = input_output_dim,
+                                             hidden_dims = hidden_dims, 
+                                             activations = e_activations, 
+                                             dropouts = e_dropouts,
+                                             batch_norm = batch_norm,
+                                             remove_last_dropout = True,
+                                             remove_last_batch_norm = False,
+                                             output_layer = None,
+                                             extra_input_dims = encoder_extra_input_dims,
+                                             mlp_type = "modulelist")
+
+        # Batch normalization and dropout layer in latent space
+        self.batch_norm = torch.nn.BatchNorm1d(hidden_dims[-1]) if batch_norm else None
+        self.dropout = torch.nn.Dropout(dropout) if dropout else None
+
+        # Decoder layer 
+        self.decoder = MultilayerPerceptrons(input_dim = hidden_dims[-1],
+                                             hidden_dims = [*hidden_dims[:-1][::-1], input_output_dim], 
+                                             activations = d_activations, 
+                                             dropouts = d_dropouts,
+                                             batch_norm = batch_norm,
+                                             remove_last_dropout = True,
+                                             remove_last_batch_norm = True,
+                                             output_layer = None,
+                                             extra_input_dims = decoder_extra_input_dims,
+                                             mlp_type = "modulelist")
+
+    def add_noise(self, x):
+        if self.noise_factor:
+            return x + self.noise_factor * torch.randn(x.size()).to(x.device) * self.std + self.mean
+        else:
+            return x
+
+    def encode(self, x, extra = None):
+        for i, module in enumerate(self.encoder.mlp):
+            if type(module) == torch.nn.Linear:
+                # Noise add only during training
+                if self.training and not(not self.noise_all and i):
+                    x = self.add_noise(x)
+                if extra is not None and not(not self.extra_input_all and i):
+                    concat = torch.cat([x, extra], dim = 1)
+                    x = module(concat)
+            else:
+                x = module(x)
+
+        return x
+
+    def decode(self, x, extra = None):
+        for i, module in enumerate(self.decoder.mlp):
+            if type(module) == torch.nn.Linear:
+                # Noise add only during training
+                if self.training and self.noise_all:
+                    x = self.add_noise(x)
+                if extra is not None and self.extra_input_all:
+                    concat = torch.cat([x, extra], dim = 1)
+                    x = module(concat)
+            else:
+                x = module(x)
+        return x
+
+    def forward(self, x, extra = None):
+        x = self.encode(x, extra)
+        if self.batch_norm:
+            x = self.batch_norm(x)
+        if self.dropout:
+            x = self.dropout(x)
+        x = self.decode(x, extra)
+        return x       
+
+# Need testing
 class CompressedInteraction(torch.nn.Module):
     """
     Compressed Interaction class.
@@ -236,7 +337,7 @@ class CompressedInteraction(torch.nn.Module):
             xs.append(x)
         return self.fc(torch.sum(torch.cat(xs, dim=1), 2))
 
-# Testing
+# Need testing
 class InnerProduct(torch.nn.Module):
     """
     Inner Product class.
