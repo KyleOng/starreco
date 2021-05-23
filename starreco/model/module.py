@@ -1,13 +1,21 @@
 import torch
-import time
+import torch.nn.functional as F
 import pytorch_lightning as pl
 
-
+# Done
 class BaseModule(pl.LightningModule):
+    """
+    Base Module class.
+    
+    - lr (float): Learning rate.
+    - l2_lambda (float): L2 regularization rate.
+    - criterion (F): Criterion or objective or loss function.
+    """
+
     def __init__(self, 
-                 lr, 
-                 l2_lambda, 
-                 criterion):
+                 lr:float, 
+                 l2_lambda:float, 
+                 criterion:F):
         super().__init__()
         self.lr = lr
         self.l2_lambda = l2_lambda
@@ -17,7 +25,7 @@ class BaseModule(pl.LightningModule):
         optimizer = torch.optim.Adam(self.parameters(), lr = self.lr, weight_decay = self.l2_lambda)
         return optimizer
         
-    def _transform(self, tensor):
+    def _transform(self, tensor:torch.Tensor):
         """
         Transform tensor.
 
@@ -31,24 +39,20 @@ class BaseModule(pl.LightningModule):
         return tensor.view(tensor.shape[0], -1)
 
     def backward_loss(self, *batch):
-        """
-        Calculate loss for backward propagation.
-        """
+        """Calculate loss for backward propagation."""
         y_hat = self.forward(*batch[:-1])
         loss = self.criterion(y_hat, batch[-1])
 
         return loss
 
     def logger_loss(self, *batch):
-        """
-        Calculate loss for logger and evaluation. 
-        """
+        """Calculate loss for logger and evaluation. """
         y_hat = self.forward(*batch[:-1])
         loss = self.criterion(y_hat, batch[-1])
 
         return loss
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch:list, batch_idx:int):
         batch = [self._transform(tensor) for tensor in batch]
 
         backward_loss = self.backward_loss(*batch)
@@ -59,9 +63,10 @@ class BaseModule(pl.LightningModule):
         
         return backward_loss
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step(self, batch:list, batch_idx:int):
         batch = [self._transform(tensor) for tensor in batch]
 
+        # Log graph on the first validation step (took less time than training step)
         if self.current_epoch == 0 and batch_idx == 0:
             self.logger.log_graph(self, batch[:-1])
 
@@ -73,7 +78,7 @@ class BaseModule(pl.LightningModule):
 
         return backward_loss
 
-    def test_step(self, batch, batch_idx):
+    def test_step(self, batch:list, batch_idx:int):
         batch = [self._transform(tensor) for tensor in batch]
 
         logger_loss = self.logger_loss(*batch)

@@ -106,10 +106,10 @@ class MultilayerPerceptrons(torch.nn.Module):
     - batch_norm (bool): If True, apply batch normalization in every layer. Batch normalization is applied between activation and dropout layer. Default: True.
     - remove_last_dropout (bool): If True, remove batch normalization at the last hidden layer. Do this if the last hidden layer is the output layer. Default: False.
     - remove_last_batch_norm (bool): If True, remove dropout at the last hidden layer. Do this if the last hidden layer is the output layer. Default: False.
-    - output_layer (str): Activation applied to the output layer which only output 1 neuron. Set as None, if your want your last hidden layer to be the output layer. Default linear.
+    - output_layer (str): Activation applied to the output layer which only output 1 neuron. Set as None, if your want your last hidden layer to be the output layer. Default: linear.
     - extra_input_dims (int/list): List of extra input dimension at every layer. Default: 0.
     - extra_output_dims (int/list): List of extra output dimension at every layer. Extra output dimension is not applied to the output layer, if `output_layer` is set with value. Default: 0.
-    - mlp_type (str): Return MLP type. Default sequential.
+    - mlp_type (str): Return MLP type. Default: sequential.
     """
 
     def __init__(self, 
@@ -196,7 +196,7 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
     - d_activations (str/list): List of activation functions in the decoder layers. Default: relu.
     - e_dropouts (int/float/list): List of dropout values in the encoder layers. Default: 0.
     - d_dropouts (int/float/list): List of dropout values in the decoder layers. Default: 0.
-    - dropout (float): Dropout value in the latent space. Default 0.5.
+    - dropout (float): Dropout value in the latent space. Default: 0.5.
     - batch_norm (bool): If True, apply batch normalization in all hidden layers. Default: True.
     - extra_input_dims (int): Extra input neuron. Default: 0.
     - extra_input_all (bool): If True, extra input neurons are added to all input and hidden layers, else only to input layer. Default: False.
