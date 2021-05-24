@@ -280,7 +280,6 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
                 if extra is not None and not(not self.extra_input_all and i):
                     x = torch.cat([x, extra], dim = 1)
             x = module(x)
-        
         return x
 
     def decode(self, x, extra = None):
