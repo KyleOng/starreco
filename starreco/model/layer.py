@@ -126,52 +126,53 @@ class MultilayerPerceptrons(torch.nn.Module):
                  mlp_type:str = "sequential"):
         super().__init__()
 
-        # Transform float-to-list arguments to list
-        if type(activations) == str:
-            activations = [activations] * len(hidden_dims)
-        if type(dropouts) == float or type(dropouts) == int:
-            dropouts = [dropouts] * len(hidden_dims)
-        if type(extra_input_dims) == int:
-            extra_input_dims = [extra_input_dims] * len(hidden_dims)
-        if type(extra_output_dims) == int:
-            extra_output_dims = [extra_output_dims] * len(hidden_dims)
-
-        # Error messages for any violations
-        assert len(extra_input_dims) == len(hidden_dims), "`hidden_dims` and `extra_input_dims` must have equal length."
-        assert len(extra_output_dims) == len(hidden_dims), "`hidden_dims` and `extra_output_dims` must have equal length."
-        assert max(dropouts) >= 0 and max(dropouts) <= 1, "maximum `dropouts` must in between 0 and 1,"
-        assert mlp_type in ["sequential", "modulelist"], "`mlp_type` must be 'sequential' or 'modulelist'"
-
         mlp_blocks = []
-        for i in range(len(hidden_dims)):
-            input_dim += extra_input_dims[i]
-            output_dim = hidden_dims[i]
-            output_dim += extra_output_dims[i]
+        if hidden_dims:
+            # Transform float-to-list arguments to list
+            if type(activations) == str:
+                activations = [activations] * len(hidden_dims)
+            if type(dropouts) == float or type(dropouts) == int:
+                dropouts = [dropouts] * len(hidden_dims)
+            if type(extra_input_dims) == int:
+                extra_input_dims = [extra_input_dims] * len(hidden_dims)
+            if type(extra_output_dims) == int:
+                extra_output_dims = [extra_output_dims] * len(hidden_dims)
 
-            # Append linear layer         
-            mlp_blocks.append(torch.nn.Linear(input_dim, output_dim))
+            # Error messages for any violations
+            assert len(extra_input_dims) == len(hidden_dims), "`hidden_dims` and `extra_input_dims` must have equal length."
+            assert len(extra_output_dims) == len(hidden_dims), "`hidden_dims` and `extra_output_dims` must have equal length."
+            assert max(dropouts) >= 0 and max(dropouts) <= 1, "maximum `dropouts` must in between 0 and 1,"
+            assert mlp_type in ["sequential", "modulelist"], "`mlp_type` must be 'sequential' or 'modulelist'"
 
-            # Append batch normalization
-            # Batch normalization will not be applied to the last hidden layer (output layer is None)
-            if batch_norm:
-                if i + int(remove_last_batch_norm) != len(hidden_dims):
-                    mlp_blocks.append(torch.nn.BatchNorm1d(output_dim))
+            for i in range(len(hidden_dims)):
+                input_dim += extra_input_dims[i]
+                output_dim = hidden_dims[i]
+                output_dim += extra_output_dims[i]
 
-            # Append activation function
-            activation = activations[i].lower()
-            # No activation appended if activation is linear
-            if activation != "linear": 
-                mlp_blocks.append(ActivationFunction(activation))
+                # Append linear layer         
+                mlp_blocks.append(torch.nn.Linear(input_dim, output_dim))
 
-            # Append dropout layers
-            # Dropout will not be applied to the last hidden layer (output layer is None)
-            if dropouts[i] > 0 and dropouts[i] <= 1:
-                if i + int(remove_last_dropout) != len(hidden_dims):
-                    mlp_blocks.append(torch.nn.Dropout(dropouts[i]))
+                # Append batch normalization
+                # Batch normalization will not be applied to the last hidden layer (output layer is None)
+                if batch_norm:
+                    if i + int(remove_last_batch_norm) != len(hidden_dims):
+                        mlp_blocks.append(torch.nn.BatchNorm1d(output_dim))
+
+                # Append activation function
+                activation = activations[i].lower()
+                # No activation appended if activation is linear
+                if activation != "linear": 
+                    mlp_blocks.append(ActivationFunction(activation))
+
+                # Append dropout layers
+                # Dropout will not be applied to the last hidden layer (output layer is None)
+                if dropouts[i] > 0 and dropouts[i] <= 1:
+                    if i + int(remove_last_dropout) != len(hidden_dims):
+                        mlp_blocks.append(torch.nn.Dropout(dropouts[i]))
+                
+                # Replace input dim with current output_dim
+                input_dim = output_dim
             
-            # Replace input dim with current output_dim
-            input_dim = output_dim
-        
         if output_layer:
             mlp_blocks.append(torch.nn.Linear(input_dim, 1))
             if output_layer != "linear":
