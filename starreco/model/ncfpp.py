@@ -84,6 +84,7 @@ class NCFPP(BaseModule):
         return y
 
     def backward_loss(self, *batch):
+        """Custom backward loss"""
         x, user_x, item_x, y = batch
 
         user_loss = self.criterion(self.user_sdae.forward(user_x), user_x)
