@@ -10,6 +10,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 
 from starreco.model import *
 from starreco.data import *
+from starreco.evaluation import *
 
 def quick_test(dm, module):
     logger = TensorBoardLogger("training_logs", name = model, log_graph = True)
@@ -19,12 +20,11 @@ def quick_test(dm, module):
                          progress_bar_refresh_rate = 2)
     trainer.fit(module, dm)
     trainer.test(module, datamodule = dm)
-    pdb.set_trace()
     return module
 
 
 def test_mf():
-    dm = StarDataModule()
+    dm = StarDataModule(train_val_test_split=[80,20,0])
     dm.setup()
     mf = MF([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
     return quick_test(dm, mf)
