@@ -40,15 +40,19 @@ class BaseModule(pl.LightningModule):
 
     def backward_loss(self, *batch):
         """Calculate loss for backward propagation."""
-        y_hat = self.forward(*batch[:-1])
-        loss = self.criterion(y_hat, batch[-1])
+        xs = batch[:-1]
+        y = batch[-1]
+        y_hat = self.forward(*xs)
+        loss = self.criterion(y_hat, y)
 
         return loss
 
     def logger_loss(self, *batch):
         """Calculate loss for logger and evaluation. """
-        y_hat = self.forward(*batch[:-1])
-        loss = self.criterion(y_hat, batch[-1])
+        xs = batch[:-1]
+        y = batch[-1]
+        y_hat = self.forward(*xs)
+        loss = self.criterion(y_hat, y)
 
         return loss
 
