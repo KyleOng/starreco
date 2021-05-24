@@ -278,11 +278,9 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
                 if self.training and not(not self.noise_all and i):
                     x = self.add_noise(x)
                 if extra is not None and not(not self.extra_input_all and i):
-                    concat = torch.cat([x, extra], dim = 1)
-                    x = module(concat)
-            else:
-                x = module(x)
-
+                    x = torch.cat([x, extra], dim = 1)
+            x = module(x)
+        
         return x
 
     def decode(self, x, extra = None):
@@ -292,10 +290,8 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
                 if self.training and self.noise_all:
                     x = self.add_noise(x)
                 if extra is not None and self.extra_input_all:
-                    concat = torch.cat([x, extra], dim = 1)
-                    x = module(concat)
-            else:
-                x = module(x)
+                    x = torch.cat([x, extra], dim = 1)
+            x = module(x)
         return x
 
     def forward(self, x, extra = None):
