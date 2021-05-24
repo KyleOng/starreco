@@ -10,7 +10,7 @@ from .layer import FeaturesEmbedding, MultilayerPerceptrons
 # Done
 class GMF(BaseModule):
     """
-    Generalized Matrix Factorization
+    Generalized Matrix Factorization.
 
     - field_dims (list): List of features dimensions.
     - embed_dim (int): Embedding dimension.
