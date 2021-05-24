@@ -15,6 +15,7 @@ class MF(BaseModule):
     - l2_lambda (float): L2 regularization rate.
     - criterion (F): Criterion or objective or loss function.
     """
+    
     def __init__(self, 
                  field_dims:list, 
                  embed_dim:int = 8, 

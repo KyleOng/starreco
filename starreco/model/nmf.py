@@ -12,8 +12,18 @@ from .ncf import NCF
 # Done
 class NMF(BaseModule):
     """
-    Neural Matrix Factorization
+    Neural Matrix Factorization.
+
+    - gmf_hparams (dict): GMF hyperparameters.
+    - ncf_hparams (dict): NCF hyperparameters.
+    - gmf_params (dict): GMF pretrain weights/parameteers.
+    - ncf_params (dict): NCF pretrain weights/parameteers.
+    - freeze_pretrain (bool): Freeze pretrain weights.
+    - lr (float): Learning rate.
+    - l2_lambda (float): L2 regularization rate.
+    - criterion (F): Criterion or objective or loss function.
     """
+    
     def __init__(self, 
                  gmf_hparams:dict,
                  ncf_hparams:dict,
