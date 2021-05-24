@@ -4,11 +4,11 @@ import numpy as np
 import torch
 
 # Done
-class extrasEmbedding(torch.nn.Module):
+class FeaturesEmbedding(torch.nn.Module):
     """
-    extra Embedding class.
+    Feature Embedding class.
 
-    - field_dims (list): List of field dimension. Each extra contains a total number of unique values.
+    - field_dims (list): List of field dimension. Each feature contains a total number of unique values.
     - embed_dim (int): Embedding dimension.
     """
 
@@ -24,11 +24,11 @@ class extrasEmbedding(torch.nn.Module):
         return self.embedding(x)
 
 # Done
-class extrasLinear(torch.nn.Module):
+class FeaturesLinear(torch.nn.Module):
     """
     Linear transformation class.
 
-    - field_dims (list): List of field dimension. Each extra contains a total number of unique values.
+    - field_dims (list): List of field dimension. Each feature contains a total number of unique values.
     - output_dim (int): Embedding dimension.
     """ 
 
