@@ -11,6 +11,12 @@ from .layer import FeaturesEmbedding, MultilayerPerceptrons
 class GMF(BaseModule):
     """
     Generalized Matrix Factorization
+
+    - field_dims (list): List of features dimensions.
+    - embed_dim (int): Embedding dimension.
+    - lr (float): Learning rate.
+    - l2_lambda (float): L2 regularization rate.
+    - criterion (F): Criterion or objective or loss function.
     """
 
     def __init__(self, 
