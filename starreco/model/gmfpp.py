@@ -58,6 +58,7 @@ class GMFPP(BaseModule):
 
         if gmf_params:
             with torch.no_grad():
+                # Concat latent weights with pretrained weights
                 self.gmf.net.mlp[0].weight[:, :input_dim] = input_weights
 
     def encode_element_wise_product(self, x, user_x, item_x):

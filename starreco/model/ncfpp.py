@@ -58,6 +58,7 @@ class NCFPP(BaseModule):
 
         if ncf_params:
             with torch.no_grad():
+                # Concat latent weights with pretrained weights
                 self.ncf.net.mlp[0].weight[:, :input_dim] = input_weights
 
     def encode_concatenate(self, x, user_x, item_x):
