@@ -88,24 +88,28 @@ class GMFPP(BaseModule):
         """Custom backward loss"""
         x, user_x, item_x, y = batch
 
+        # User reconstruction loss with trade off parameter alpha
         user_loss = self.criterion(self.user_sdae.forward(user_x), user_x)
         user_l2_reg = torch.tensor(0.).to(self.device)
         for param in self.user_sdae.parameters():
             user_l2_reg += torch.norm(param).to(self.device)
         user_loss += self.l2_lambda * user_l2_reg
 
+        # Item reconstruction loss with trade off parameter beta
         item_loss = self.criterion(self.item_sdae.forward(item_x), item_x)
         item_l2_reg = torch.tensor(0.).to(self.device)
         for param in self.item_sdae.parameters():
             item_l2_reg += torch.norm(param).to(self.device)
         item_loss += self.l2_lambda * item_l2_reg
 
-        cf_loss = super().backward_loss(*batch)
+        # Rating loss
+        rating_loss = super().backward_loss(*batch)
         cf_l2_reg = torch.tensor(0.).to(self.device)
         for param in self.gmf.parameters():
             cf_l2_reg += torch.norm(param).to(self.device)
-        cf_loss += self.l2_lambda * cf_l2_reg
+        rating_loss += self.l2_lambda * cf_l2_reg
 
-        loss = cf_loss + self.alpha * user_loss + self.beta * item_loss
+        # Total loss
+        loss = rating_loss + self.alpha * user_loss + self.beta * item_loss
 
         return loss
