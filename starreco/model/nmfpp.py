@@ -149,7 +149,7 @@ class NMFPP(BaseModule):
         return loss        
 
 # Testing
-class NMFPP(BaseModule):
+class NMFPPs(BaseModule):
     """
     Neural Matrix Factorization ++ with seperate user-item SDAEs.
 
