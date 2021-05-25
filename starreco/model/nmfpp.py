@@ -148,10 +148,10 @@ class NMFPP(BaseModule):
 
         return loss        
 
-# Testing
+# Done
 class NMFPPs(BaseModule):
     """
-    Neural Matrix Factorization ++ with seperate user-item SDAEs.
+    Neural Matrix Factorization ++ with seperated user-item SDAEs.
 
     - gmfpp_hparams (dict): GMF++ hyperparameters.
     - ncfpp_hparams (dict): NCF++ hyperparameters.
