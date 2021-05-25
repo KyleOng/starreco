@@ -4,14 +4,17 @@ import torch
 import torch.nn.functional as F
 
 from .module import BaseModule
-from .layer import StackedDenoisingAutoEncoder
+from .layer import StackedDenoisingAutoEncoder, MultilayerPerceptrons
 from .nmf import NMF
+from .module import BaseModule
+from .gmfpp import GMFPP
+from .ncfpp import NCFPP
 from .utils import freeze_partial_linear_params
 
 # Done
 class NMFPP(BaseModule):
     """
-    Neural Matrix Factorization ++.
+    Neural Matrix Factorization ++ with shared user-item SDAEs.
 
     - user_sdae_hparams (dict): User SDAE hyperparameteres.
     - item_sdae_hparams (dict): Item SDAE hyperparameteres.
@@ -35,7 +38,7 @@ class NMFPP(BaseModule):
                  l2_lambda:float = 0,
                  criterion:F = F.mse_loss):
         assert user_sdae_hparams["hidden_dims"][-1] and item_sdae_hparams["hidden_dims"][-1],\
-        "user StackedDenoisingAutoEncoder and item StackedDenoisingAutoEncoder latent dimension must be the same"
+        "user SDAE and item SDAE latent dimension must be the same"
 
         super().__init__(lr, 0, criterion)
         self.save_hyperparameters(ignore = ["nmf_params"])
@@ -144,3 +147,96 @@ class NMFPP(BaseModule):
         loss = rating_loss + self.alpha * user_loss + self.beta * item_loss
 
         return loss        
+
+# Testing
+class NMFPPs(BaseModule):
+    """
+    Neural Matrix Factorization ++ with seperate user-item SDAEs.
+
+    - gmfpp_hparams (dict): GMF++ hyperparameters.
+    - ncfpp_hparams (dict): NCF++ hyperparameters.
+    - gmfpp_params (dict): GMF++ pretrain weights/parameteers.
+    - ncfpp_params (dict): NCF++ pretrain weights/parameteers.
+    - freeze_pretrain (bool): Freeze pretrain weights.
+    - lr (float): Learning rate.
+    - l2_lambda (float): L2 regularization rate.
+    - criterion (F): Criterion or objective or loss function.
+    """
+
+    def __init__(self, 
+                 gmfpp_hparams:dict,
+                 ncfpp_hparams:dict,
+                 gmfpp_params:dict = None,
+                 ncfpp_params:dict = None,
+                 freeze_pretrain:bool = True,
+                 lr:float = 1e-3,
+                 l2_lambda:float = 1e-3,
+                 criterion:F = F.mse_loss):
+        if freeze_pretrain:
+            super().__init__(lr, l2_lambda, criterion)
+        else:
+            super().__init__(lr, 0, criterion)
+            self.l2_lambda = l2_lambda
+        self.save_hyperparameters(ignore = ["gmfpp_params", "ncfpp_params"])
+
+        self.gmfpp = GMFPP(**gmfpp_hparams)
+        self.ncfpp = NCFPP(**ncfpp_hparams)
+
+        # Load pretrained weights
+        if gmfpp_params:
+            self.gmfpp.load_state_dict(gmfpp_params)
+        if ncfpp_params:
+            self.ncfpp.load_state_dict(ncfpp_params)
+
+        # Freeze model
+        if freeze_pretrain:
+            self.gmfpp.freeze()
+            self.ncfpp.freeze()
+
+        # Remove GMF output layer
+        del self.gmfpp.gmf.net
+
+        # Remove NCF output layer
+        del self.ncfpp.ncf.net.mlp[-1]
+        if type(self.ncfpp.ncf.net.mlp[-1]) == torch.nn.Linear:
+            del self.ncfpp.ncf.net.mlp[-1]
+
+        # Add input dim
+        input_dim = gmfpp_hparams["gmf_hparams"]["embed_dim"]
+        input_dim += gmfpp_hparams["user_sdae_hparams"]["hidden_dims"][-1] and gmfpp_hparams["item_sdae_hparams"]["hidden_dims"][-1]
+        input_dim += ncfpp_hparams["ncf_hparams"]["hidden_dims"][-1]
+        self.net = MultilayerPerceptrons(input_dim = input_dim, 
+                                         output_layer = "relu")
+        self.freeze_pretrain = freeze_pretrain
+
+    def forward(self, x, user, item):
+        # GMFPP part: Element wise product between latent factor and embeddings
+        gmfpp_product = self.gmfpp.encode_element_wise_product(x, user, item)
+
+        # NCFPP part: Get output of last hidden layer
+        ncfpp_last_hidden = self.ncfpp.forward(x, user ,item)
+
+        # Concatenate GMFPP's element wise product and NCFPP's last hidden layer output
+        concat = torch.cat([gmfpp_product, ncfpp_last_hidden], dim = 1)
+
+        # Feed to generalized non-linear layer
+        y = self.net(concat)
+
+        return y
+
+    def backward_loss(self, *batch):
+        """Custom backward loss"""
+        rating_loss = super().backward_loss(*batch)
+
+        if self.freeze_pretrain:
+            # If freeze pretrain, only take accunt the rating loss for back propagration
+            return rating_loss
+        else:
+            # GMF++ loss which include GMF++ rating loss, reconstruction loss
+            gmfpp_loss = self.gmfpp.backward_loss(*batch)
+            # NCFP++ loss which include NCF++ rating loss and reconstruction loss
+            ncfpp_loss = self.ncfpp.backward_loss(*batch)
+            # Rating loss
+            loss = rating_loss + gmfpp_loss + ncfpp_loss
+
+            return loss
