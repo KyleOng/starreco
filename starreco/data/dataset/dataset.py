@@ -12,9 +12,8 @@ class User:
     """
     User dataframe class.
 
-    :param df (pd.DataFrame): User dataframe.
-
-    :param column (str): User column.
+    - df (pd.DataFrame): User dataframe.
+    - column (str): User column.
     """
 
     cat_columns = num_columns = set_columns = []
@@ -28,9 +27,8 @@ class Item:
     """
     Item dataframe class.
 
-    :param df (pd.DataFrame): Item dataframe.
-
-    :param column (str): Item column.
+    - df (pd.DataFrame): Item dataframe.
+    - column (str): Item column.
     """
 
     cat_columns = num_columns = set_columns = []
@@ -44,17 +42,12 @@ class Rating:
     """
     Rating dataframe class.
 
-    :param df (pd.DataFrame): Rating dataframe.
-
-    :param user (User): User dataframe class.
-
-    :param item (Item): Item dataframe class.
-
-    :param column (str): Rating column.
-
-    :param num_users (int): Number of users.
-
-    :param num_items (int): Number of items.
+    - df (pd.DataFrame): Rating dataframe.
+    - user (User): User dataframe class.
+    - item (Item): Item dataframe class.
+    - column (str): Rating column.
+    - num_users (int): Number of users.
+    - num_items (int): Number of items.
     """
 
     def __init__(self, df, column, user = None, item = None):
@@ -69,11 +62,10 @@ class Rating:
         """
         Reindex a dataframe column.
 
-        :param df (pd.DataFrame): Dataframe.
+        - df (pd.DataFrame): Dataframe.
+        - column (str): Column.
 
-        :param column (str): Column.
-
-        :return df: reindexed df.
+        - return: reindexed df.
         
         Warning: This method should not be used directly.
         """
@@ -146,7 +138,9 @@ class BaseDataset:
         """
         Download dataset from the url
 
-        :param url: url to download the dataset
+        - url: url to download the dataset
+
+        - return: dataset path.
         """
         # Obtain the characters after the last "/" as filename
         file_name = url.split("/")[-1]
