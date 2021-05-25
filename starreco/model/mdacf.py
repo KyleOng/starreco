@@ -162,7 +162,7 @@ class _MDACF(MF):
 
         return loss
 
-# In progress: allow sparse matrix factorization
+# Future work: allow sparse matrix factorization.
 class MDACF(_MDACF):
     """
     Marginalized Denoising Autoencoder Collaborative Filtering (private).
