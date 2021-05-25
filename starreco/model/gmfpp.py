@@ -15,12 +15,12 @@ class GMFPP(BaseModule):
     - user_sdae_hparams (dict): User SDAE hyperparameteres.
     - item_sdae_hparams (dict): Item SDAE hyperparameteres.
     - gmf_hparams (dict): GMF hyperparameteres.
-    - gmf_params (dict): GMF pretrain weights/parameteers.
-    - alpha (int/float): Trade-off parameter value for user SDAE.
-    - beta (int/float): Trade-off parameter value for item SDAE.
-    - lr (float): Learning rate.
-    - l2_lambda (float): L2 regularization rate.
-    - criterion (F): Criterion or objective or loss function.
+    - gmf_params (dict): GMF pretrain weights/parameteers. Default: None.
+    - alpha (int/float): Trade-off parameter value for user SDAE. Default: 1e-3.
+    - beta (int/float): Trade-off parameter value for item SDAE. Default: 1e-3.
+    - lr (float): Learning rate. Default: 1e-3.
+    - l2_lambda (float): L2 regularization rate. Default: 1e-3.
+    - criterion (F): Criterion or objective or loss function. Default: F.mse_loss.
     """
 
     def __init__(self, 

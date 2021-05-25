@@ -19,12 +19,12 @@ class NMFPP(BaseModule):
     - user_sdae_hparams (dict): User SDAE hyperparameteres.
     - item_sdae_hparams (dict): Item SDAE hyperparameteres.
     - nmf_hparams (dict): NeuMF hyperparameteres.
-    - nmf_params (dict): NeuMF pretrain weights/parameteers.
-    - alpha (int/float): Trade-off parameter value for user SDAE.
-    - beta (int/float): Trade-off parameter value for item SDAE.
-    - lr (float): Learning rate.
-    - l2_lambda (float): L2 regularization rate.
-    - criterion (F): Criterion or objective or loss function.
+    - nmf_params (dict): NeuMF pretrain weights/parameteers. Default: None.
+    - alpha (int/float): Trade-off parameter value for user SDAE. Default: 1e-3.
+    - beta (int/float): Trade-off parameter value for item SDAE. Default: 1e-3.
+    - lr (float): Learning rate. Default: 1e-3.
+    - l2_lambda (float): L2 regularization rate. Default: 1e-3.
+    - criterion (F): Criterion or objective or loss function. Default: F.mse_loss.
     """
     
     def __init__(self, 
@@ -155,12 +155,12 @@ class NMFPPs(BaseModule):
 
     - gmfpp_hparams (dict): GMF++ hyperparameters.
     - ncfpp_hparams (dict): NCF++ hyperparameters.
-    - gmfpp_params (dict): GMF++ pretrain weights/parameteers.
-    - ncfpp_params (dict): NCF++ pretrain weights/parameteers.
-    - freeze_pretrain (bool): Freeze pretrain weights.
-    - lr (float): Learning rate.
-    - l2_lambda (float): L2 regularization rate.
-    - criterion (F): Criterion or objective or loss function.
+    - gmfpp_params (dict): GMF++ pretrain weights/parameteers. Default: None.
+    - ncfpp_params (dict): NCF++ pretrain weights/parameteers. Default: None.
+    - freeze_pretrain (bool): Freeze pretrain weights. Default: True.
+    - lr (float): Learning rate. Default: 1e-3.
+    - l2_lambda (float): L2 regularization rate. Default: 1e-3.
+    - criterion (F): Criterion or objective or loss function. Default: F.mse_loss.
     """
 
     def __init__(self, 

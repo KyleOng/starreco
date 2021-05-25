@@ -10,10 +10,10 @@ class MF(BaseModule):
     Matrix Factorization.
 
     - field_dims (list): List of features dimensions.
-    - embed_dim (int): Embedding dimension.
-    - lr (float): Learning rate.
-    - l2_lambda (float): L2 regularization rate.
-    - criterion (F): Criterion or objective or loss function.
+    - embed_dim (int): Embedding dimension. Default: 8.
+    - lr (float): Learning rate. Default: 1e-3.
+    - l2_lambda (float): L2 regularization rate. Default: 1e-3.
+    - criterion (F): Criterion or objective or loss function. Default: F.mse_loss.
     """
     
     def __init__(self, 
@@ -38,7 +38,7 @@ class MF(BaseModule):
         # Dot product between user and items embeddings
         dot = torch.sum(user_embed * item_embed, dim = 1)
         
-        # Reshape to match target shape
+        # Prediction and reshape to match target shape
         y = dot.view(dot.shape[0], -1)
 
         return y

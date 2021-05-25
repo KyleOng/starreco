@@ -16,12 +16,12 @@ class NMF(BaseModule):
 
     - gmf_hparams (dict): GMF hyperparameters.
     - ncf_hparams (dict): NCF hyperparameters.
-    - gmf_params (dict): GMF pretrain weights/parameteers.
-    - ncf_params (dict): NCF pretrain weights/parameteers.
-    - freeze_pretrain (bool): Freeze pretrain weights.
-    - lr (float): Learning rate.
-    - l2_lambda (float): L2 regularization rate.
-    - criterion (F): Criterion or objective or loss function.
+    - gmf_params (dict): GMF pretrain weights/parameteers. Default: None.
+    - ncf_params (dict): NCF pretrain weights/parameteers. Default: None.
+    - freeze_pretrain (bool): Freeze pretrain weights. Default: True.
+    - lr (float): Learning rate. Default: 1e-3.
+    - l2_lambda (float): L2 regularization rate. Default: 1e-3.
+    - criterion (F): Criterion or objective or loss function. Default: F.mse_loss.
     """
     
     def __init__(self, 

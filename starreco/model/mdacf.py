@@ -14,7 +14,7 @@ class _MDACF(MF):
     - user_dims (list): User matrix dimension.
     - item_dins (list): Item matrix dimension.
     - embed_dim (int): Embedding dimension.
-    - corrupt_ratio (int/float): Probability of noises to be added to the input. Default: 0.3.
+    - corrupt_ratio (int/float): Probability of noises to be added to the input.
     - alpha (int/float): Trade-off parameter value for user SDAE.
     - beta (int/float): Trade-off parameter value for item SDAE.
     - lr (float): Learning rate.
@@ -27,13 +27,13 @@ class _MDACF(MF):
     def __init__(self, 
                  user_dims:list, 
                  item_dims:list,
-                 embed_dim:int = 8, 
-                 corrupt_ratio:Union[int,float] = 0.3,
-                 alpha:Union[int,float] = 0.8, 
-                 beta:Union[int,float] = 3e-3,
-                 lr:float = 1e-3,
-                 l2_lambda:Union[int,float] = 0.3,
-                 criterion:F = F.mse_loss):
+                 embed_dim:int, 
+                 corrupt_ratio:Union[int,float],
+                 alpha:Union[int,float], 
+                 beta:Union[int,float],
+                 lr:float,
+                 l2_lambda:Union[int,float],
+                 criterion:F):
         self.m, self.p = user_dims
         self.n, self.q = item_dims 
 
@@ -169,13 +169,13 @@ class MDACF(_MDACF):
 
     - user (torch.Tensor): User matrix.
     - item (torch.Tensor): Item matrix.
-    - embed_dim (int): Embedding dimension.
+    - embed_dim (int): Embedding dimension. Default: 8.
     - corrupt_ratio (int/float): Probability of noises to be added to the input. Default: 0.3.
-    - alpha (int/float): Trade-off parameter value for user SDAE.
-    - beta (int/float): Trade-off parameter value for item SDAE.
-    - lr (float): Learning rate.
-    - l2_lambda (float): L2 regularization rate.
-    - criterion (F): Criterion or objective or loss function.    
+    - alpha (int/float): Trade-off parameter value for user SDAE. Default: 0.8.
+    - beta (int/float): Trade-off parameter value for item SDAE. Default: 3e-3.
+    - lr (float): Learning rate. Default: 1e-3.
+    - l2_lambda (float): L2 regularization rate. Default: 1e-3.
+    - criterion (F): Criterion or objective or loss function. Default: F.mse_loss.  
     """
 
     def __init__(self, 

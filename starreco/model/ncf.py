@@ -18,9 +18,9 @@ class NCF(BaseModule):
     - activations (str/list): List of activation functions. Default: relu.
     - dropouts (int/float/list): List of dropout values. Default: 0.5.
     - batch_norm (bool): If True, apply batch normalization in every layer. Batch normalization is applied between activation and dropout layer. Default: True.
-    - lr (float): Learning rate.
-    - l2_lambda (float): L2 regularization rate.
-    - criterion (F): Criterion or objective or loss function.
+    - lr (float): Learning rate. Default: 1e-3.
+    - l2_lambda (float): L2 regularization rate. Default: 1e-3.
+    - criterion (F): Criterion or objective or loss function. Default: F.mse_loss.  
     """
 
     def __init__(self, field_dims:list, 
