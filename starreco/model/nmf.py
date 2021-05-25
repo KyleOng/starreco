@@ -72,7 +72,7 @@ class NMF(BaseModule):
         # Concatenate GMF's element wise product and NCF's last hidden layer output
         concat = torch.cat([gmf_product, ncf_last_hidden], dim = 1)
 
-        # Feed to generalized non-linear layer
+        # Prediction
         y = self.net(concat)
 
         return y

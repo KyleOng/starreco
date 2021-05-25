@@ -79,7 +79,7 @@ class NCFPP(BaseModule):
         # Element wise product between user and items embeddings
         concat = self.encode_concatenate(x, user_x, item_x)
         
-        # Feed element wise product to generalized non-linear layer
+        # Prediction
         y = self.ncf.net(concat)
 
         return y

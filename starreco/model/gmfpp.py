@@ -79,7 +79,7 @@ class GMFPP(BaseModule):
         # Element wise product between user and items embeddings
         product = self.encode_element_wise_product(x, user_x, item_x)
 
-        # Feed element wise product to generalized non-linear layer
+        # Prediction
         y = self.gmf.net(product)
 
         return y

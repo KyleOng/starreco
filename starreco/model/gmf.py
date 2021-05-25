@@ -49,7 +49,7 @@ class GMF(BaseModule):
         # Element wise product between user and items embeddings
         product = self.element_wise_product(x)
         
-        # Feed element wise product to generalized non-linear layer
+        # Prediction
         y = self.net(product)
 
         return y

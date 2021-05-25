@@ -54,9 +54,10 @@ class NCF(BaseModule):
         return torch.flatten(x_embed, start_dim = 1)
 
     def forward(self, x):
+        # Concatenation
         concat = self.concatenate(x)
         
-        # Feed concatenate embeddings to network
+        # Prediction
         y = self.net(concat)
 
         return y
