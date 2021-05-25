@@ -9,7 +9,19 @@ from .mf import MF
   
 class _MDACF(MF):
     """
-    Marginalized Denoising Autoencoder Collaborative Filtering model
+    Marginalized Denoising Autoencoder Collaborative Filtering.
+
+    - user_dims (list): User matrix dimension.
+    - item_dins (list): Item matrix dimension.
+    - embed_dim (int): Embedding dimension.
+    - corrupt_ratio (int/float): Probability of noises to be added to the input. Default: 0.3.
+    - alpha (int/float): Trade-off parameter value for user SDAE.
+    - beta (int/float): Trade-off parameter value for item SDAE.
+    - lr (float): Learning rate.
+    - l2_lambda (float): L2 regularization rate.
+    - criterion (F): Criterion or objective or loss function.
+
+    Warning: This method should not be used directly. Used derived instead.
     """
 
     def __init__(self, 
@@ -22,7 +34,6 @@ class _MDACF(MF):
                  lr:float = 1e-3,
                  l2_lambda:Union[int,float] = 0.3,
                  criterion:F = F.mse_loss):
-        # Using the same notation as in the paper for easy reference
         self.m, self.p = user_dims
         self.n, self.q = item_dims 
 
@@ -117,13 +128,18 @@ class _MDACF(MF):
         self.user_P.data = self._update_projections(self.user.T, user_W, U)
         self.item_P.data = self._update_projections(self.item.T, item_W, V)
 
-    def backward_loss(self, *batch):
-        x, y = batch
-
+    def forward(self, x):
+        # Transfer data to `self.device` during the 1st epoch
         if self.current_epoch == 0:
             self.user = self.user.to(self.device)
             self.item = self.item.to(self.device)
 
+        return super().forward(x)
+
+    def backward_loss(self, *batch):
+        x, y = batch
+
+        # Update W and P during training via MDAE
         if self.training:
             self.mdae()
 
@@ -134,26 +150,32 @@ class _MDACF(MF):
         U = self.features_embedding.embedding.weight[:self.m, :].data
         V = self.features_embedding.embedding.weight[-self.n:, :].data
         
-        loss = 0
-        loss += self.l2_lambda * torch.sum(torch.square(torch.matmul(user_P, U.T) - torch.matmul(user_W, self.user.T)))
-        loss += self.l2_lambda * torch.sum(torch.square(torch.matmul(item_P, V.T) - torch.matmul(item_W, self.item.T)))
-        loss += self.alpha * torch.sum(torch.square(y - self.forward(x)))
+        # User reconstruction loss
+        user_loss = self.l2_lambda * torch.sum(torch.square(torch.matmul(user_P, U.T) - torch.matmul(user_W, self.user.T)))
+        # Item reconstruction loss
+        item_loss = self.l2_lambda * torch.sum(torch.square(torch.matmul(item_P, V.T) - torch.matmul(item_W, self.item.T)))
+        # Rating loss
+        rating_loss =  self.alpha * torch.sum(torch.square(y - self.forward(x)))
+
+        loss = rating_loss + user_loss + item_loss 
         loss += self.beta * (torch.sum(torch.square(U)) + torch.sum(torch.square(V)))
 
         return loss
 
-    def logger_loss(self, *batch):
-        x, y = batch
-
-        y_hat = self.forward(x)
-        loss = self.criterion(y_hat, y)
-
-        return loss
-
-
+# In progress: allow sparse matrix factorization
 class MDACF(_MDACF):
     """
-    Marginalized Denoising Autoencoder Collaborative Filtering lightning module
+    Marginalized Denoising Autoencoder Collaborative Filtering (private).
+
+    - user (torch.Tensor): User matrix.
+    - item (torch.Tensor): Item matrix.
+    - embed_dim (int): Embedding dimension.
+    - corrupt_ratio (int/float): Probability of noises to be added to the input. Default: 0.3.
+    - alpha (int/float): Trade-off parameter value for user SDAE.
+    - beta (int/float): Trade-off parameter value for item SDAE.
+    - lr (float): Learning rate.
+    - l2_lambda (float): L2 regularization rate.
+    - criterion (F): Criterion or objective or loss function.    
     """
 
     def __init__(self, 
