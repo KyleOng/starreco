@@ -1,10 +1,39 @@
+import torch
 import torch.nn.functional as F
 
-from .lr import LR
-from .layers import FeaturesEmbedding, PairwiseInteraction
+from .module import BaseModule
+from .layers import FeaturesEmbedding, FeaturesLinear, PairwiseInteraction
 
 # Done
-class FM(LR):
+class AbstractFM(BaseModule):
+    """
+    Abstract Factorization Machine class.
+
+    - field_dims (list): List of features dimensions. 
+    - embed_dim (int): Embedding dimension. 
+    - lr (float): Learning rate. 
+    - l2_lambda (float): L2 regularization rate. 
+    - criterion (F): Criterion or objective or loss function. 
+
+    Warning: This class is an abstract class and should not be used directly.
+    """
+
+    def __init__(self, 
+                 field_dims:list, 
+                 embed_dim:int, 
+                 lr:float,
+                 weight_decay:float,
+                 criterion:F):
+        super().__init__(lr, weight_decay, criterion)
+
+        # Embedding layer
+        self.embedding = FeaturesEmbedding(field_dims, embed_dim)
+
+        # Linear layer
+        self.linear = FeaturesLinear(field_dims)
+
+# Done
+class FM(AbstractFM):
     """
     Factorization Machine.
 
@@ -21,11 +50,8 @@ class FM(LR):
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
                  criterion:F = F.mse_loss):
-        super().__init__(field_dims, lr, weight_decay, criterion)
+        super().__init__(field_dims, embed_dim, lr, weight_decay, criterion)
         self.save_hyperparameters()
-
-        # Embedding layer
-        self.embedding = FeaturesEmbedding(field_dims, embed_dim)
 
         # Pairwise interaction
         self.pairwise_interaction = PairwiseInteraction()
@@ -35,7 +61,7 @@ class FM(LR):
         embed_x = self.embedding(x.int())
         
         # Prediction
-        linear = super().forward(x)
+        linear = self.linear(x.int()) 
         pairwise_interaction = self.pairwise_interaction(embed_x)
         y = linear + pairwise_interaction
 
