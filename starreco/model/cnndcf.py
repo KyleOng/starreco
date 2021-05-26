@@ -3,10 +3,9 @@ import torch.nn.functional as F
 
 from .oncf import ONCF
 from .layers import MultilayerPerceptrons
-from .mixins import FeaturesEmbeddingMixin
 
 # Done
-class CNNDCF(ONCF, FeaturesEmbeddingMixin):
+class CNNDCF(ONCF):
     """
     Outer Product-based Neural Collaborative Filtering.
 

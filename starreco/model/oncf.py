@@ -3,12 +3,11 @@ import math
 import torch
 import torch.nn.functional as F
 
-from .module import BaseModule
-from .layers import FeaturesEmbedding, ActivationFunction, MultilayerPerceptrons
-from .mixins import FeaturesEmbeddingMixin
+from .mf import MF
+from .layers import ActivationFunction, MultilayerPerceptrons
 
 # Done
-class ONCF(BaseModule, FeaturesEmbeddingMixin):
+class ONCF(MF):
     """
     Outer Product-based Neural Collaborative Filtering.
 
@@ -35,12 +34,8 @@ class ONCF(BaseModule, FeaturesEmbeddingMixin):
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
                  criterion:F = F.mse_loss):
-        super().__init__(lr, weight_decay, criterion)
+        super().__init__(field_dims, embed_dim, lr, weight_decay, criterion)
         self.save_hyperparameters()
-    
-
-        # Embedding layer
-        self.features_embedding = FeaturesEmbedding(field_dims, embed_dim)
 
         # Convolution neural network layers
         cnn_blocks = [torch.nn.LayerNorm(embed_dim)]

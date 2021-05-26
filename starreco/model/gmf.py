@@ -1,15 +1,13 @@
 from typing import Union
 
 import numpy as np
-import torch
 import torch.nn.functional as F
 
 from .mf import MF
-from .layers import FeaturesEmbedding, MultilayerPerceptrons
-from .mixins import FeaturesEmbeddingMixin
+from .layers import MultilayerPerceptrons
 
 # Done
-class GMF(MF, FeaturesEmbeddingMixin):
+class GMF(MF):
     """
     Generalized Matrix Factorization.
 

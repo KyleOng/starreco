@@ -3,10 +3,9 @@ import torch.nn.functional as F
 
 from .module import BaseModule
 from .layers import FeaturesEmbedding
-from .mixins import FeaturesEmbeddingMixin 
 
 # Done
-class MF(BaseModule, FeaturesEmbeddingMixin):
+class MF(BaseModule):
     """
     Matrix Factorization.
 
@@ -31,7 +30,19 @@ class MF(BaseModule, FeaturesEmbeddingMixin):
         # Embedding layer
         self.features_embedding = FeaturesEmbedding(field_dims, embed_dim)
 
-    def forward(self, x):
+    def user_item_embeddings(self, x:torch.Tensor, concat:bool = False):
+        x_embed = self.features_embedding(x.int())
+
+        if concat:
+            return torch.flatten(x_embed, start_dim = 1)
+        else:
+            # Seperate user (1st column) and item (2nd column) embeddings from generated embeddings
+            user_embed = x_embed[:, 0]
+            item_embed = x_embed[:, 1]
+
+            return user_embed, item_embed
+
+    def forward(self, x:torch.Tensor):
         # Generate embeddings
         user_embed, item_embed = self.user_item_embeddings(x)
 
