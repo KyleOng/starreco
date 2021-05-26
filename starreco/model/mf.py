@@ -2,10 +2,11 @@ import torch
 import torch.nn.functional as F
 
 from .module import BaseModule
-from .layer import FeaturesEmbedding
+from .layers import FeaturesEmbedding
+from .mixins import FeaturesEmbeddingMixin 
 
 # Done
-class MF(BaseModule):
+class MF(BaseModule, FeaturesEmbeddingMixin):
     """
     Matrix Factorization.
 
@@ -30,10 +31,7 @@ class MF(BaseModule):
 
     def forward(self, x):
         # Generate embeddings
-        x_embed = self.features_embedding(x.int())
-        # Seperate user (1st column) and item (2nd column) embeddings from generated embeddings
-        user_embed = x_embed[:, 0]
-        item_embed = x_embed[:, 1]
+        user_embed, item_embed = self.user_item_embeddings(x)
 
         # Dot product between user and items embeddings
         dot = torch.sum(user_embed * item_embed, dim = 1)
