@@ -32,7 +32,6 @@ class WDL(BaseModule):
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
                  criterion:F = F.mse_loss):
-
         super().__init__(lr, weight_decay, criterion)
         self.save_hyperparameters()
 
