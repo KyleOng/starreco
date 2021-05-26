@@ -37,7 +37,7 @@ class NCF(MF, FeaturesEmbeddingMixin ):
         self.save_hyperparameters()
 
         # Network 
-        self.net = MultilayerPerceptrons(input_dim = embed_dim * 2, 
+        self.net = MultilayerPerceptrons(input_dim = 2 * embed_dim, # strictly only 2
                                          hidden_dims = hidden_dims, 
                                          activations = activations, 
                                          dropouts = dropouts,
