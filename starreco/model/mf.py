@@ -23,6 +23,8 @@ class MF(BaseModule, FeaturesEmbeddingMixin):
                  lr:float = 1e-3,
                  l2_lambda:float = 1e-6,
                  criterion:F = F.mse_loss):
+        assert len(field_dims) == 2, "`field_dims` should contains only 2 elements (user and item field)"
+
         super().__init__(lr, l2_lambda, criterion)
         self.save_hyperparameters()
 
