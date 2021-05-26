@@ -1,13 +1,14 @@
+from starreco.model.module import BaseModule
 from typing import Union
 
 import torch
 import torch.nn.functional as F
 
-from .fm import AbstractFM
-from .layers import MultilayerPerceptrons
+from .module import BaseModule
+from .layers import FeaturesEmbedding, FeaturesLinear, MultilayerPerceptrons
 
 # Done
-class WDL(AbstractFM):
+class WDL(BaseModule):
     """
     Wide and Deep Learning.
 
@@ -32,8 +33,14 @@ class WDL(AbstractFM):
                  weight_decay:float = 1e-3,
                  criterion:F = F.mse_loss):
 
-        super().__init__(field_dims, embed_dim, lr, weight_decay, criterion)
+        super().__init__(lr, weight_decay, criterion)
         self.save_hyperparameters()
+
+        # Embedding layer
+        self.embedding = FeaturesEmbedding(field_dims, embed_dim)
+
+        # Linear layer
+        self.linear = FeaturesLinear(field_dims)
 
         # Multilayer Perceptrons
         self.net = MultilayerPerceptrons(input_dim = len(field_dims) * embed_dim,
