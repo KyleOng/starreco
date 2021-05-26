@@ -5,10 +5,11 @@ import torch
 import torch.nn.functional as F
 
 from .module import BaseModule
-from .layer import FeaturesEmbedding, MultilayerPerceptrons
+from .layers import FeaturesEmbedding, MultilayerPerceptrons
+from .mixins import FeaturesEmbeddingMixin
 
 # Done
-class GMF(BaseModule):
+class GMF(BaseModule, FeaturesEmbeddingMixin):
     """
     Generalized Matrix Factorization.
 
@@ -35,19 +36,12 @@ class GMF(BaseModule):
         self.net = MultilayerPerceptrons(input_dim = embed_dim, 
                                          output_layer = "relu")
 
-    def element_wise_product(self, x):
-        # Generate embeddings
-        x_embed = self.features_embedding(x.int())
-
-        # Seperate user (1st column) and item (2nd column) embeddings from generated embeddings
-        user_embed = x_embed[:, 0]
-        item_embed = x_embed[:, 1]
-
-        return user_embed * item_embed
-
     def forward(self, x):
+        # Generate embeddings
+        user_embed, item_embed = self.user_item_embeddings(x)
+
         # Element wise product between user and items embeddings
-        product = self.element_wise_product(x)
+        product = user_embed * item_embed
         
         # Prediction
         y = self.net(product)
