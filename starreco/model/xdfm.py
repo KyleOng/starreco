@@ -1,14 +1,13 @@
-from starreco.model.module import BaseModule
 from typing import Union
 
 import torch
 import torch.nn.functional as F
 
-from .module import BaseModule
-from .layer import FeaturesEmbedding, FeaturesLinear, CompressedInteraction, MultilayerPerceptrons
+from .wdl import WDL
+from .layers import CompressedInteraction
 
 # Done
-class XDFM(BaseModule):
+class XDFM(WDL):
     """
     Neural Factorization Machine.
 
@@ -37,34 +36,20 @@ class XDFM(BaseModule):
                  weight_decay:float = 1e-3,
                  criterion:F = F.mse_loss):
 
-        super().__init__(lr, weight_decay, criterion)
+        super().__init__(field_dims, embed_dim, hidden_dims, activations, dropouts, batch_norm, lr, weight_decay, criterion)
         self.save_hyperparameters()
-
-        if type(dropouts) == float or type(dropouts) == int:
-            dropouts = [dropouts] * len(hidden_dims)
-
-        # Embedding layer
-        self.embedding = FeaturesEmbedding(field_dims, embed_dim)
-
-        # Linear layer
-        self.linear = FeaturesLinear(field_dims)
 
         # Compressed Interaction
         self.compressed_interaction = CompressedInteraction(len(field_dims), cross_dims, split_half = cross_split_half)
-
-        # Multilayer Perceptrons
-        self.net = MultilayerPerceptrons(input_dim = len(field_dims) * embed_dim,
-                                         hidden_dims = hidden_dims, 
-                                         activations = activations, 
-                                         dropouts = dropouts,
-                                         output_layer = "relu",
-                                         batch_norm = batch_norm)
 
     def forward(self, x):
         # Generate embeddings
         embed_x = self.embedding(x.int())
 
         # Prediction
-        y = self.linear(x.int()) + self.compressed_interaction(embed_x) + self.net(torch.flatten(embed_x, start_dim = 1)) 
+        linear = self.linear(x.int()) 
+        compress_interaction = self.compressed_interaction(embed_x)
+        net = self.net(torch.flatten(embed_x, start_dim = 1)) 
+        y = linear + compress_interaction + net 
 
         return y
