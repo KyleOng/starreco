@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 
 from .module import BaseModule
-from .layer import FeaturesEmbedding, FeaturesLinear, PairwiseInteraction
+from .layers import FeaturesEmbedding, FeaturesLinear, PairwiseInteraction
 
 # Done
 class FM(BaseModule):
