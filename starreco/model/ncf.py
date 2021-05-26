@@ -4,11 +4,12 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from .module import BaseModule
-from .layer import FeaturesEmbedding, MultilayerPerceptrons
+from .mf import MF
+from .layers import FeaturesEmbedding, MultilayerPerceptrons
+from .mixins import FeaturesEmbeddingMixin 
 
 # Done
-class NCF(BaseModule):
+class NCF(MF, FeaturesEmbeddingMixin ):
     """
     Neural Collaborative Filtering.
 
@@ -32,11 +33,8 @@ class NCF(BaseModule):
                  lr:float = 1e-3,
                  l2_lambda:float = 1e-3,
                  criterion:F = F.mse_loss):
-        super().__init__(lr, l2_lambda, criterion)
+        super().__init__(field_dims, embed_dim, lr, l2_lambda, criterion)
         self.save_hyperparameters()
-        
-        # Embedding layer
-        self.features_embedding = FeaturesEmbedding(field_dims, embed_dim)
 
         # Network 
         self.net = MultilayerPerceptrons(input_dim = embed_dim * 2, 
@@ -46,19 +44,12 @@ class NCF(BaseModule):
                                          output_layer = "relu",
                                          batch_norm = batch_norm)
 
-    def concatenate(self, x):
-        # Generate embeddings
-        x_embed = self.features_embedding(x.int())
-
-        # Concatenate embeddings
-        return torch.flatten(x_embed, start_dim = 1)
-
     def forward(self, x):
         # Concatenation
-        concat = self.concatenate(x)
+        concat_embed = self.user_item_embeddings(x, concat = True)
         
         # Prediction
-        y = self.net(concat)
+        y = self.net(concat_embed)
 
         return y
         
