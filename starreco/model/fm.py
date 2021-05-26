@@ -5,35 +5,7 @@ from .module import BaseModule
 from .layers import FeaturesEmbedding, FeaturesLinear, PairwiseInteraction
 
 # Done
-class AbstractFM(BaseModule):
-    """
-    Abstract Factorization Machine class.
-
-    - field_dims (list): List of features dimensions. 
-    - embed_dim (int): Embedding dimension. 
-    - lr (float): Learning rate. 
-    - l2_lambda (float): L2 regularization rate. 
-    - criterion (F): Criterion or objective or loss function. 
-
-    Warning: This class is an abstract class and should not be used directly.
-    """
-
-    def __init__(self, 
-                 field_dims:list, 
-                 embed_dim:int, 
-                 lr:float,
-                 weight_decay:float,
-                 criterion:F):
-        super().__init__(lr, weight_decay, criterion)
-
-        # Embedding layer
-        self.embedding = FeaturesEmbedding(field_dims, embed_dim)
-
-        # Linear layer
-        self.linear = FeaturesLinear(field_dims)
-
-# Done
-class FM(AbstractFM):
+class FM(BaseModule):
     """
     Factorization Machine.
 
@@ -50,8 +22,14 @@ class FM(AbstractFM):
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
                  criterion:F = F.mse_loss):
-        super().__init__(field_dims, embed_dim, lr, weight_decay, criterion)
+        super().__init__(lr, weight_decay, criterion)
         self.save_hyperparameters()
+
+        # Embedding layer
+        self.embedding = FeaturesEmbedding(field_dims, embed_dim)
+
+        # Linear layer
+        self.linear = FeaturesLinear(field_dims)
 
         # Pairwise interaction
         self.pairwise_interaction = PairwiseInteraction()
