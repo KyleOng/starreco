@@ -1,4 +1,4 @@
-from .layer import *
+from .layers import *
 from .mf import MF
 from .gmf import GMF
 from .ncf import NCF
@@ -12,3 +12,5 @@ from .nfm import NFM
 from .wdl import WDL
 from .dfm import DFM
 from .xdfm import XDFM
+from .oncf import ONCF
+from .cnndcf import CNNDCF
