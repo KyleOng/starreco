@@ -48,7 +48,7 @@ class NMF(BaseModule):
             self.gmf.freeze()
             self.ncf.freeze()
 
-        # Remove GMF output layer and replace with function that returns input
+        # Remove GMF output layer and replace with a function that returns input
         del self.gmf.net
         self.gmf.net = lambda x:x
 
