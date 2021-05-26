@@ -4,12 +4,12 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from .module import BaseModule
+from .mf import MF
 from .layers import FeaturesEmbedding, MultilayerPerceptrons
 from .mixins import FeaturesEmbeddingMixin
 
 # Done
-class GMF(BaseModule, FeaturesEmbeddingMixin):
+class GMF(MF, FeaturesEmbeddingMixin):
     """
     Generalized Matrix Factorization.
 
@@ -26,11 +26,8 @@ class GMF(BaseModule, FeaturesEmbeddingMixin):
                  lr:float = 1e-3,
                  l2_lambda:float = 1e-6,
                  criterion:F = F.mse_loss):
-        super().__init__(lr, l2_lambda, criterion)
+        super().__init__(field_dims, embed_dim, lr, l2_lambda, criterion)
         self.save_hyperparameters()
-
-        # Embedding layer
-        self.features_embedding = FeaturesEmbedding(field_dims, embed_dim)
 
         # Network
         self.net = MultilayerPerceptrons(input_dim = embed_dim, 
