@@ -4,11 +4,11 @@ from typing import Union
 import torch
 import torch.nn.functional as F
 
-from .module import BaseModule
-from .layer import FeaturesEmbedding, FeaturesLinear, PairwiseInteraction, MultilayerPerceptrons
+from .fm import FM
+from .layers import PairwiseInteraction, MultilayerPerceptrons
 
 # Done
-class NFM(BaseModule):
+class NFM(FM):
     """
     Neural Factorization Machine.
 
@@ -34,17 +34,13 @@ class NFM(BaseModule):
                  weight_decay:float = 1e-3,
                  criterion:F = F.mse_loss):
 
-        super().__init__(lr, weight_decay, criterion)
+        super().__init__(field_dims, embed_dim, lr, weight_decay, criterion)
         self.save_hyperparameters()
+
+        del self.pairwise_interaction
 
         if type(dropouts) == float or type(dropouts) == int:
             dropouts = [dropouts] * len(hidden_dims)
-
-        # Embedding layer
-        self.embedding = FeaturesEmbedding(field_dims, embed_dim)
-
-        # Linear layer
-        self.linear = FeaturesLinear(field_dims)
 
         # Bi-interaction layer
         bi_interaction_blocks = [PairwiseInteraction(reduce_sum = False), torch.nn.BatchNorm1d(embed_dim)]
@@ -68,6 +64,8 @@ class NFM(BaseModule):
         cross_term = self.bi_interaction(embed_x)
 
         # Prediction
-        y = self.linear(x.int()) + self.net(cross_term)
+        linear = self.linear(x.int())
+        net = self.net(cross_term)
+        y =  linear + net
 
         return y
