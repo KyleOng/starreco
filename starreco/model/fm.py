@@ -1,11 +1,10 @@
-import torch
 import torch.nn.functional as F
 
-from .module import BaseModule
-from .layers import FeaturesEmbedding, FeaturesLinear, PairwiseInteraction
+from .lr import LR
+from .layers import FeaturesEmbedding, PairwiseInteraction
 
 # Done
-class FM(BaseModule):
+class FM(LR):
     """
     Factorization Machine.
 
@@ -22,14 +21,11 @@ class FM(BaseModule):
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
                  criterion:F = F.mse_loss):
-        super().__init__(lr, weight_decay, criterion)
+        super().__init__(field_dims, lr, weight_decay, criterion)
         self.save_hyperparameters()
 
         # Embedding layer
         self.embedding = FeaturesEmbedding(field_dims, embed_dim)
-
-        # Linear layer
-        self.linear = FeaturesLinear(field_dims)
 
         # Pairwise interaction
         self.pairwise_interaction = PairwiseInteraction()
@@ -39,6 +35,8 @@ class FM(BaseModule):
         embed_x = self.embedding(x.int())
         
         # Prediction
-        y = self.linear(x.int()) + self.pairwise_interaction(embed_x)
+        linear = super().forward(x)
+        pairwise_interaction = self.pairwise_interaction(embed_x)
+        y = linear + pairwise_interaction
 
         return y
