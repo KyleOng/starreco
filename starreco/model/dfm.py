@@ -4,11 +4,11 @@ from typing import Union
 import torch
 import torch.nn.functional as F
 
-from .module import BaseModule
-from .layer import FeaturesEmbedding, FeaturesLinear, PairwiseInteraction, MultilayerPerceptrons
+from .fm import FM
+from .layers import MultilayerPerceptrons
 
 # Done
-class DFM(BaseModule):
+class DFM(FM):
     """
     Neural Factorization Machine.
 
@@ -33,20 +33,11 @@ class DFM(BaseModule):
                  weight_decay:float = 1e-3,
                  criterion:F = F.mse_loss):
 
-        super().__init__(lr, weight_decay, criterion)
+        super().__init__(field_dims, embed_dim, lr, weight_decay, criterion)
         self.save_hyperparameters()
 
         if type(dropouts) == float or type(dropouts) == int:
             dropouts = [dropouts] * len(hidden_dims)
-
-        # Embedding layer
-        self.embedding = FeaturesEmbedding(field_dims, embed_dim)
-
-        # Linear layer
-        self.linear = FeaturesLinear(field_dims)
-
-        # Pairwise interaction
-        self.pairwise_interaction = PairwiseInteraction()
 
         # Multilayer Perceptrons
         self.net = MultilayerPerceptrons(input_dim = len(field_dims) * embed_dim,
@@ -61,6 +52,9 @@ class DFM(BaseModule):
         embed_x = self.embedding(x.int())
 
         # Prediction
-        y = self.linear(x.int()) + self.pairwise_interaction(embed_x) + self.net(torch.flatten(embed_x, start_dim = 1)) 
+        linear = self.linear(x.int())
+        pairwise_interaction = self.pairwise_interaction(embed_x)
+        net = self.net(torch.flatten(embed_x, start_dim = 1)) 
+        y = linear + pairwise_interaction + net
 
         return y
