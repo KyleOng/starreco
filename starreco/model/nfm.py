@@ -4,11 +4,11 @@ from typing import Union
 import torch
 import torch.nn.functional as F
 
-from .fm import FM
+from .fm import AbstractFM
 from .layers import PairwiseInteraction, MultilayerPerceptrons
 
 # Done
-class NFM(FM):
+class NFM(AbstractFM):
     """
     Neural Factorization Machine.
 
@@ -37,11 +37,6 @@ class NFM(FM):
         super().__init__(field_dims, embed_dim, lr, weight_decay, criterion)
         self.save_hyperparameters()
 
-        del self.pairwise_interaction
-
-        if type(dropouts) == float or type(dropouts) == int:
-            dropouts = [dropouts] * len(hidden_dims)
-
         # Bi-interaction layer
         bi_interaction_blocks = [PairwiseInteraction(reduce_sum = False), torch.nn.BatchNorm1d(embed_dim)]
         if bi_dropout: 
@@ -64,8 +59,8 @@ class NFM(FM):
         cross_term = self.bi_interaction(embed_x)
 
         # Prediction
-        linear = self.linear(x.int())
-        net = self.net(cross_term)
-        y =  linear + net
+        linear = self.linear(x.int()) 
+        cross_net = self.net(cross_term)
+        y =  linear + cross_net
 
         return y
