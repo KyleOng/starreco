@@ -1,14 +1,12 @@
-from typing import Union
-
 import numpy as np
 import torch
 import torch.nn.functional as F
 
 from .module import BaseModule
-from .layer import FeaturesEmbedding, MultilayerPerceptrons
 from .gmf import GMF
 from .ncf import NCF
-    
+from .layers import MultilayerPerceptrons
+
 # Done
 class NMF(BaseModule):
     """
@@ -50,8 +48,9 @@ class NMF(BaseModule):
             self.gmf.freeze()
             self.ncf.freeze()
 
-        # Remove GMF output layer
+        # Remove GMF output layer and replace with function that returns input
         del self.gmf.net
+        self.gmf.net = lambda x:x
 
         # Remove NCF output layer
         del self.ncf.net.mlp[-1]
@@ -64,7 +63,7 @@ class NMF(BaseModule):
 
     def forward(self, x):
         # GMF part: Element wise product between embeddings
-        gmf_product = self.gmf.element_wise_product(x)
+        gmf_product = self.gmf.forward(x)
 
         # NCF part: Get output of last hidden layer
         ncf_last_hidden = self.ncf.forward(x)
