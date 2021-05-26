@@ -21,7 +21,7 @@ class _MDACF(MF):
     - l2_lambda (float): L2 regularization rate.
     - criterion (F): Criterion or objective or loss function.
 
-    Warning: This method should not be used directly. Used derived instead.
+    Warning: This method should not be used directly.
     """
 
     def __init__(self, 
