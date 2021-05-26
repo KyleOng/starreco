@@ -36,9 +36,6 @@ class DFM(FM):
         super().__init__(field_dims, embed_dim, lr, weight_decay, criterion)
         self.save_hyperparameters()
 
-        if type(dropouts) == float or type(dropouts) == int:
-            dropouts = [dropouts] * len(hidden_dims)
-
         # Multilayer Perceptrons
         self.net = MultilayerPerceptrons(input_dim = len(field_dims) * embed_dim,
                                          hidden_dims = hidden_dims, 
@@ -52,7 +49,7 @@ class DFM(FM):
         embed_x = self.embedding(x.int())
 
         # Prediction
-        linear = self.linear(x.int())
+        linear = self.linear(x.int()) 
         pairwise_interaction = self.pairwise_interaction(embed_x)
         net = self.net(torch.flatten(embed_x, start_dim = 1)) 
         y = linear + pairwise_interaction + net
