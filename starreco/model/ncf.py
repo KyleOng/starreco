@@ -22,7 +22,8 @@ class NCF(MF):
     - criterion (F): Criterion or objective or loss function. Default: F.mse_loss.  
     """
 
-    def __init__(self, field_dims:list, 
+    def __init__(self, 
+                 field_dims:list, 
                  embed_dim:int = 8,
                  hidden_dims:list = [32, 16, 8], 
                  activations:Union[str, list] = "relu", 
@@ -44,10 +45,10 @@ class NCF(MF):
 
     def forward(self, x):
         # Concatenation
-        concat_embed = self.user_item_embeddings(x, concat = True)
+        embed_concat = self.user_item_embeddings(x, concat = True)
         
         # Prediction
-        y = self.net(concat_embed)
+        y = self.net(embed_concat)
 
         return y
         
