@@ -30,26 +30,13 @@ class MF(BaseModule):
         # Embedding layer
         self.features_embedding = FeaturesEmbedding(field_dims, embed_dim)
 
-    def user_item_embeddings(self, x:torch.Tensor, concat:bool = False):
-        x_embed = self.features_embedding(x.int())
-
-        if concat:
-            return torch.flatten(x_embed, start_dim = 1)
-        else:
-            # Seperate user (1st column) and item (2nd column) embeddings from generated embeddings
-            user_embed = x_embed[:, 0]
-            item_embed = x_embed[:, 1]
-
-            return user_embed, item_embed
-
     def forward(self, x:torch.Tensor):
-        # Generate embeddings
-        user_embed, item_embed = self.user_item_embeddings(x)
-
-        # Dot product between user and items embeddings
+        # Dot product between user and item embeddings
+        x_embed = self.features_embedding(x.int())
+        user_embed, item_embed = x_embed[:, 0], x_embed[:, 1]
         dot = torch.sum(user_embed * item_embed, dim = 1)
         
-        # Prediction and reshape to match target shape
+        # Reshape to match target shape
         y = dot.view(dot.shape[0], -1)
 
         return y
