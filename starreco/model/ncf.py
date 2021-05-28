@@ -52,4 +52,3 @@ class NCF(MF):
         y = self.net(embed_concat)
 
         return y
-        
