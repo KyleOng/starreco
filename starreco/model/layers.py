@@ -29,10 +29,11 @@ class FeaturesLinear(torch.nn.Module):
     Linear transformation class.
 
     - field_dims (list): List of field dimension. Each feature contains a total number of unique values.
-    - output_dim (int): Embedding dimension.
+    - output_dim (int): Output dimension. Default 1.
     """ 
 
-    def __init__(self, field_dims, 
+    def __init__(self, 
+                 field_dims:list, 
                  output_dim:int = 1):
         super().__init__()
         self.linear = torch.nn.Embedding(sum(field_dims), output_dim)
@@ -50,7 +51,7 @@ class PairwiseInteraction(torch.nn.Module):
     """
     Pairwise interaction class for factorization machine.
 
-    - reduce_sum (bool): If True, perform reduce sum.
+    - reduce_sum (bool): If True, perform reduce sum. Default: True.
     """
 
     def __init__(self, reduce_sum:bool = True):
@@ -70,7 +71,7 @@ class ActivationFunction(torch.nn.Module):
     """
     Activation Function class which convert string to activation function layer.
 
-    - name (str): Name of the activation function. 
+    - name (str): Name of the activation function. Default: "relu".
     """
 
     def __init__(self, name:str = "relu"):
@@ -101,15 +102,15 @@ class MultilayerPerceptrons(torch.nn.Module):
 
     - input_dim (int): Number of neurons in the input layer. 
     - hidden_dims (list): List of numbers of neurons throughout the hidden layers. 
-    - activations (str/list): List of activation functions. Default: relu.
+    - activations (str/list): List of activation functions. Default: "relu".
     - dropouts (int/float/list): List of dropout values. Default: 0.5.
     - batch_norm (bool): If True, apply batch normalization in every layer. Batch normalization is applied between activation and dropout layer. Default: True.
     - remove_last_dropout (bool): If True, remove batch normalization at the last hidden layer. Do this if the last hidden layer is the output layer. Default: False.
     - remove_last_batch_norm (bool): If True, remove dropout at the last hidden layer. Do this if the last hidden layer is the output layer. Default: False.
-    - output_layer (str): Activation applied to the output layer which only output 1 neuron. Set as None, if your want your last hidden layer to be the output layer. Default: linear.
+    - output_layer (str): Activation applied to the output layer which only output 1 neuron. Set as None, if your want your last hidden layer to be the output layer. Default: "linear".
     - extra_input_dims (int/list): List of extra input dimension at every layer. Default: 0.
     - extra_output_dims (int/list): List of extra output dimension at every layer. Extra output dimension is not applied to the output layer, if `output_layer` is set with value. Default: 0.
-    - mlp_type (str): Return MLP type. Default: sequential.
+    - mlp_type (str): Return MLP type. Default: "sequential".
     """
 
     def __init__(self, 
@@ -193,8 +194,8 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
 
     - input_output_dim (int): Number of neurons in the input and output layer.
     - hidden_dims (list): List of number of neurons throughout the encoder and decoder (reverse list) hidden layers. Default: [512, 256, 128].
-    - e_activations (str/list): List of activation functions in the encoder layers. Default: relu.
-    - d_activations (str/list): List of activation functions in the decoder layers. Default: relu.
+    - e_activations (str/list): List of activation functions in the encoder layers. Default: "relu".
+    - d_activations (str/list): List of activation functions in the decoder layers. Default: "relu".
     - e_dropouts (int/float/list): List of dropout values in the encoder layers. Default: 0.
     - d_dropouts (int/float/list): List of dropout values in the decoder layers. Default: 0.
     - dropout (float): Dropout value in the latent space. Default: 0.5.
@@ -309,8 +310,8 @@ class CompressedInteraction(torch.nn.Module):
 
     - input_dim (int): Number of neurons in the input layer. 
     - cross_dims (list): List of number of neuron for cross dimensions.
-    - activations (str/list): List of activation functions. Default: relu.
-    - split_half (bool): If True, convolution output is splitted into half of the 1st dimension.
+    - activations (str/list): List of activation functions. Default: "relu".
+    - split_half (bool): If True, convolution output is splitted into half of the 1st dimension. Default: True.
     """
 
     def __init__(self, 
@@ -358,7 +359,7 @@ class InnerProduct(torch.nn.Module):
     """
     Inner Product class.
 
-    - reduce_sum (bool): If True, perform reduce sum.
+    - reduce_sum (bool): If True, perform reduce sum. Default: True.
     """
 
     def __init__(self, reduce_sum:bool = True):
