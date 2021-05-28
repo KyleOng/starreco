@@ -95,7 +95,7 @@ class NMF(BaseModule):
                               ncf_weights:dict, 
                               freeze:bool = True):
         """Load pretrain weights for GMF and NCF."""
-        
+
         gmf_weights = {k:v for k,v in gmf_weights.items() if k in self.gmf.state_dict()}
         ncf_weights = {k:v for k,v in ncf_weights.items() if k in self.ncf.state_dict()}
 
@@ -104,14 +104,4 @@ class NMF(BaseModule):
 
         if freeze:
             self.gmf.freeze()
-            self.ncf.freeze()
-
-
-
-
-
-    
-
-
-
-        
+            self.ncf.freeze()     
