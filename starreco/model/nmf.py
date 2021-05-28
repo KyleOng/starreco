@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -12,69 +11,105 @@ class NMF(BaseModule):
     """
     Neural Matrix Factorization.
 
-    - gmf_hparams (dict): GMF hyperparameters.
-    - ncf_hparams (dict): NCF hyperparameters.
-    - gmf_params (dict): GMF pretrain weights/parameteers. Default: None.
-    - ncf_params (dict): NCF pretrain weights/parameteers. Default: None.
-    - freeze_pretrain (bool): Freeze pretrain weights. Default: True.
+    - gmf_kwargs (dict): GMF keyword arguments (hyperparameters).
+    - ncf_kwargs (dict): NCF keyword arguments (hyperparameters).
+    - shared_embed (str): Model which to share feature embeddings. Options: [None, "gmf", "ncf"]. Default: None.
+        - If "gmf", GMF and NCF embeddings will be obtained from GMF features embedding layer, NCF features embedding layer will be deleted/ignored.
+        - If "ncf", GMF and NCF embeddings will be obtained from NCF features embedding layer, GMF features embedding layer will be deleted/ignored.
+        - If None, GMF and NCF will perform feature embeddings seperately.
     - lr (float): Learning rate. Default: 1e-3.
     - l2_lambda (float): L2 regularization rate. Default: 1e-3.
     - criterion (F): Criterion or objective or loss function. Default: F.mse_loss.
     """
     
     def __init__(self, 
-                 gmf_hparams:dict,
-                 ncf_hparams:dict,
-                 gmf_params:dict = None,
-                 ncf_params:dict = None,
-                 freeze_pretrain:bool = True,
+                 gmf_kwargs:dict,
+                 ncf_kwargs:dict,
+                 shared_embed:str = None,
                  lr:float = 1e-3,
                  l2_lambda:float = 1e-3,
                  criterion:F = F.mse_loss):
+        assert shared_embed in [None, "gmf", "ncf"], "`shared_embed` must be either None, 'gmf' or 'ncf'."
+
         super().__init__(lr, l2_lambda, criterion)
-        self.save_hyperparameters(ignore = ["gmf_params", "ncf_params"])
+        self.save_hyperparameters()
+
+        self.shared_embed = shared_embed
         
-        self.gmf = GMF(**gmf_hparams)
-        self.ncf = NCF(**ncf_hparams)
+        self.gmf = GMF(**gmf_kwargs)
+        self.ncf = NCF(**ncf_kwargs)
 
-        # Load pretrained weights
-        if gmf_params:
-            self.gmf.load_state_dict(gmf_params)
-        if ncf_params:
-            self.ncf.load_state_dict(ncf_params)
+        # If `shared_embed` is not None, delete one of the feature embedding layer based on arg value.
+        if shared_embed == "gmf":
+            del self.ncf.features_embedding
+        elif shared_embed == "ncf":     
+            del self.gmf.features_embedding    
 
-        # Freeze model
-        if freeze_pretrain:
-            self.gmf.freeze()
-            self.ncf.freeze()
-
-        # Remove GMF output layer and replace with a function that returns input
+        # Remove GMF output layer
         del self.gmf.net
-        self.gmf.net = lambda x:x
 
         # Remove NCF output layer
         del self.ncf.net.mlp[-1]
         if type(self.ncf.net.mlp[-1]) == torch.nn.Linear:
             del self.ncf.net.mlp[-1]
 
-        # Add input dim
-        input_dim = gmf_hparams["embed_dim"] + ncf_hparams["hidden_dims"][-1]
-        self.net = MultilayerPerceptrons(input_dim = input_dim, output_layer = "relu")
+        # Multilayer Perceptrons layer
+        input_dim = gmf_kwargs["embed_dim"] + ncf_kwargs["hidden_dims"][-1]
+        self.net = MultilayerPerceptrons(input_dim = input_dim, 
+                                         output_layer = "relu")
 
     def forward(self, x):
-        # GMF part: Element wise product between embeddings
-        gmf_product = self.gmf.forward(x)
+        if self.shared_embed == "gmf":
+            # Share embeddings from GMF features embedding layer.
+            x_embed_gmf = x_embed_ncf = self.gmf.features_embedding(x.int())
+        elif self.shared_embed == "ncf":
+            # Share embeddings from NCF features embedding layer.
+            x_embed_gmf = x_embed_ncf = self.ncf.features_embedding(x.int())
+        else: # None
+            # Seperate feature embeddings between GMF and NCF
+            x_embed_gmf = self.gmf.features_embedding(x.int())
+            x_embed_ncf = self.ncf.features_embedding(x.int())
+        
+        # GMF interaction function
+        # Element wise product between user and item embeddings
+        user_embed, item_embed = x_embed_gmf[:, 0], x_embed_gmf[:, 1]
+        embed_product = user_embed * item_embed
+        output_gmf = embed_product
 
-        # NCF part: Get output of last hidden layer
-        ncf_last_hidden = self.ncf.forward(x)
+        # NCF interaction function
+        # Concatenate user and item embeddings
+        embed_concat = torch.flatten(x_embed_ncf, start_dim = 1)
+        # Non linear on concatenated user and item embeddings
+        output_ncf = self.ncf.net(embed_concat)
 
-        # Concatenate GMF's element wise product and NCF's last hidden layer output
-        concat = torch.cat([gmf_product, ncf_last_hidden], dim = 1)
+        # Concatenate GMF element wise product and NCF last hidden layer output
+        concat = torch.cat([output_gmf, output_ncf], dim = 1)
 
-        # Prediction
+        # Non linear on concatenated vectors
         y = self.net(concat)
 
         return y
+
+    def load_pretrain_weights(self, 
+                              gmf_weights:dict, 
+                              ncf_weights:dict, 
+                              freeze:bool = True):
+        """Load pretrain weights for GMF and NCF."""
+        
+        gmf_weights = {k:v for k,v in gmf_weights.items() if k in self.gmf.state_dict()}
+        ncf_weights = {k:v for k,v in ncf_weights.items() if k in self.ncf.state_dict()}
+
+        self.gmf.load_state_dict(gmf_weights)
+        self.ncf.load_state_dict(ncf_weights)
+
+        if freeze:
+            self.gmf.freeze()
+            self.ncf.freeze()
+
+
+
+
+
     
 
 
