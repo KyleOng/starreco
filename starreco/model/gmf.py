@@ -1,6 +1,3 @@
-from typing import Union
-
-import numpy as np
 import torch.nn.functional as F
 
 from .mf import MF
@@ -27,18 +24,17 @@ class GMF(MF):
         super().__init__(field_dims, embed_dim, lr, l2_lambda, criterion)
         self.save_hyperparameters()
 
-        # Network
+        # Multilayer Perceptrons layer
         self.net = MultilayerPerceptrons(input_dim = embed_dim, 
                                          output_layer = "relu")
 
     def forward(self, x):
-        # Generate embeddings
-        user_embed, item_embed = self.user_item_embeddings(x)
-
-        # Element wise product between user and items embeddings
+        # Element wise product between user and item embeddings
+        x_embed = self.features_embedding(x.int())
+        user_embed, item_embed = x_embed[:, 0], x_embed[:, 1]
         product = user_embed * item_embed
         
-        # Prediction
+        # Non linear on element wise product
         y = self.net(product)
 
         return y
