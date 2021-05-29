@@ -13,7 +13,7 @@ class NMF(BaseModule):
 
     - gmf_kwargs (dict): GMF keyword arguments (hyperparameters).
     - ncf_kwargs (dict): NCF keyword arguments (hyperparameters).
-    - shared_embed (str): Model which to share feature embeddings. Options: [None, "gmf", "ncf"]. Default: None.
+    - shared_embed (str): Model which to share feature embeddings. Default: None.
         - If "gmf", GMF and NCF embeddings will be obtained from GMF features embedding layer, NCF features embedding layer will be deleted/ignored.
         - If "ncf", GMF and NCF embeddings will be obtained from NCF features embedding layer, GMF features embedding layer will be deleted/ignored.
         - If None, GMF and NCF will perform feature embeddings seperately.
@@ -90,12 +90,10 @@ class NMF(BaseModule):
 
         return y
 
-    def load_pretrain_weights(self, 
-                              gmf_weights:dict, 
-                              ncf_weights:dict, 
-                              freeze:bool = True):
-        """Load pretrain weights for GMF and NCF."""
-
+    def load_pretrain_weights(self, gmf_weights, ncf_weights, freeze = True):
+        """
+        Load pretrain weights for GMF and NCF.
+        """
         gmf_weights = {k:v for k,v in gmf_weights.items() if k in self.gmf.state_dict()}
         ncf_weights = {k:v for k,v in ncf_weights.items() if k in self.ncf.state_dict()}
 
