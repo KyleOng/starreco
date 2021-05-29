@@ -2,11 +2,10 @@ from typing import Union
 
 import torch
 import torch.nn.functional as F
-import pytorch_lightning as pl
 
 from .mf import MF
 
-  
+# Done
 class _MDACF(MF):
     """
     Marginalized Denoising Autoencoder Collaborative Filtering.
@@ -51,10 +50,7 @@ class _MDACF(MF):
         self.item_W = torch.nn.Parameter(torch.rand(self.q, self.q), requires_grad = False)
         self.item_P = torch.nn.Parameter(torch.rand(self.q, embed_dim), requires_grad = False)
 
-    def _update_projections(_, 
-                            X:torch.Tensor, 
-                            W:torch.Tensor, 
-                            U:torch.Tensor):
+    def _update_projections(_, X, W, U):
         """
         Projection matrix optimization.
         """
@@ -68,13 +64,7 @@ class _MDACF(MF):
         # Clamp between -1 and 1
         return torch.clamp(P, min = -1, max = 1)
 
-    def _update_weights(_, 
-                        X:torch.Tensor, 
-                        P:torch.Tensor, 
-                        U:torch.Tensor, 
-                        d:int, 
-                        lambda_:Union[int, float],
-                        p:Union[int, float]):
+    def _update_weights(_, X, P, U, d, lambda_, p):
         """
         Weight matrix optimization. 
         Note: The weight optimization algorithm is inspired by mDA.
@@ -128,16 +118,13 @@ class _MDACF(MF):
         self.user_P.data = self._update_projections(self.user.T, user_W, U)
         self.item_P.data = self._update_projections(self.item.T, item_W, V)
 
-    def forward(self, x):
-        # Transfer data to `self.device` during the 1st epoch
+    def backward_loss(self, *batch):
+        x, y = batch
+
+        # Transfer data to `self.device` during the 1st epoch (validation)
         if self.current_epoch == 0:
             self.user = self.user.to(self.device)
             self.item = self.item.to(self.device)
-
-        return super().forward(x)
-
-    def backward_loss(self, *batch):
-        x, y = batch
 
         # Update W and P during training via MDAE
         if self.training:
