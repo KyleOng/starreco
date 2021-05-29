@@ -4,7 +4,7 @@ from .module import BaseModule
 from .layers import StackedDenoisingAutoEncoder
 from ..evaluation import masked_mse_loss
 
-# Change mseloss to masked mseloss
+# Done
 class DeepRec(BaseModule):
     """
     DeepRec.
