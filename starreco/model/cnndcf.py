@@ -18,7 +18,7 @@ class CNNDCF(ONCF):
     - batch_norm (bool): If True, apply batch normalization after c. Batch normalization is applied between activation and dropout layer across the convolution layers. Default: True.
     - lr (float): Learning rate. Default: 1e-3.
     - l2_lambda (float): L2 regularization rate. Default: 1e-3.
-    - criterion (F): Criterion or objective or loss function. Default: F.mse_loss.  
+    - criterion: Criterion or objective or loss function. Default: F.mse_loss.  
     """
 
     def __init__(self, field_dims:list, 
@@ -31,7 +31,7 @@ class CNNDCF(ONCF):
                  batch_norm:bool = True, 
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
-                 criterion:F = F.mse_loss):
+                 criterion = F.mse_loss):
         super().__init__(field_dims, embed_dim, filter_size, kernel_size, stride, activation, dropout, batch_norm, lr, weight_decay, criterion)
         self.save_hyperparameters()
 

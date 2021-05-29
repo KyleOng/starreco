@@ -14,3 +14,5 @@ from .dfm import DFM
 from .xdfm import XDFM
 from .oncf import ONCF
 from .cnndcf import CNNDCF
+from .deeprec import DeepRec
+from .autorec import AutoRec

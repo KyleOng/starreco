@@ -202,7 +202,7 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
     - batch_norm (bool): If True, apply batch normalization in all hidden layers. Default: True.
     - extra_input_dims (int): Extra input neuron. Default: 0.
     - extra_input_all (bool): If True, extra input neurons are added to all input and hidden layers, else only to input layer. Default: False.
-    - noise_factor (int/float): Probability of noises to be added to the input. Noise is not applied to extra input neurons and during training only. Default: 0.3.
+    - noise_factor (int/float): Probability of noises to be added to the input. Noise is not applied to extra input neurons. Noise is only applied during training only. Default: 0.3.
     - noise_all (bool): If True, noise are added to inputs in all input and hidden layers, else only to input layer. Default: False.
     - mean (int/float): Gaussian noise mean. Default: 0.
     - std (int/float): Gaussian noise standard deviation: 1.

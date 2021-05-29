@@ -18,7 +18,7 @@ class _MDACF(MF):
     - beta (int/float): Trade-off parameter value for item SDAE.
     - lr (float): Learning rate.
     - l2_lambda (float): L2 regularization rate.
-    - criterion (F): Criterion or objective or loss function.
+    - criterion: Criterion or objective or loss function.
 
     Warning: This method should not be used directly.
     """
@@ -32,7 +32,7 @@ class _MDACF(MF):
                  beta:Union[int,float],
                  lr:float,
                  l2_lambda:Union[int,float],
-                 criterion:F):
+                 criterion):
         self.m, self.p = user_dims
         self.n, self.q = item_dims 
 
@@ -165,7 +165,7 @@ class MDACF(_MDACF):
     - beta (int/float): Trade-off parameter value for item SDAE. Default: 3e-3.
     - lr (float): Learning rate. Default: 1e-3.
     - l2_lambda (float): L2 regularization rate. Default: 1e-3.
-    - criterion (F): Criterion or objective or loss function. Default: F.mse_loss.  
+    - criterion: Criterion or objective or loss function. Default: F.mse_loss.  
     """
 
     def __init__(self, 
@@ -177,7 +177,7 @@ class MDACF(_MDACF):
                  beta:Union[int,float] = 3e-3,
                  lr:float = 1e-3,
                  l2_lambda:Union[int,float] = 0.3,
-                 criterion:F = F.mse_loss):
+                 criterion = F.mse_loss):
         super().__init__(user.shape, item.shape, embed_dim, corrupt_ratio, alpha, beta, lr, l2_lambda, criterion)
         self.user = user
         self.item = item

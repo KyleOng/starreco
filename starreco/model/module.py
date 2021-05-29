@@ -9,13 +9,13 @@ class BaseModule(pl.LightningModule):
     
     - lr (float): Learning rate.
     - l2_lambda (float): L2 regularization rate.
-    - criterion (F): Criterion or objective or loss function.
+    - criterion: Criterion or objective or loss function.
     """
 
     def __init__(self, 
                  lr:float, 
                  l2_lambda:float, 
-                 criterion:F):
+                 criterion):
         super().__init__()
         self.lr = lr
         self.l2_lambda = l2_lambda
