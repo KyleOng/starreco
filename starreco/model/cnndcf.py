@@ -14,7 +14,7 @@ class CNNDCF(ONCF):
     - filter_size (int): Convolution filter/depth/channel size. Default: 32.
     - kernel_size (int): Convolution square-window size or convolving square-kernel size. Default: 2
     - stride (int): Convolution stride. Default: 2.
-    - activation (str): Activation function applied across the convolution layers. Default: relu.
+    - activation (str): Activation function applied across the convolution layers. Default: "relu".
     - batch_norm (bool): If True, apply batch normalization after c. Batch normalization is applied between activation and dropout layer across the convolution layers. Default: True.
     - lr (float): Learning rate. Default: 1e-3.
     - l2_lambda (float): L2 regularization rate. Default: 1e-3.
@@ -43,10 +43,9 @@ class CNNDCF(ONCF):
                                               output_layer = None)
 
     def forward(self, x):
-        # Generate embeddings
-        user_embed, item_embed = self.user_item_embeddings(x)
-
-        # Outer product between user and items embeddings
+        # Outer product between user and item embeddings
+        x_embed = self.features_embedding(x.int())
+        user_embed, item_embed = x_embed[:, 0], x_embed[:, 1]
         outer = torch.bmm(user_embed.unsqueeze(2), item_embed.unsqueeze(1))
 
         # Residual connection
@@ -54,11 +53,10 @@ class CNNDCF(ONCF):
         residual = self.residual(outer_flatten)
         residual = residual.view(outer.shape)
         outer_residual = outer + residual
-
         # Unsqueeze outer product so that each matrix contain single depth for convolution
         outer_residual = torch.unsqueeze(outer_residual, 1)
         
-        # Prediction
+        # Non linear on residual 
         y = self.cnn(outer_residual)
 
         return y

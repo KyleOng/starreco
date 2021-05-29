@@ -16,7 +16,7 @@ class ONCF(MF):
     - filter_size (int): Convolution filter/depth/channel size. Default: 32.
     - kernel_size (int): Convolution square-window size or convolving square-kernel size. Default: 2
     - stride (int): Convolution stride. Default: 2.
-    - activation (str): Activation function applied across the convolution layers. Default: relu.
+    - activation (str): Activation function applied across the convolution layers. Default: "relu".
     - batch_norm (bool): If True, apply batch normalization after c. Batch normalization is applied between activation and dropout layer across the convolution layers. Default: True.
     - lr (float): Learning rate. Default: 1e-3.
     - l2_lambda (float): L2 regularization rate. Default: 1e-3.
@@ -59,25 +59,24 @@ class ONCF(MF):
         # Flatten
         cnn_blocks.append(torch.nn.Flatten())
         # Fully connected layer
-        # The author specified that there are only 2 layers (input and output layers) in the FC layer, 
-        # as 1 layer MLP in NCF has more parameters than several layers of convolution in ONCF, 
-        # which makes  it more stable and generalizable than MLP in NCF.
+        """
+        IMPORTANT: The author specified that there are only 2 layers (input and output layers) in the FC layer.
+        1 layer MLP in NCF has more parameters than several layers of convolution in ONCF,  which makes it more stable and generalizable than MLP in NCF.
+        """
         fully_connected_net = MultilayerPerceptrons(input_dim = filter_size,
                                                     output_layer = "relu")
         cnn_blocks.append(fully_connected_net)
         self.cnn = torch.nn.Sequential(*cnn_blocks)
 
     def forward(self, x):
-        # Generate embeddings
-        user_embed, item_embed = self.user_item_embeddings(x)
-
         # Outer product between user and items embeddings
+        x_embed = self.features_embedding(x.int())
+        user_embed, item_embed = x_embed[:, 0], x_embed[:, 1]
         outer = torch.bmm(user_embed.unsqueeze(2), item_embed.unsqueeze(1))
-
         # Unsqueeze outer product so that each matrix contain single depth for convolution
         outer = torch.unsqueeze(outer, 1)
         
-        # Prediction
+        # Non linear on outer product
         y = self.cnn(outer)
 
         return y
