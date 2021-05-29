@@ -37,5 +37,4 @@ class GMF(MF):
         # Non linear on element wise product
         y = self.net(product)
 
-        return y
-        
+        return y        

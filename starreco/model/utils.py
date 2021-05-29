@@ -4,8 +4,6 @@ import torch
 def weight_init(m):
     """
     Weight initialization on specific layer.
-
-    - m (model): Recommendation model.    
     """
     if type(m) == torch.nn.Linear:
         torch.nn.init.xavier_uniform_(m.weight)

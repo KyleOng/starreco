@@ -25,7 +25,7 @@ class BaseModule(pl.LightningModule):
         optimizer = torch.optim.Adam(self.parameters(), lr = self.lr, weight_decay = self.l2_lambda)
         return optimizer
         
-    def _transform(self, tensor:torch.Tensor):
+    def _transform(self, tensor):
         """
         Transform tensor.
 
@@ -56,7 +56,7 @@ class BaseModule(pl.LightningModule):
 
         return loss
 
-    def training_step(self, batch:list, batch_idx:int):
+    def training_step(self, batch, batch_idx):
         batch = [self._transform(tensor) for tensor in batch]
 
         backward_loss = self.backward_loss(*batch)
@@ -67,7 +67,7 @@ class BaseModule(pl.LightningModule):
         
         return backward_loss
 
-    def validation_step(self, batch:list, batch_idx:int):
+    def validation_step(self, batch, batch_idx):
         batch = [self._transform(tensor) for tensor in batch]
 
         # Log graph on the first validation step (took less time than training step)
@@ -82,7 +82,7 @@ class BaseModule(pl.LightningModule):
 
         return backward_loss
 
-    def test_step(self, batch:list, batch_idx:int):
+    def test_step(self, batch, batch_idx):
         batch = [self._transform(tensor) for tensor in batch]
 
         logger_loss = self.logger_loss(*batch)

@@ -140,7 +140,7 @@ class NMFPP(BaseModule):
 
     def backward_loss(self, *batch):
         """
-        Custom backward loss
+        Custom backward loss.
         """
         x, user_x, item_x, y = batch
 

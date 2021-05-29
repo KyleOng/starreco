@@ -119,6 +119,9 @@ class _MDACF(MF):
         self.item_P.data = self._update_projections(self.item.T, item_W, V)
 
     def backward_loss(self, *batch):
+        """
+        Custom backward loss.
+        """
         x, y = batch
 
         # Transfer data to `self.device` during the 1st epoch (validation)

@@ -71,7 +71,7 @@ class GMFPP(GMF):
 
     def backward_loss(self, *batch):
         """
-        Custom backward loss
+        Custom backward loss.
         """
         x, user_x, item_x, y = batch
         # User reconstruction loss with trade off parameter alpha
@@ -88,7 +88,7 @@ class GMFPP(GMF):
 
     def load_pretrain_weights(self, gmf_weights):
         """
-        Load pretrain GMF weights
+        Load pretrain GMF weights.
         """
         gmfpp_weights = self.state_dict()                 
 
