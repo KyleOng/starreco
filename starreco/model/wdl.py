@@ -15,7 +15,7 @@ class WDL(BaseModule):
     - field_dims (list): List of features dimensions.
     - embed_dim (int): Embedding dimension. Default: 10.
     - hidden_dims (list): List of numbers of neurons across the hidden layers. Default: [400, 400, 400].
-    - activations (str/list): List of activation functions. Default: relu.
+    - activations (str/list): List of activation functions. Default: "relu".
     - dropouts (int/float/list): List of dropout values. Default: 0.5.
     - batch_norm (bool): If True, apply batch normalization in every layer. Batch normalization is applied between activation and dropout layer. Default: True.
     - lr (float): Learning rate. Default: 1e-3.
@@ -36,10 +36,10 @@ class WDL(BaseModule):
         self.save_hyperparameters()
 
         # Embedding layer
-        self.embedding = FeaturesEmbedding(field_dims, embed_dim)
+        self.features_embedding = FeaturesEmbedding(field_dims, embed_dim)
 
         # Linear layer
-        self.linear = FeaturesLinear(field_dims)
+        self.features_linear = FeaturesLinear(field_dims)
 
         # Multilayer Perceptrons
         self.net = MultilayerPerceptrons(input_dim = len(field_dims) * embed_dim,
@@ -50,12 +50,15 @@ class WDL(BaseModule):
                                          batch_norm = batch_norm)
 
     def forward(self, x):
-        # Generate embeddings
-        embed_x = self.embedding(x.int())
+        # Linear regression
+        linear = self.features_linear(x.int()) 
 
-        # Prediction
-        linear = self.linear(x.int()) 
-        net = self.net(torch.flatten(embed_x, start_dim = 1)) 
+        # Non linear on concatenated embeddings
+        x_embed = self.features_embedding(x.int())
+        embed_concat = torch.flatten(x_embed, start_dim = 1)
+        net = self.net(embed_concat)
+
+        # Sum
         y = linear + net 
 
         return y

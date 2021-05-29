@@ -15,7 +15,7 @@ class DFM(FM):
     - field_dims (list): List of features dimensions.
     - embed_dim (int): Embedding dimension. Default: 10.
     - hidden_dims (list): List of numbers of neurons across the hidden layers. Default: [400, 400, 400].
-    - activations (str/list): List of activation functions. Default: relu.
+    - activations (str/list): List of activation functions. Default: "relu".
     - dropouts (int/float/list): List of dropout values. Default: 0.5.
     - batch_norm (bool): If True, apply batch normalization in every layer. Batch normalization is applied between activation and dropout layer. Default: True.
     - lr (float): Learning rate. Default: 1e-3.
@@ -32,11 +32,10 @@ class DFM(FM):
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
                  criterion:F = F.mse_loss):
-
         super().__init__(field_dims, embed_dim, lr, weight_decay, criterion)
         self.save_hyperparameters()
 
-        # Multilayer Perceptrons
+        # Multilayer Perceptrons layer
         self.net = MultilayerPerceptrons(input_dim = len(field_dims) * embed_dim,
                                          hidden_dims = hidden_dims, 
                                          activations = activations, 
@@ -45,13 +44,18 @@ class DFM(FM):
                                          batch_norm = batch_norm)
 
     def forward(self, x):
-        # Generate embeddings
-        embed_x = self.embedding(x.int())
+        # Linear regression
+        linear = self.features_linear(x.int()) 
 
-        # Prediction
-        linear = self.linear(x.int()) 
-        pairwise_interaction = self.pairwise_interaction(embed_x)
-        net = self.net(torch.flatten(embed_x, start_dim = 1)) 
+        # Pairwise interaction between embeddings
+        x_embed = self.features_embedding(x.int())
+        pairwise_interaction = self.pairwise_interaction(x_embed)
+
+        # Non linear on concatenated embeddings
+        embed_concat = torch.flatten(x_embed, start_dim = 1)
+        net = self.net(embed_concat) 
+
+        # Sum
         y = linear + pairwise_interaction + net
 
         return y

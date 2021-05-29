@@ -14,7 +14,7 @@ class XDFM(WDL):
     - field_dims (list): List of features dimensions.
     - embed_dim (int): Embedding dimension. Default: 10.
     - hidden_dims (list): List of numbers of neurons across the hidden layers. Default: [400, 400, 400].
-    - activations (str/list): List of activation functions. Default: relu.
+    - activations (str/list): List of activation functions. Default: "relu".
     - dropouts (int/float/list): List of dropout values. Default: 0.5.
     - cross_dims: List of numbers of neurons across cross interaction layers. Default: [200, 200]
     - cross_split_half: If True, convolution output across the cross interaction layers is splitted into half of the 1st dimension. Default: True.
@@ -35,7 +35,6 @@ class XDFM(WDL):
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
                  criterion:F = F.mse_loss):
-
         super().__init__(field_dims, embed_dim, hidden_dims, activations, dropouts, batch_norm, lr, weight_decay, criterion)
         self.save_hyperparameters()
 
@@ -43,13 +42,18 @@ class XDFM(WDL):
         self.compressed_interaction = CompressedInteraction(len(field_dims), cross_dims, split_half = cross_split_half)
 
     def forward(self, x):
-        # Generate embeddings
-        embed_x = self.embedding(x.int())
+        # Linear regression
+        linear = self.features_linear(x.int()) 
 
-        # Prediction
-        linear = self.linear(x.int()) 
-        compress_interaction = self.compressed_interaction(embed_x)
-        net = self.net(torch.flatten(embed_x, start_dim = 1)) 
+        # Compress interaction between embeddings
+        x_embed = self.features_embedding(x.int())
+        compress_interaction = self.compressed_interaction(x_embed)
+
+        # Non linear on concatenated embeddings
+        embed_concat = torch.flatten(x_embed, start_dim = 1)
+        net = self.net(embed_concat) 
+
+        # Sum
         y = linear + compress_interaction + net 
 
         return y

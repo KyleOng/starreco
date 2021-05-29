@@ -26,21 +26,23 @@ class FM(BaseModule):
         self.save_hyperparameters()
 
         # Embedding layer
-        self.embedding = FeaturesEmbedding(field_dims, embed_dim)
+        self.features_embedding = FeaturesEmbedding(field_dims, embed_dim)
 
         # Linear layer
-        self.linear = FeaturesLinear(field_dims)
+        self.features_linear = FeaturesLinear(field_dims)
 
-        # Pairwise interaction
+        # Pairwise interaction layer
         self.pairwise_interaction = PairwiseInteraction()
 
     def forward(self, x):
-        # Generate embeddings
-        embed_x = self.embedding(x.int())
-        
-        # Prediction
-        linear = self.linear(x.int()) 
-        pairwise_interaction = self.pairwise_interaction(embed_x)
+        # Linear regression
+        linear = self.features_linear(x.int()) 
+
+        # Pairwise interaction between embeddings
+        x_embed = self.features_embedding(x.int())
+        pairwise_interaction = self.pairwise_interaction(x_embed)
+
+        # Sum
         y = linear + pairwise_interaction
 
         return y
