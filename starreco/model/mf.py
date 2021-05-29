@@ -30,7 +30,7 @@ class MF(BaseModule):
         # Embedding layer
         self.features_embedding = FeaturesEmbedding(field_dims, embed_dim)
 
-    def forward(self, x:torch.Tensor):
+    def forward(self, x):
         # Dot product between user and item embeddings
         x_embed = self.features_embedding(x.int())
         user_embed, item_embed = x_embed[:, 0], x_embed[:, 1]
