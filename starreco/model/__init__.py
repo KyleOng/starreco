@@ -6,7 +6,7 @@ from .nmf import NMF
 from .mdacf import MDACF
 from .gmfpp import GMFPP
 from .ncfpp import NCFPP
-from .nmfpp import NMFPP, NMFPPs
+from .nmfpp import NMFPP
 from .fm import FM
 from .nfm import NFM
 from .wdl import WDL
