@@ -1,6 +1,3 @@
-from typing import Union
-import warnings
-
 import torch
 import torch.nn.functional as F
 
@@ -11,23 +8,21 @@ from .ncfpp import NCFPP
 from .layers import MultilayerPerceptrons
 from .utils import freeze_partial_linear_params
 
-# Testing
+# Done
 class NMFPP(BaseModule):
     """
     Neural Matrix Factorization ++ with seperated user-item SDAEs.
 
     - gmfpp_kwargs (dict): GMF++ keyword arguments or hyperparameters.
     - ncfpp_kwargs (dict): NCF++ keyword arguments or hyperparameters.
-    - shared_embed (str): Model which to share feature embeddings. Options: [None, "gmf++", "ncf++"]. Default: None.
+    - shared_embed (str): Model which to share feature embeddings. Default: None.
         - If "gmf++", GMF++ and NCF++ embeddings will be obtained from GMF++ features embedding layer, NCF++ features embedding layer will be deleted/ignored.
         - If "ncf++", GMF++ and NCF++ embeddings will be obtained from NCF++ features embedding layer, GMF++ features embedding layer will be deleted/ignored.
         - If None, GMF++ and NCF++ will perform feature embeddings seperately.
-    - shared_sdaes (str): Model which to share user and item latent representations. Options: [None, "gmf++", "ncf++"]. Default: None.
+    - shared_sdaes (str): Model which to share user and item latent representations. Also applied on trade-off parameter alpha and beta. Default: None.
         - If "gmf++", GMF++ and NCF++ latent representations will be obtained from GMF++ user and item SDAEs, NCF++ user and item SDAEs will be deleted/ignored.
         - If "ncf++", GMF++ and NCF++ latent representations will be obtained from NCF++ user and item SDAEs, GMF++ user and item SDAEs will be deleted/ignored.
         - If None, GMF++ and NCF++ will perform user and item latent representation extraction seperately.
-    - alpha (int/float): Trade off parameter for user reconstruction. Default = 1.
-    - beta (int/float): Trade off parameter for item reconstruction. Default = 1.
     - lr (float): Learning rate. Default: 1e-3.
     - l2_lambda (float): L2 regularization rate. Default: 1e-3.
     - criterion (F): Criterion or objective or loss function. Default: F.mse_loss.
@@ -38,8 +33,6 @@ class NMFPP(BaseModule):
                  ncfpp_kwargs:dict,
                  shared_embed:str= None,
                  shared_sdaes:str= None,
-                 alpha:Union[int,float] = 1, 
-                 beta:Union[int,float] = 1,
                  lr:float = 1e-3,
                  l2_lambda:float = 1e-3,
                  criterion:F = F.mse_loss):
@@ -50,8 +43,6 @@ class NMFPP(BaseModule):
         self.save_hyperparameters()
         self.shared_embed = shared_embed
         self.shared_sdaes = shared_sdaes
-        self.alpha = alpha
-        self.beta = beta
 
         self.gmfpp = GMFPP(**gmfpp_kwargs)
         self.ncfpp = NCFPP(**ncfpp_kwargs)
@@ -100,11 +91,11 @@ class NMFPP(BaseModule):
         if self.shared_sdaes== "gmf++":
             # Share latent representation from GMF++ user and item SDAE.
             user_z_gmfpp = user_z_ncfpp = self.gmfpp.user_sdae.encode(user_x)
-            item_z_gmfpp = user_z_ncfpp = self.gmfpp.item_sdae.encode(item_x) 
+            item_z_gmfpp = item_z_ncfpp = self.gmfpp.item_sdae.encode(item_x) 
         elif self.shared_sdaes == "ncf++":
             # Share latent representation from NCF++ user and item SDAE.
             user_z_gmfpp = user_z_ncfpp = self.ncfpp.user_sdae.encode(user_x)
-            item_z_gmfpp = user_z_ncfpp = self.ncfpp.item_sdae.encode(item_x) 
+            item_z_gmfpp = item_z_ncfpp = self.ncfpp.item_sdae.encode(item_x) 
         else: 
             # Seperate latent representation extraction between GMF++ and NCF++.
             user_z_gmfpp = self.gmfpp.user_sdae.encode(user_x)
@@ -148,21 +139,23 @@ class NMFPP(BaseModule):
         return y
 
     def backward_loss(self, *batch):
-        """Custom backward loss"""
+        """
+        Custom backward loss
+        """
         x, user_x, item_x, y = batch
 
         # User and item reconsturction loss
         if self.shared_sdaes== "gmf++":
-            user_loss_gmfpp = user_loss_ncfpp = self.alpha * self.criterion(self.gmfpp.user_sdae.forward(user_x), user_x)
-            item_loss_gmfpp = item_loss_ncfpp = self.beta  * self.criterion(self.gmfpp.item_sdae.forward(item_x), item_x)
+            user_loss_gmfpp = user_loss_ncfpp = self.gmfpp.alpha * self.criterion(self.gmfpp.user_sdae.forward(user_x), user_x)
+            item_loss_gmfpp = item_loss_ncfpp = self.gmfpp.beta  * self.criterion(self.gmfpp.item_sdae.forward(item_x), item_x)
         elif self.shared_sdaes == "ncf++":
-            user_loss_gmfpp = user_loss_ncfpp = self.alpha * self.criterion(self.ncfpp.user_sdae.forward(user_x), user_x)
-            item_loss_gmfpp = item_loss_ncfpp = self.beta  * self.criterion(self.ncfpp.item_sdae.forward(item_x), item_x)
+            user_loss_gmfpp = user_loss_ncfpp = self.ncfpp.alpha * self.criterion(self.ncfpp.user_sdae.forward(user_x), user_x)
+            item_loss_gmfpp = item_loss_ncfpp = self.ncfpp.beta  * self.criterion(self.ncfpp.item_sdae.forward(item_x), item_x)
         else:
-            user_loss_gmfpp = self.alpha * self.criterion(self.gmfpp.user_sdae.forward(user_x), user_x)
-            item_loss_gmfpp = self.beta  * self.criterion(self.gmfpp.item_sdae.forward(item_x), item_x)
-            user_loss_ncfpp = self.alpha * self.criterion(self.ncfpp.user_sdae.forward(user_x), user_x)
-            item_loss_ncfpp = self.beta  * self.criterion(self.ncfpp.item_sdae.forward(item_x), item_x)
+            user_loss_gmfpp = self.gmfpp.alpha * self.criterion(self.gmfpp.user_sdae.forward(user_x), user_x)
+            item_loss_gmfpp = self.gmfpp.beta  * self.criterion(self.gmfpp.item_sdae.forward(item_x), item_x)
+            user_loss_ncfpp = self.ncfpp.alpha * self.criterion(self.ncfpp.user_sdae.forward(user_x), user_x)
+            item_loss_ncfpp = self.ncfpp.beta  * self.criterion(self.ncfpp.item_sdae.forward(item_x), item_x)
 
         # Rating loss
         rating_loss = super().backward_loss(*batch)
@@ -172,15 +165,10 @@ class NMFPP(BaseModule):
 
         return loss
 
-    def load_all_pretrain_weights(self, 
-                                  gmfpp_weights:dict, 
-                                  ncfpp_weights:dict, 
-                                  freeze:bool = True):
-        """Load pretrain weights for GMF++ and NCF++."""
-
-        if self.shared_embed:
-            warnings.warm("The method is used for `self.shared_embed` set as None.")
-
+    def load_all_pretrain_weights(self, gmfpp_weights, ncfpp_weights, freeze = True):
+        """
+        Load pretrain weights for GMF++ and NCF++.
+        """
         gmfpp_weights = {k:v for k,v in gmfpp_weights.items() if k in self.gmfpp.state_dict()}
         ncfpp_weights = {k:v for k,v in ncfpp_weights.items() if k in self.ncfpp.state_dict()}
 
@@ -191,20 +179,14 @@ class NMFPP(BaseModule):
             self.gmfpp.freeze()
             self.ncfpp.freeze()
 
-    def load_nmf_pretrain_weights(self, 
-                                  nmf_weights:dict,
-                                  freeze:bool = True):
-        """Load pretrain weights for NeuMF layer."""
-
-        if self.shared_embed is None:
-            warnings.warm("The method is used for `self.shared_embed` set as not None.")
-
+    def load_nmf_pretrain_weights(self, nmf_weights, freeze = True):
+        """
+        Load pretrain weights for NeuMF layer.
+        """
         nmfpp_weights = self.state_dict()
         # Rename keys which contains "gmf" and "ncf" by adding "pp" to them
-        nmf_weights = {k.replace("f.", "fpp.")
-                       if "gmf" in k or "ncf" in k
-                       else k:nmf_weights[k] 
-                       for k in nmf_weights.keys()}
+        nmf_weights = {k.replace("f.", "fpp.") if "gmf" in k or "ncf" in k
+                       else k:nmf_weights[k] for k in nmf_weights.keys()}
 
         nmf_input_weights = nmf_weights["net.mlp.0.weight"]
         nmf_input_dim = nmf_input_weights.shape[-1]
