@@ -3,113 +3,105 @@ from typing import Union
 import torch
 import torch.nn.functional as F
 
-from .module import BaseModule
-from .layer import StackedDenoisingAutoEncoder
 from .ncf import NCF
+from .layers import StackedDenoisingAutoEncoder
 
 # Done
-class NCFPP(BaseModule):
+class NCFPP(NCF):
     """
     Neural Collaborative Filtering ++.
 
-    - user_sdae_hparams (dict): User SDAE hyperparameteres.
-    - item_sdae_hparams (dict): Item SDAE hyperparameteres.
-    - ncf_hparams (dict): NCF hyperparameteres.
-    - ncf_params (dict): NCF pretrain weights/parameteers. Default: None.
-    - alpha (int/float): Trade-off parameter value for user SDAE. Default: 1e-3.
-    - beta (int/float): Trade-off parameter value for item SDAE. Default: 1e-3.
+    - user_sdae_kwargs (dict): User SDAE hyperparameteres.
+    - item_sdae_kwargs (dict): Item SDAE hyperparameteres.
+    - field_dims (list): List of features dimensions.
+    - embed_dim (int): Embedding dimension.
+    - hidden_dims (list): List of numbers of neurons throughout the hidden layers. Default: [32,16,8].
+    - activations (str/list): List of activation functions. Default: "relu".
+    - dropouts (int/float/list): List of dropout values. Default: 0.5.
+    - batch_norm (bool): If True, apply batch normalization in every layer. Batch normalization is applied between activation and dropout layer. Default: True.
+    - alpha (int/float): Trade off parameter for user feature reconstruction. Default: 1.
+    - beta (int/float): Trade off parameter for item feature reconstruction. Default: 1.
     - lr (float): Learning rate. Default: 1e-3.
     - l2_lambda (float): L2 regularization rate. Default: 1e-3.
-    - criterion (F): Criterion or objective or loss function. Default: F.mse_loss.
+    - criterion (F): Criterion or objective or loss function. Default: F.mse_loss.  
     """
 
     def __init__(self, 
-                 user_sdae_hparams:dict, 
-                 item_sdae_hparams:dict, 
-                 ncf_hparams:dict,
-                 ncf_params:dict = None,
+                 user_sdae_kwargs:dict, 
+                 item_sdae_kwargs:dict, 
+                 field_dims:list,
+                 embed_dim:int = 8,
+                 hidden_dims:list = [32, 16, 8], 
+                 activations:Union[str, list] = "relu", 
+                 dropouts:Union[int, float, list] = 0.5, 
+                 batch_norm:bool = True,
                  alpha:Union[int,float] = 1, 
                  beta:Union[int,float] = 1,
                  lr:float = 1e-3,
                  l2_lambda:float = 1e-3,
                  criterion:F = F.mse_loss):
-        assert user_sdae_hparams["hidden_dims"][-1] and item_sdae_hparams["hidden_dims"][-1],\
-        "user StackedDenoisingAutoEncoder and item StackedDenoisingAutoEncoder latent dimension must be the same"
+        assert user_sdae_kwargs["hidden_dims"][-1] and item_sdae_kwargs["hidden_dims"][-1],\
+        "user SDAE and item SDAE latent dimension must be the same"
 
-        super().__init__(lr, 0, criterion)
-        self.save_hyperparameters(ignore = ["ncf_params"])
-        
-        self.l2_lambda = l2_lambda
+        super().__init__(field_dims, embed_dim, hidden_dims, activations, dropouts, batch_norm, lr, l2_lambda, criterion)
+        self.save_hyperparameters()
+                
         self.alpha = alpha
         self.beta = beta
 
-        self.user_sdae = StackedDenoisingAutoEncoder(**user_sdae_hparams)
-        self.item_sdae = StackedDenoisingAutoEncoder(**item_sdae_hparams)
-        self.ncf = NCF(**ncf_hparams)
-        if ncf_params:self.ncf.load_state_dict(ncf_params)
+        # Stacked denoising autoencoder for feature extraction.
+        self.user_sdae = StackedDenoisingAutoEncoder(**user_sdae_kwargs)
+        self.item_sdae = StackedDenoisingAutoEncoder(**item_sdae_kwargs)
 
         # Replace the first layer with reshape input features
-        latent_dim = user_sdae_hparams["hidden_dims"][-1] and item_sdae_hparams["hidden_dims"][-1]
-        input_dim = self.ncf.net.mlp[0].in_features
-        output_dim = self.ncf.net.mlp[0].out_features
-        # Obtain first layer input weight before reshaping
-        input_weights = self.ncf.net.mlp[0].weight.clone()
-        self.ncf.net.mlp[0] = torch.nn.Linear(input_dim + latent_dim * 2, output_dim)
-
-        if ncf_params:
-            with torch.no_grad():
-                # Concat latent weights with pretrained weights
-                self.ncf.net.mlp[0].weight[:, :input_dim] = input_weights
-
-    def encode_concatenate(self, x, user_x, item_x):
-        # Obtain latent factor z
-        user_z = self.user_sdae.encode(user_x)
-        item_z = self.item_sdae.encode(item_x)
-
-        # Concat latent factor and embeddings        
-        z_concat = torch.cat([user_z, item_z], dim = 1)
-        embed_concat = self.ncf.concatenate(x)
-
-        # Concat embeddings and latent factors
-        concat = torch.cat([embed_concat, z_concat], dim = 1)
-
-        return concat
+        latent_dim = user_sdae_kwargs["hidden_dims"][-1] and item_sdae_kwargs["hidden_dims"][-1]
+        input_dim = self.net.mlp[0].in_features
+        output_dim = self.net.mlp[0].out_features
+        self.net.mlp[0] = torch.nn.Linear(input_dim + latent_dim * 2, output_dim)       
 
     def forward(self, x, user_x, item_x):
-        # Element wise product between user and items embeddings
-        concat = self.encode_concatenate(x, user_x, item_x)
-        
-        # Prediction
-        y = self.ncf.net(concat)
+        # Concatenate user and item embeddings
+        x_embed = self.features_embedding(x.int())
+        embed_concat = torch.flatten(x_embed, start_dim = 1)
 
-        return y
+        # Concatenate user and item latent representations.
+        user_z, item_z = self.user_sdae.encode(user_x), self.item_sdae.encode(item_x)     
+        z_concat = torch.cat([user_z, item_z], dim = 1)
+
+        # Concatenate user and item emebddings and latent representations
+        concat = torch.cat([embed_concat, z_concat], dim = 1)
+        
+        # Non linear on concatenated vectors
+        y = self.net(concat)
+
+        return y     
 
     def backward_loss(self, *batch):
-        """Custom backward loss"""
+        """
+        Custom backward loss
+        """
         x, user_x, item_x, y = batch
-
         # User reconstruction loss with trade off parameter alpha
-        user_loss = self.criterion(self.user_sdae.forward(user_x), user_x)
-        user_l2_reg = torch.tensor(0.).to(self.device)
-        for param in self.user_sdae.parameters():
-            user_l2_reg += torch.norm(param).to(self.device)
-        user_loss += self.l2_lambda * user_l2_reg
-
+        user_loss = self.alpha * self.criterion(self.user_sdae.forward(user_x), user_x)
         # Item reconstruction loss with trade off parameter beta
-        item_loss = self.criterion(self.item_sdae.forward(item_x), item_x)
-        item_l2_reg = torch.tensor(0.).to(self.device)
-        for param in self.item_sdae.parameters():
-            item_l2_reg += torch.norm(param).to(self.device)
-        item_loss += self.l2_lambda * item_l2_reg
-
+        item_loss = self.beta * self.criterion(self.item_sdae.forward(item_x), item_x)
         # Rating loss
         rating_loss = super().backward_loss(*batch)
-        cf_l2_reg = torch.tensor(0.).to(self.device)
-        for param in self.ncf.parameters():
-            cf_l2_reg += torch.norm(param).to(self.device)
-        rating_loss += self.l2_lambda * cf_l2_reg
 
         # Total loss
-        loss = rating_loss + self.alpha * user_loss + self.beta * item_loss
+        loss = rating_loss + user_loss +  item_loss
 
         return loss
+
+    def load_pretrain_weights(self, ncf_weights):
+        """
+        Load pretrain NCF weights
+        """
+        ncfpp_weights = self.state_dict()                 
+
+        ncf_input_weights = ncf_weights["net.mlp.0.weight"]
+        ncf_input_dim = ncf_input_weights.shape[-1]
+        ncf_weights["net.mlp.0.weight"] = ncfpp_weights["net.mlp.0.weight"]
+        ncf_weights["net.mlp.0.weight"][:, :ncf_input_dim] = ncf_input_weights
+        ncfpp_weights.update(ncf_weights)               
+        self.load_state_dict(ncfpp_weights)
