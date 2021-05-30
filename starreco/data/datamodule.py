@@ -1,5 +1,6 @@
 from typing import Union
 
+import numpy as np
 import pytorch_lightning as pl 
 from torch.utils.data import DataLoader
 from pytorch_lightning.trainer.supporters import CombinedLoader
@@ -21,23 +22,25 @@ class StarDataModule(pl.LightningDataModule):
     def __init__(self, 
                  download:str = "ml-1m",
                  batch_size:int = 256,
-                 features_join:bool = False,
-                 matrix_transform:bool = False,
+                 matrix_form:bool = False,
                  matrix_transpose:bool = False,
+                 add_features:bool = False,
+                 add_ids:bool = True,
                  train_val_test_split:list = [60, 20 ,20],
                  num_workers:int = 1):
         assert download in self._downloads, \
         (f"`download` = '{download}' not include in prefixed dataset downloads. Choose from {self._downloads}.")
         
-        assert not(not matrix_transform and matrix_transpose), \
-        ("`matrix_transform` and 'matrix_transpose` must be either False:False, True:False or True:True, cannot be False:True.")
+        assert not(not matrix_form and matrix_transpose), \
+        ("`matrix_form` and 'matrix_transpose` must be either False:False, True:False or True:True, cannot be False:True.")
 
         assert sum(train_val_test_split) == 100, "The sum of `train_val_test_split` must be 100."
 
         self.batch_size = batch_size
-        self.features_join = features_join
-        self.matrix_transform = matrix_transform
+        self.matrix_form = matrix_form
         self.matrix_transpose = matrix_transpose
+        self.add_features = add_features
+        self.add_ids = add_ids
         self.train_split, self.val_split, self.test_split = train_val_test_split
         self.num_workers = num_workers
         
@@ -83,7 +86,7 @@ class StarDataModule(pl.LightningDataModule):
         ).transform()
 
         # user_X and item_X, which are features mapped to X, only accessable for non-matrix X.
-        if not self.matrix_transform and self.features_join:
+        if not self.matrix_form and self.add_features:
             self.user_X = Preprocessor(
                 self.dataset.rating.user_select_related,
                 cat_columns = self.dataset.user.cat_columns,
@@ -109,7 +112,7 @@ class StarDataModule(pl.LightningDataModule):
         train_val_split = (self.val_split + self.test_split)/ (self.train_split + self.val_split + self.test_split)
         val_test_split = self.val_split/(self.val_split + self.test_split)
 
-        if not self.matrix_transform and self.features_join:
+        if not self.matrix_form and self.add_features:
             self.X_train, self.X_val, self.user_X_train, self.user_X_val, \
             self.item_X_train, self.item_X_val, self.y_train, self.y_val = \
             train_test_split(
@@ -190,7 +193,7 @@ class StarDataModule(pl.LightningDataModule):
         """
         self.prepare_data()
         self.split()
-        if self.matrix_transform: 
+        if self.matrix_form: 
             self.to_matrix()
 
     def train_dataloader(self):
@@ -199,15 +202,18 @@ class StarDataModule(pl.LightningDataModule):
         """
         train_data = [self.X_train, self.y_train]
 
-        if self.features_join:
-            if self.matrix_transform:
+        if self.add_features:
+            if self.matrix_form:
                 if self.matrix_transpose:
-                    train_data.insert(1, self.item)
+                    train_data.insert(-1, self.item)
                 else:
-                    train_data.insert(1, self.user)
+                    train_data.insert(-1, self.user)
             else:
-                train_data.insert(1, self.user_X_train)
-                train_data.insert(2, self.item_X_train)
+                train_data.insert(-1, self.user_X_train)
+                train_data.insert(-1, self.item_X_train)
+
+        if self.add_ids and self.matrix_form:
+            train_data.insert(-1, np.arange(self.X_train.shape[0]))
 
         train_dls = []
         for train_datum in train_data:
@@ -227,15 +233,18 @@ class StarDataModule(pl.LightningDataModule):
         """
         val_data = [self.X_val, self.y_val]
 
-        if self.features_join:
-            if self.matrix_transform:
+        if self.add_features:
+            if self.matrix_form:
                 if self.matrix_transpose:
-                    val_data.insert(1, self.item)
+                    val_data.insert(-1, self.item)
                 else:
-                    val_data.insert(1, self.user)
+                    val_data.insert(-1, self.user)
             else:
-                val_data.insert(1, self.user_X_val)
-                val_data.insert(2, self.item_X_val)
+                val_data.insert(-1, self.user_X_val)
+                val_data.insert(-1, self.item_X_val)
+
+        if self.add_ids and self.matrix_form:
+            val_data.insert(-1, np.arange(self.X_val.shape[0]))
 
         val_dls = []
         for val_datum in val_data:
@@ -256,15 +265,18 @@ class StarDataModule(pl.LightningDataModule):
         if self.test_split:
             test_data = [self.X_test, self.y_test]
 
-            if self.features_join:
-                if self.matrix_transform:
+            if self.add_features:
+                if self.matrix_form:
                     if self.matrix_transpose:
-                        test_data.insert(1, self.item)
+                        test_data.insert(-1, self.item)
                     else:
-                        test_data.insert(1, self.user)
+                        test_data.insert(-1, self.user)
                 else:
-                    test_data.insert(1, self.user_X_test)
-                    test_data.insert(2, self.item_X_test)
+                    test_data.insert(-1, self.user_X_test)
+                    test_data.insert(-1, self.item_X_test)
+
+        if self.add_ids and self.matrix_form:
+            test_data.insert(-1, np.arange(self.X_test.shape[0]))
 
             test_dls = []
             for test_datum in test_data:
