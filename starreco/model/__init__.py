@@ -17,3 +17,4 @@ from .cnndcf import CNNDCF
 from .deeprec import DeepRec
 from .autorec import AutoRec
 from .cfn import CFN
+from .cdae import CDAE
