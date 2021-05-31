@@ -275,8 +275,8 @@ class StarDataModule(pl.LightningDataModule):
                     test_data.insert(-1, self.user_X_test)
                     test_data.insert(-1, self.item_X_test)
 
-        if self.add_ids and self.matrix_form:
-            test_data.insert(-1, np.arange(self.X_test.shape[0]))
+            if self.add_ids and self.matrix_form:
+                test_data.insert(-1, np.arange(self.X_test.shape[0]))
 
             test_dls = []
             for test_datum in test_data:
