@@ -231,6 +231,7 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
         self.noise_rate = noise_rate
         self.noise_factor = noise_factor
         self.noise_all = noise_all
+        self.noise_masks = []
         self.mean = mean
         self.std = std
 
@@ -272,10 +273,12 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
 
     def add_noise(self, x):
         if self.training:
-            self.noise_mask = torch.FloatTensor(x.size()).uniform_().to(x.device) < self.noise_rate
+            noise_mask = torch.FloatTensor(x.size()).uniform_().to(x.device) < self.noise_rate
+            self.noise_masks.append(noise_mask)
             noise = torch.randn(x.size()).to(x.device) * self.std + self.mean
-            noise *= self.noise_mask
+            noise *= noise_mask
             noise *= self.noise_factor
+
             return x + noise
         else:
             return x
