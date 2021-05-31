@@ -202,11 +202,11 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
     - batch_norm (bool): If True, apply batch normalization in all hidden layers. Default: True.
     - extra_input_dims (int): Extra input neuron. Default: 0.
     - extra_input_all (bool): If True, extra input neurons are added to all input and hidden layers, else only to input layer. Default: False.
-    - noise_factor (int/float): Probability of noises to be added to the input. Noise is not applied to extra input neurons. Noise is only applied during training only. Default: 0.3.
+    - noise_rate (int/float): Rate/Percentage of noises to be added to the input. Noise is not applied to extra input neurons. Noise is only applied during training only. Default: 1.
+    - noise_factor (int/float): Noise factor. Default: 0.3.
     - noise_all (bool): If True, noise are added to inputs in all input and hidden layers, else only to input layer. Default: False.
     - mean (int/float): Gaussian noise mean. Default: 0.
     - std (int/float): Gaussian noise standard deviation: 1.
-
     """
 
     def __init__(self, 
@@ -220,17 +220,19 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
                  batch_norm:bool = True,
                  extra_input_dim:int = 0,
                  extra_input_all:bool = False,
+                 noise_rate:Union[int, float] = 1,
                  noise_factor:Union[int, float] = 0.3,
                  noise_all:bool = True,
                  mean:Union[int, float] = 0,
                  std:Union[int, float] = 1):
         super().__init__()
 
+        self.extra_input_all = extra_input_all
+        self.noise_rate = noise_rate
         self.noise_factor = noise_factor
+        self.noise_all = noise_all
         self.mean = mean
         self.std = std
-        self.extra_input_all = extra_input_all
-        self.noise_all = noise_all
 
         if self.extra_input_all:
             encoder_extra_input_dims = decoder_extra_input_dims = extra_input_dim
@@ -250,10 +252,6 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
                                              extra_input_dims = encoder_extra_input_dims,
                                              mlp_type = "modulelist")
 
-        # Batch normalization and dropout layer in latent space
-        self.batch_norm = torch.nn.BatchNorm1d(hidden_dims[-1]) if batch_norm else None
-        self.dropout = torch.nn.Dropout(dropout) if dropout else None
-
         # Decoder layer 
         self.decoder = MultilayerPerceptrons(input_dim = hidden_dims[-1],
                                              hidden_dims = [*hidden_dims[:-1][::-1], input_output_dim], 
@@ -266,9 +264,19 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
                                              extra_input_dims = decoder_extra_input_dims,
                                              mlp_type = "modulelist")
 
+        # Batch normalization and dropout layer inserted before decoding
+        if batch_norm:
+            self.decoder.mlp.insert(0, torch.nn.BatchNorm1d(hidden_dims[-1]))
+        if dropout:
+            self.decoder.mlp.insert(1, torch.nn.Dropout(dropout))
+
     def add_noise(self, x):
-        if self.noise_factor:
-            return x + self.noise_factor * torch.randn(x.size()).to(x.device) * self.std + self.mean
+        if self.training:
+            self.noise_mask = torch.FloatTensor(x.size()).uniform_().to(x.device) < self.noise_rate
+            noise = torch.randn(x.size()).to(x.device) * self.std + self.mean
+            noise *= self.noise_mask
+            noise *= self.noise_factor
+            return x + noise
         else:
             return x
 
@@ -276,18 +284,19 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
         for i, module in enumerate(self.encoder.mlp):
             if type(module) == torch.nn.Linear:
                 # Noise add only during training
-                if self.training and not(not self.noise_all and i):
+                if not(not self.noise_all and i):
                     x = self.add_noise(x)
                 if extra is not None and not(not self.extra_input_all and i):
                     x = torch.cat([x, extra], dim = 1)
             x = module(x)
+
         return x
 
     def decode(self, x, extra = None):
         for i, module in enumerate(self.decoder.mlp):
             if type(module) == torch.nn.Linear:
                 # Noise add only during training
-                if self.training and self.noise_all:
+                if self.noise_all:
                     x = self.add_noise(x)
                 if extra is not None and self.extra_input_all:
                     x = torch.cat([x, extra], dim = 1)
@@ -295,12 +304,7 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
         return x
 
     def forward(self, x, extra = None):
-        x = self.encode(x, extra)
-        if self.batch_norm:
-            x = self.batch_norm(x)
-        if self.dropout:
-            x = self.dropout(x)
-        x = self.decode(x, extra)
+        x = self.decode(self.encode(x, extra), extra)
         return x       
 
 # Need testing
