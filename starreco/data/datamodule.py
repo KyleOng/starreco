@@ -25,7 +25,7 @@ class StarDataModule(pl.LightningDataModule):
                  matrix_form:bool = False,
                  matrix_transpose:bool = False,
                  add_features:bool = False,
-                 add_ids:bool = True,
+                 add_ids:bool = False,
                  train_val_test_split:list = [60, 20 ,20],
                  num_workers:int = 1):
         assert download in self._downloads, \
