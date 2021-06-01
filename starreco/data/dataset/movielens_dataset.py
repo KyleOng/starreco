@@ -106,6 +106,7 @@ class MovielensDataset(BaseDataset):
                                 level = logging.INFO)
             print(f"Log file created in your working directory at {timestamp}")
 
+            # Start crawling
             for i, movie in tqdm(enumerate(movies.itertuples()), total = len(movies["imdbId"])):
                 movie_id = movie[1]
                 imdb_id = movie[4]
