@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 
 from .dataset import BaseDataset, User, Item, Rating
 
-
+# Done
 class MovielensDataset(BaseDataset):
     """
     Dataset class for Movielens.
@@ -33,7 +33,7 @@ class MovielensDataset(BaseDataset):
         # Item dataframe
         movies = pd.read_csv(zf.open(f"ml-1m/movies.dat"), delimiter = "::", names = ["movieId", "title", "genre"], encoding = "ISO-8859-1", engine = "python")
         # Crawl movies data
-        movies = self.crawl_movies_data(movies)
+        movies = self.get_movies_with_plots(movies)
         movies["genre"] = movies["genre"].apply(lambda x:set(x.split("|")))
         item = Item(movies, "movieId")
         item.set_columns = ["genre"]
@@ -45,20 +45,14 @@ class MovielensDataset(BaseDataset):
 
         return rating, user, item
 
-    def crawl_movies_data(self, movies_1m):
+    def get_movies_with_plots(self, movies_1m):
         """
-        Crawling movie data.
+        Get movies with plots.
         """
-        movies_path = self._download_path+"ml-1m-movies.csv"
         movielinks_extra_path = self._download_path+"ml-1m_links.csv"
 
         if not os.path.isfile(movielinks_extra_path):
-            raise Exception("""
-            Please manually download 'ml-1m_links.csv' from the link here https://drive.google.com/file/d/1k0GTgery8Pyjo3z_igWyQsJ4XeiCBab7/view?usp=sharing and place in 'starreco/dataset' directory.
-            """)
-
-        if os.path.isfile(movies_path):            
-            movies = pd.read_csv(movies_path, encoding = "ISO-8859-1", engine = "python")
+            raise Exception("File not existed.\nPlease manually download 'ml-1m_links.csv' from the link below \n https://drive.google.com/file/d/1k0GTgery8Pyjo3z_igWyQsJ4XeiCBab7/view?usp=sharing\n and place in 'starreco/dataset' directory.")
         else:
             # Merge movielen-25m movies.csv and links.csv
             ml_25m_path = super().download_data(f"http://files.grouplens.org/datasets/movielens/ml-25m.zip")
@@ -95,10 +89,23 @@ class MovielensDataset(BaseDataset):
             movielinks_extra = pd.read_csv(movielinks_extra_path, encoding = "ISO-8859-1", engine = "python")
             movies = movies_1m.merge(movielinks_25m, on = "movieId", how = "left")
             movies.update(movies[["movieId"]].merge(movielinks_extra, on = ["movieId"], how = "left"))
-            # Create new column on movies
+            movies = self.crawl_movie_plots(movies)
+
+        return movies   
+
+    def crawl_movie_plots(self, movies):
+        """
+        Crawl movie plots from IMDB website.
+        """
+        movies_path = self._download_path+"ml-1m-movies.csv"
+        if os.path.isfile(movies_path):            
+            movies = pd.read_csv(movies_path, encoding = "ISO-8859-1", engine = "python")
+            warnings.warn(f"File existed.\nThe system does not check for the completeness of data.\nPlease make sure that the data in {movies_path} is completed.")
+        else:
+            # Create new column named plot on movies
             movies["plot"] = np.nan
 
-            # Create a logging file using timestamp.
+            # Create a logging file using current timestamp.
             timestamp = int(time.time())
             logging.basicConfig(filename = f"movies_logging_{timestamp}.log",
                                 format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
@@ -130,12 +137,10 @@ class MovielensDataset(BaseDataset):
 
                             # Find plot from soup
                             plot = soup.find_all("div", class_="GenresAndPlot__TextContainerBreakpointXS-cum89p-0")[0].text  
-
                             if plot: 
                                 logging.info(f"Success at movieId {movie_id}.")
                             else:
                                 logging.warning(f"Success with empty plot at movieId {movie_id}")
-
                             break   
                         except Exception as e:
                             attempt += 1
@@ -153,6 +158,6 @@ class MovielensDataset(BaseDataset):
                 # Insert plot and export dataframe
                 movies.loc[i, "plot"] = plot
                 movies.to_csv(movies_path, index = False)
-            print("End crawling")
-        return movies           
+            print("End crawling")  
+        return movies     
 
