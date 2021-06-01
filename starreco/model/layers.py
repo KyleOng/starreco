@@ -1,4 +1,5 @@
 from typing import Union
+import math
 
 import numpy as np
 import torch
@@ -273,9 +274,15 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
 
     def add_noise(self, x):
         if self.training:
-            noise_mask = torch.FloatTensor(x.size()).uniform_().to(x.device) < self.noise_rate
+            # Get noise mask
+            ones = torch.ones(math.ceil(self.noise_rate * x.nelement()))
+            zeros = torch.zeros(x.nelement() - ones.nelement())
+            noise_mask = torch.cat([zeros, ones])
+            noise_mask = noise_mask[torch.randperm(noise_mask.shape[0])]
+            noise_mask = noise_mask.view(x.shape).to(x.device).bool()
             self.noise_masks.append(noise_mask)
-            noise = torch.randn(x.size()).to(x.device) * self.std + self.mean
+
+            noise = torch.randn(x.shape).to(x.device) * self.std + self.mean
             noise *= noise_mask
             noise *= self.noise_factor
 
