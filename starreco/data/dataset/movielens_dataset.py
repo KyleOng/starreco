@@ -127,6 +127,7 @@ class MovielensDataset(BaseDataset):
                                 text_file.write(soup.prettify())
                             """
 
+                            # Find plot from soup
                             plot = soup.find_all("div", class_="GenresAndPlot__TextContainerBreakpointXS-cum89p-0")[0].text  
                             break   
                         except Exception as e:
@@ -146,7 +147,7 @@ class MovielensDataset(BaseDataset):
                     # If imdbId is empty, proceed to the next movieId and provide a warning log.
                     logging.warning(f"Empty imdbId at movieId {movie_id}. Proceed to the next movie")              
 
-            # Export new movies dataframe 
-            movies.to_csv(movies_path, index = False)
+                # Export new movies dataframe 
+                movies.to_csv(movies_path, index = False)
         return movies           
 
