@@ -46,14 +46,23 @@ class MovielensDataset(BaseDataset):
         return rating, user, item
 
     def crawl_movies_data(self, movies_1m):
+        """
+        Crawling movie data.
+        """
         movies_path = self._download_path+"ml-1m-movies.csv"
+        movielinks_extra_path = self._download_path+"ml-1m_links.csv"
+
+        if not os.path.isfile(movielinks_extra_path):
+            raise Exception("""
+            Please manually download 'ml-1m_links.csv' from the link here https://drive.google.com/file/d/1k0GTgery8Pyjo3z_igWyQsJ4XeiCBab7/view?usp=sharing and place in 'starreco/dataset' directory.
+            """)
 
         if os.path.isfile(movies_path):            
             movies = pd.read_csv(movies_path, encoding = "ISO-8859-1", engine = "python")
         else:
+            # Merge movielen-25m movies.csv and links.csv
             ml_25m_path = super().download_data(f"http://files.grouplens.org/datasets/movielens/ml-25m.zip")
             ml_25m = zipfile.ZipFile(ml_25m_path)
-
             movies_25m = pd.read_csv(ml_25m.open(f"ml-25m/movies.csv"), encoding = "ISO-8859-1", engine = "python")
             links_25m = pd.read_csv(ml_25m.open(f"ml-25m/links.csv"), encoding = "ISO-8859-1", engine = "python")
             movielinks_25m = movies_25m.merge(links_25m, on = "movieId")
@@ -81,22 +90,31 @@ class MovielensDataset(BaseDataset):
             temp.to_csv("movies_25m_1m_empty_links.csv", index = False)
             """
 
+            # Merge movielens-1m movies and movielens-25m movielinks
             movielinks_25m = movielinks_25m[["movieId", "imdbId"]]
-            movielinks_extra = pd.read_csv(self._download_path+"ml-1m_links.csv", encoding = "ISO-8859-1", engine = "python")
+            movielinks_extra = pd.read_csv(movielinks_extra_path, encoding = "ISO-8859-1", engine = "python")
             movies = movies_1m.merge(movielinks_25m, on = "movieId", how = "left")
             movies.update(movies[["movieId"]].merge(movielinks_extra, on = ["movieId"], how = "left"))
+            # Create new column on movies
             movies["plot"] = np.nan
 
-            print("Log file created in your working directory.")
-            logging.basicConfig(filename="movies.log", level=logging.INFO)
+            # Create a logging file using timestamp.
+            timestamp = int(time.time())
+            logging.basicConfig(filename = f"movies_logging_{timestamp}.log",
+                                format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+                                datefmt = '%Y-%m-%d:%H:%M:%S',
+                                level = logging.INFO)
+            print(f"Log file created in your working directory at {timestamp}")
 
             for i, movie in tqdm(enumerate(movies.itertuples()), total = len(movies["imdbId"])):
                 movie_id = movie[1]
                 imdb_id = movie[4]
+                plot = ""
                 if not pd.isna(imdb_id):
-                    trial = 0
-                    while trial < 4: # maximum 10 trials
+                    attempt = 0
+                    while attempt < 10: # maximum 10 attempts
                         try:
+                            # Plot crawling from IMDB site
                             imdb_link = f"https://www.imdb.com/title/tt{str(int(imdb_id)).zfill(7)}"
                             response = requests.get(imdb_link)
                             soup = BeautifulSoup(response.content, 'html.parser')
@@ -104,26 +122,30 @@ class MovielensDataset(BaseDataset):
                             # Uncomment the code below for testing.
                             # Use the export txt to find plot throught html
                             """
-                            with open("output.txt", "w") as text_file:
+                            with open(f"soup_{movie_id}.txt", "w") as text_file:
                                 text_file.write(soup.prettify())
                             """
-                            if i == 2:
-                                raise Exception (testing)
 
-                            plot = soup.find_all("div", class_="GenresAndPlot__TextContainerBreakpointXS-cum89p-0")[0].text
-                            break
+                            plot = soup.find_all("div", class_="GenresAndPlot__TextContainerBreakpointXS-cum89p-0")[0].text  
+                            break   
                         except Exception as e:
-                            trial += 1
-                            warnings.warn(f"Fail at movieId {movie_id}. Reattempt crawling for the {trial}th time(s). {e}")
-                            logging.error(f"Fail at movieId {movie_id}. Reattempt crawling for the {trial}th time(s). {e}")
-                            time.sleep(10)
-                else:
-                    plot = ""
-                movies.loc[i, "plot"] = plot
-                logging.info(f"Success at movieId {movie_id}.")
+                            attempt += 1
+                            warnings.warn(f"Reattempt crawling at movieId {movie_id} for the {attempt}th time(s). {e}")
+                            logging.warning(f"Reattempt crawling at movieId {movie_id} for the {attempt}th time(s). {e}")
+                            time.sleep(5) 
 
+                movies.loc[i, "plot"] = plot
+                if imdb_id:
+                    if plot: 
+                        logging.info(f"Success at movieId {movie_id}.")
+                    else:
+                        warnings.warn(f"Fail at movieId {movie_id}. Please check your logging file.")
+                        logging.error(f"Fail at movieId {movie_id}.")
+                else:
+                    # If imdbId is empty, proceed to the next movieId and provide a warning log.
+                    logging.warning(f"Empty imdbId at movieId {movie_id}. Proceed to the next movie")              
+
+            # Export new movies dataframe 
             movies.to_csv(movies_path, index = False)
-        import pdb 
-        pdb.set_trace()
         return movies           
 
