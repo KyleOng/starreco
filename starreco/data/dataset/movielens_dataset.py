@@ -107,6 +107,7 @@ class MovielensDataset(BaseDataset):
             print(f"Log file created in your working directory at {timestamp}")
 
             # Start crawling
+            print("Start crawling")
             for i, movie in tqdm(enumerate(movies.itertuples()), total = len(movies["imdbId"])):
                 movie_id = movie[1]
                 imdb_id = movie[4]
@@ -129,6 +130,12 @@ class MovielensDataset(BaseDataset):
 
                             # Find plot from soup
                             plot = soup.find_all("div", class_="GenresAndPlot__TextContainerBreakpointXS-cum89p-0")[0].text  
+
+                            if plot: 
+                                logging.info(f"Success at movieId {movie_id}.")
+                            else:
+                                logging.warning(f"Success with empty plot at movieId {movie_id}")
+
                             break   
                         except Exception as e:
                             attempt += 1
@@ -136,18 +143,16 @@ class MovielensDataset(BaseDataset):
                             logging.warning(f"Reattempt crawling at movieId {movie_id} for the {attempt}th time(s). {e}")
                             time.sleep(5) 
 
-                movies.loc[i, "plot"] = plot
-                if imdb_id:
-                    if plot: 
-                        logging.info(f"Success at movieId {movie_id}.")
-                    else:
-                        warnings.warn(f"Fail at movieId {movie_id}. Please check your logging file.")
-                        logging.error(f"Fail at movieId {movie_id}.")
+                            if attempt == 10:
+                                warnings.warn(f"Fail at movieId {movie_id}. Please check your logging file.")
+                                logging.error(f"Fail at movieId {movie_id}.")
                 else:
-                    # If imdbId is empty, proceed to the next movieId and provide a warning log.
-                    logging.warning(f"Empty imdbId at movieId {movie_id}. Proceed to the next movie")              
+                    # If imdbId is empty, proceed to the next movieId and provide a warning log.    
+                    logging.warning(f"Empty imdbId at movieId {movie_id}")   
 
-                # Export new movies dataframe 
+                # Insert plot and export dataframe
+                movies.loc[i, "plot"] = plot
                 movies.to_csv(movies_path, index = False)
+            print("End crawling")
         return movies           
 
