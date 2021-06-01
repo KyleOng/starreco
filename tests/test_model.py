@@ -76,7 +76,7 @@ def test_mdacf():
 
 # Done
 def test_gmfpp(load = False):
-    dm = StarDataModule(features_join = True)
+    dm = StarDataModule(add_features = True)
     dm.setup()
     user_ae_hparams = dict(input_output_dim = dm.user_X.shape[-1], hidden_dims = [8])
     item_ae_hparams = dict(input_output_dim = dm.item_X.shape[-1], hidden_dims = [8])
@@ -89,7 +89,7 @@ def test_gmfpp(load = False):
 
 # Done
 def test_ncfpp(load = False):
-    dm = StarDataModule(features_join = True)
+    dm = StarDataModule(add_features = True)
     dm.setup()
     user_ae_hparams = dict(input_output_dim = dm.user_X.shape[-1], hidden_dims = [8])
     item_ae_hparams = dict(input_output_dim = dm.item_X.shape[-1], hidden_dims = [8])
@@ -104,7 +104,7 @@ def test_ncfpp(load = False):
 def test_nmfpp(shared_embed = None, shared_sdaes = None, load_all = False, freeze = True):
     global dm
     if dm is None:
-        dm = StarDataModule(features_join = True)
+        dm = StarDataModule(add_features = True)
         dm.setup()
     user_ae_hparams = dict(input_output_dim = dm.user_X.shape[-1], hidden_dims = [8])
     item_ae_hparams = dict(input_output_dim = dm.item_X.shape[-1], hidden_dims = [8])
@@ -172,7 +172,7 @@ def test_cnndcf():
 
 # Done
 def test_autorec(matrix_transpose = False):
-    dm = StarDataModule(matrix_transform = True,
+    dm = StarDataModule(matrix_form = True,
                         matrix_transpose = matrix_transpose)
     dm.setup()
     input_output_dim = dm.dataset.rating.num_users if matrix_transpose else dm.dataset.rating.num_items
@@ -181,17 +181,17 @@ def test_autorec(matrix_transpose = False):
 
 # Done
 def test_deeprec(matrix_transpose = False):
-    dm = StarDataModule(matrix_transform = True,
+    dm = StarDataModule(matrix_form = True,
                         matrix_transpose = matrix_transpose)
     dm.setup()
     input_output_dim = dm.dataset.rating.num_users if matrix_transpose else dm.dataset.rating.num_items
     deeprec = DeepRec(input_output_dim)
     return quick_test(dm, deeprec)
 
-# Testing
+# Done
 def test_cfn(matrix_transpose = False, extra_input_all = True):
-    dm = StarDataModule(matrix_transform = True,
-                        features_join = True,
+    dm = StarDataModule(matrix_form = True,
+                        add_features = True,
                         matrix_transpose = matrix_transpose)
     dm.setup()
     input_output_dim = dm.dataset.rating.num_users if matrix_transpose else dm.dataset.rating.num_items
@@ -201,6 +201,27 @@ def test_cfn(matrix_transpose = False, extra_input_all = True):
         feature_dim = dm.user.shape[1]
     cfn = CFN(input_output_dim, extra_input_dim = feature_dim, extra_input_all = extra_input_all)
     return quick_test(dm,  cfn)
+
+# Done
+def test_cdae(matrix_transpose = False):
+    dm = StarDataModule(matrix_form = True,
+                        matrix_transpose = matrix_transpose,
+                        add_ids = True)
+    dm.setup()
+    input_output_dim = dm.dataset.rating.num_users if matrix_transpose else dm.dataset.rating.num_items
+    
+    cdae = CDAE(input_output_dim)
+    return quick_test(dm, cdae)
+
+# Done
+def test_sdaecf(matrix_transpose = False):
+    dm = StarDataModule(matrix_form = True,
+                        matrix_transpose = matrix_transpose)
+    dm.setup()
+    input_output_dim = dm.dataset.rating.num_users if matrix_transpose else dm.dataset.rating.num_items
+    
+    sdaecf = SDAECF(input_output_dim)
+    return quick_test(dm, sdaecf)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = "Testing model")
@@ -317,6 +338,12 @@ if __name__ == "__main__":
     elif model == "cfn_0": test_cfn(False, False)
     elif model == "cfn_1": test_cfn(False, True)
     elif model == "cfn_2": test_cfn(True, False)
-    elif model == "cfn_3": test_cfn(True, True, )
+    elif model == "cfn_3": test_cfn(True, True)
+    # Done
+    elif model == "cdae_0": test_cdae(False)
+    elif model == "cdae_1": test_cdae(True)
+    # Done
+    elif model == "sdaecf_0": test_sdaecf(False)
+    elif model == "sdaecf_1": test_sdaecf(True)
 
         
