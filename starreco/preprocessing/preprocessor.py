@@ -31,6 +31,7 @@ class Preprocessor:
         self.num_columns = num_columns
         self.set_columns = set_columns
         self.doc_columns = doc_columns
+        print(self.cat_columns, self.num_columns, self.set_columns, self.doc_columns)
 
     def transform(self, return_dataframe = False):
         """
@@ -44,7 +45,7 @@ class Preprocessor:
             return None
 
         # Return None if cat/num/self.set_columns are empty
-        if len(self.cat_columns) == 0 and len(self.num_columns) == 0 and len(self.set_columns) == 0:
+        if bool(self.cat_columns) and bool(self.num_columns) and bool(self.set_columns) and bool(self.doc_columns):
             return None
 
         # Dynamic transformer/pipeline construction
