@@ -49,7 +49,7 @@ class Preprocessor:
             return None
 
         # Dynamic transformer/pipeline construction
-        self.column_transformer = ColumnTransformer([])
+        self.column_transformer = ColumnTransformer([], sparse_threshold = 0.5)
 
         # Each column type has its own transformation pipeline
         # Categorical transformer: one hot encoder
@@ -102,7 +102,7 @@ class Preprocessor:
                 if self.set_columns:
                     columns_transform.append(self.column_transformer.named_transformers_[f"set"].get_feature_names())
                 if self.doc_columns:
-                    columns_transform.append(self.column_transformer.named_transformers_[f"document"].get_feature_names())
+                    columns_transform.append([f"doc_{i}" for i in range(self.df_transform.shape[1] - len(columns_transform))])
                 return pd.DataFrame(self.df_transform.toarray(), columns = np.concatenate(columns_transform))
             except MemoryError as e:
                 # Memory error. Return array instead
