@@ -16,7 +16,7 @@ class User:
     - column (str): User column.
     """
 
-    cat_columns = num_columns = set_columns = []
+    cat_columns = num_columns = set_columns = doc_columns = []
 
     def __init__(self, df, column):
         self.df = df
@@ -31,7 +31,7 @@ class Item:
     - column (str): Item column.
     """
 
-    cat_columns = num_columns = set_columns = []
+    cat_columns = num_columns = set_columns = doc_columns = []
 
     def __init__(self, df, column):
         self.df = df

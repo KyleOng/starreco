@@ -1,5 +1,3 @@
-from typing import Union
-
 import numpy as np
 import pytorch_lightning as pl 
 from torch.utils.data import DataLoader
@@ -9,12 +7,23 @@ from scipy.sparse import issparse
 
 from starreco.preprocessing import Preprocessor
 from .dataset import BookCrossingDataset, MovielensDataset
-from .utils import MatrixDataset, SparseDataset, sparse_coo_to_tensor, sparse_batch_collate, ratings_to_sparse_matrix, df_map_column
+from .utils import MatrixDataset, SparseDataset, sparse_batch_collate, ratings_to_sparse_matrix, df_map_column
 
-
+# Done
 class StarDataModule(pl.LightningDataModule):
     """
-    starreco custom DataModule class.
+    Custom starrreco DataModule class.
+
+    download (str): Dataset to be downloaded. Default "ml-1m".
+    batch_size (int): Batch size.
+    matrix_form (bool): Transform dataset to matrix form. Default: False.
+    matrix_tranpose (bool): Transpose matrix data, `matrix_form` must be set to True. Default: False.
+    add_ids (list): Add ids to matrix dataset, `matrix_form` must be set to True. Default: False.
+    add_features (bool): Add user/item features to dataset. Default: False.
+    user_features_ignore (list): User features to be ignored. Default: [].
+    item_features_ignore (list): Item features to be ignored. Default: [].
+    train_val_test_split (list): Train validation testing split ratio. Default: [60, 20, 20].
+    num_workers (int): Number of CPU workers for Matrix Dataset. Default: 1.
     """
 
     _downloads = ["ml-1m", "book-crossing"]
@@ -24,23 +33,23 @@ class StarDataModule(pl.LightningDataModule):
                  batch_size:int = 256,
                  matrix_form:bool = False,
                  matrix_transpose:bool = False,
-                 add_features:bool = False,
                  add_ids:bool = False,
+                 add_features:bool = False,
+                 user_features_ignore:list = [],
+                 item_features_ignore:list = [],
                  train_val_test_split:list = [60, 20 ,20],
                  num_workers:int = 1):
-        assert download in self._downloads, \
-        (f"`download` = '{download}' not include in prefixed dataset downloads. Choose from {self._downloads}.")
-        
-        assert not(not matrix_form and matrix_transpose), \
-        ("`matrix_form` and 'matrix_transpose` must be either False:False, True:False or True:True, cannot be False:True.")
-
+        assert download in self._downloads, (f"`download` = '{download}' not include in prefixed dataset downloads. Choose from {self._downloads}.")
+        assert not(not matrix_form and matrix_transpose), ("`matrix_form` and 'matrix_transpose` must be either False:False, True:False or True:True, cannot be False:True.")
         assert sum(train_val_test_split) == 100, "The sum of `train_val_test_split` must be 100."
 
         self.batch_size = batch_size
         self.matrix_form = matrix_form
         self.matrix_transpose = matrix_transpose
-        self.add_features = add_features
         self.add_ids = add_ids
+        self.add_features = add_features
+        self.user_features_ignore = user_features_ignore
+        self.item_features_ignore = item_features_ignore
         self.train_split, self.val_split, self.test_split = train_val_test_split
         self.num_workers = num_workers
         
@@ -62,50 +71,26 @@ class StarDataModule(pl.LightningDataModule):
         self.y = ratings[self.dataset.rating.column].values
 
         # user and item preprocessed features data
-        self.user = Preprocessor(
-            df = df_map_column(
-                self.dataset.user.df, self.dataset.user.column, 
-                self.dataset.rating.user_map, 
-                "left"
-            ), 
-            cat_columns = self.dataset.user.cat_columns,
-            num_columns = self.dataset.user.num_columns, 
-            set_columns = self.dataset.user.set_columns
-        ).transform()
+        user_preprocessor = Preprocessor(df = df_map_column(self.dataset.user.df, self.dataset.user.column, self.dataset.rating.user_map, "left"), 
+                                         cat_columns = list(set(self.dataset.user.cat_columns) - set(self.user_features_ignore)),
+                                         num_columns = list(set(self.dataset.user.num_columns) - set(self.user_features_ignore)), 
+                                         set_columns = list(set(self.dataset.user.set_columns) - set(self.user_features_ignore)),
+                                         doc_columns = list(set(self.dataset.user.doc_columns) - set(self.user_features_ignore)))
+        item_preprocessor = Preprocessor(df = df_map_column(self.dataset.item.df, self.dataset.item.column, self.dataset.rating.item_map, "left"), 
+                                         cat_columns = list(set(self.dataset.item.cat_columns) - set(self.item_features_ignore)),
+                                         num_columns = list(set(self.dataset.item.num_columns) - set(self.item_features_ignore)), 
+                                         set_columns = list(set(self.dataset.item.set_columns) - set(self.item_features_ignore)),
+                                         doc_columns = list(set(self.dataset.item.doc_columns) - set(self.item_features_ignore)))
+        self.user = user_preprocessor.transform()
+        self.item = item_preprocessor.transform()
 
-        self.item = Preprocessor(
-            df = df_map_column(
-                self.dataset.item.df, 
-                self.dataset.item.column, 
-                self.dataset.rating.item_map, 
-                "left"
-            ), 
-            cat_columns = self.dataset.item.cat_columns,
-            num_columns = self.dataset.item.num_columns, 
-            set_columns = self.dataset.item.set_columns
-        ).transform()
-
-        # user_X and item_X, which are features mapped to X, only accessable for non-matrix X.
-        if not self.matrix_form and self.add_features:
-            self.user_X = Preprocessor(
-                self.dataset.rating.user_select_related,
-                cat_columns = self.dataset.user.cat_columns,
-                num_columns = self.dataset.user.num_columns, 
-                set_columns = self.dataset.user.set_columns
-            ).transform()
-
-            self.item_X = Preprocessor(
-                self.dataset.rating.item_select_related,
-                cat_columns = self.dataset.item.cat_columns,
-                num_columns = self.dataset.item.num_columns, 
-                set_columns = self.dataset.item.set_columns
-            ).transform()
+        # map user and item to ratings
+        self.user_X = self.user[self.X[:, 0]]
+        self.item_X = self.item[self.X[:, 1]]
 
     def split(self, random_state:int = 77):
         """
         Perform train/validate/test split. 
-        
-        :param random_state (int): A seed to sklearn's random number generator which to generate the splits. This ensures that the splits generated as reproducable. Default: 77
 
         Note: General rule of thumb 60/20/20 train valid test split 
         """
@@ -113,64 +98,57 @@ class StarDataModule(pl.LightningDataModule):
         val_test_split = self.val_split/(self.val_split + self.test_split)
 
         if not self.matrix_form and self.add_features:
-            self.X_train, self.X_val, self.user_X_train, self.user_X_val, \
-            self.item_X_train, self.item_X_val, self.y_train, self.y_val = \
-            train_test_split(
-                self.X, 
-                self.user_X, 
-                self.item_X, 
-                self.y, 
-                stratify = self.y, 
-                test_size = train_val_split, 
-                random_state = random_state
-            )
+            self.X_train, self.X_val, self.user_X_train, self.user_X_val, self.item_X_train, self.item_X_val, self.y_train, self.y_val \
+            = train_test_split(self.X, 
+                               self.user_X, 
+                               self.item_X, 
+                               self.y, 
+                               stratify = self.y, 
+                               test_size = train_val_split, 
+                               random_state = random_state)
+            
             if self.test_split:
-                self.X_val, self.X_test, self.user_X_val, self.user_X_test, \
-                self.item_X_val, self.item_X_test, self.y_val, self.y_test = \
-                train_test_split(
-                    self.X_val, 
-                    self.user_X_val, 
-                    self.item_X_val, 
-                    self.y_val, 
-                    stratify = self.y_val, 
-                    test_size = val_test_split, 
-                    random_state = random_state
-                ) 
+                self.X_val, self.X_test, self.user_X_val, self.user_X_test, self.item_X_val, self.item_X_test, self.y_val, self.y_test \
+                = train_test_split(self.X_val, 
+                                   self.user_X_val, 
+                                   self.item_X_val, 
+                                   self.y_val, 
+                                   stratify = self.y_val, 
+                                   test_size = val_test_split, 
+                                   random_state = random_state) 
         else:
-            self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(
-                self.X, 
-                self.y, 
-                stratify = self.y, 
-                test_size = train_val_split, 
-                random_state = random_state
-            ) 
+            self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X, 
+                                                                                  self.y, 
+                                                                                  stratify = self.y, 
+                                                                                  test_size = train_val_split, 
+                                                                                  random_state = random_state) 
             if self.test_split:
-                self.X_val, self.X_test, self.y_val, self.y_test = train_test_split(
-                    self.X_val, 
-                    self.y_val, 
-                    stratify = self.y_val, 
-                    test_size = val_test_split, 
-                    random_state = random_state
-                )                 
+                self.X_val, self.X_test, self.y_val, self.y_test = train_test_split(self.X_val, 
+                                                                                    self.y_val, 
+                                                                                    stratify = self.y_val, 
+                                                                                    test_size = val_test_split, 
+                                                                                    random_state = random_state)                
 
     def to_matrix(self):
         """
         Transform rating dataframe with M*N rows to rating matrix with M rows and N columns.
         """
-        self.X_train = ratings_to_sparse_matrix(
-            self.X_train.T[0], self.X_train.T[1], self.y_train, 
-            self.dataset.rating.num_users, self.dataset.rating.num_items
-        )
-        self.X_val = ratings_to_sparse_matrix(
-            self.X_val.T[0], self.X_val.T[1], self.y_val, 
-            self.dataset.rating.num_users, self.dataset.rating.num_items
-        )
-
+        self.X_train = ratings_to_sparse_matrix(self.X_train[:, 0], 
+                                                self.X_train[:, 1], 
+                                                self.y_train, 
+                                                self.dataset.rating.num_users, 
+                                                self.dataset.rating.num_items)
+        self.X_val = ratings_to_sparse_matrix(self.X_val[:, 0], 
+                                              self.X_val[:, 1], 
+                                              self.y_val, 
+                                              self.dataset.rating.num_users, 
+                                              self.dataset.rating.num_items)
         if self.test_split:
-            self.X_test = ratings_to_sparse_matrix(
-                self.X_test.T[0], self.X_test.T[1], self.y_test, 
-                self.dataset.rating.num_users, self.dataset.rating.num_items
-            )
+            self.X_test = ratings_to_sparse_matrix(self.X_test[:, 0], 
+                                                   self.X_test[:, 1], 
+                                                   self.y_test, 
+                                                   self.dataset.rating.num_users, 
+                                                   self.dataset.rating.num_items)
 
         # Transpose X
         if self.matrix_transpose:

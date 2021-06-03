@@ -28,7 +28,7 @@ class MovielensDataset(BaseDataset):
         # User dataframe
         users = pd.read_csv(zf.open(f"ml-1m/users.dat"), delimiter = "::", names = ["userId", "gender", "age", "occupation", "zipCode"], engine = "python")
         user = User(users, "userId")
-        user.cat_columns = ["gender", "occupation", "age"]
+        user.cat_columns = ["gender", "occupation", "age", "zipCode"]
 
         # Item dataframe
         movies = pd.read_csv(zf.open(f"ml-1m/movies.dat"), delimiter = "::", names = ["movieId", "title", "genre"], encoding = "ISO-8859-1", engine = "python")
@@ -37,6 +37,7 @@ class MovielensDataset(BaseDataset):
         movies["genre"] = movies["genre"].apply(lambda x:set(x.split("|")))
         item = Item(movies, "movieId")
         item.set_columns = ["genre"]
+        item.doc_columns = ["plot"]
 
         # Rating dataframe
         rating = pd.read_csv(zf.open(f"ml-1m/ratings.dat"), delimiter = "::", 
