@@ -12,7 +12,12 @@ from .transformers import SetTransformer, DocTransformer
 # Done
 class Preprocessor:
     """
-    Preprocessing class.
+    Preprocessor class for data prerocessing.
+
+    cat_columns (list): List of categorical columns.
+    num_columns (list): List of numerical columns.
+    set_columns (list): List of set columns.
+    doc_columns (list): List of document columns.
     """
     
     def __init__(self, 

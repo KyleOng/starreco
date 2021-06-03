@@ -31,13 +31,16 @@ class CustomMultiLabelBinarizer(MultiLabelBinarizer):
 
 # Done
 class SetTransformer(BaseEstimator, TransformerMixin):
+    """
+    Transformer class for transforming set type data.
+    """
+
     def get_feature_names(self):
         return self.feature_names
 
     def fit(self, X, y = None):
         # Reset column transformer for every fit
         self.column_transformer = ColumnTransformer([])
-
         for column in X.columns: 
             pipe = Pipeline([
                 ("imputer", SimpleImputer(strategy = "constant", fill_value = {})),
@@ -46,9 +49,9 @@ class SetTransformer(BaseEstimator, TransformerMixin):
             self.column_transformer.transformers.append(
                 (column, pipe, [column])
             )
-
         self.column_transformer.fit(X)
 
+        # Get feature names
         self.feature_names = []
         for column in X.columns: 
             self.feature_names = np.concatenate((self.feature_names,
@@ -64,7 +67,11 @@ class SetTransformer(BaseEstimator, TransformerMixin):
 # Done
 class DocTransformer(BaseEstimator, TransformerMixin):
     """
-    Document Transformer.
+    Transformer class for transforming document type data.
+
+    max_length (int): Maximum length of document of each item. Default: 300.
+    max_df (float): Terms will be ignored that have a document frequency higher than the given threshold. Default: 0.5.
+    vocab_size (int): Vocabulary size. Default: 8000.
     """
 
     word_embeddings = {}
@@ -82,6 +89,9 @@ class DocTransformer(BaseEstimator, TransformerMixin):
         self.glove_path = glove_path
 
     def _get_feature_names(self, X):
+        """
+        Get words/feature names from input X.
+        """
         words = []
         for column in X.columns:
             words = np.concatenate((words,
@@ -140,7 +150,7 @@ class DocTransformer(BaseEstimator, TransformerMixin):
         sort_word_weights = dict(sorted(vocab_word_weights.items(), key= operator.itemgetter(1), reverse = True))
         top_word_weights = {word: vocab_word_weights[word] for word in list(sort_word_weights.keys())[:self.vocab_size]}
 
-        
+        # Get feature names from preprocessed data.
         self.feature_names = top_words = list(top_word_weights.keys())
         return self
 
