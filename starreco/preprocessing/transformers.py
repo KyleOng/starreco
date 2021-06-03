@@ -29,7 +29,7 @@ class CustomMultiLabelBinarizer(MultiLabelBinarizer):
     def fit_transform(self, X, y = None):
         return super().fit_transform(X.flatten())
 
-# Testing
+# Done
 class SetTransformer(BaseEstimator, TransformerMixin):
     def get_feature_names(self):
         return self.feature_names
