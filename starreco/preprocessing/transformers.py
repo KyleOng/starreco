@@ -20,13 +20,13 @@ class CustomMultiLabelBinarizer(MultiLabelBinarizer):
     """
 
     def fit(self, X, y = None):
-        return super().fit(X.flatten())
+        return super().fit(np.ravel(X))
 
     def transform(self, X, y = None):
-        return super().transform(X.flatten())
+        return super().transform(np.ravel(X))
 
     def fit_transform(self, X, y = None):
-        return super().fit_transform(X.flatten())
+        return super().fit_transform(np.ravel(X))
 
 # Done
 class SetTransformer(BaseEstimator, TransformerMixin):
