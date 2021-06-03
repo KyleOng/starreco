@@ -41,6 +41,7 @@ class StarDataModule(pl.LightningDataModule):
                  num_workers:int = 1):
         assert download in self._downloads, (f"`download` = '{download}' not include in prefixed dataset downloads. Choose from {self._downloads}.")
         assert not(not matrix_form and matrix_transpose), ("`matrix_form` and 'matrix_transpose` must be either False:False, True:False or True:True, cannot be False:True.")
+        assert not(not matrix_form and add_ids), ("`matrix_form` and 'add_ids` must be either False:False, True:False or True:True, cannot be False:True.")
         assert sum(train_val_test_split) == 100, "The sum of `train_val_test_split` must be 100."
 
         self.batch_size = batch_size
