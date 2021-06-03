@@ -49,6 +49,7 @@ class Preprocessor:
 
         # Dynamic transformer/pipeline construction
         self.column_transformer = ColumnTransformer([])
+
         # Each column type has its own transformation pipeline
         # Categorical transformer: one hot encoder
         if self.cat_columns:
@@ -59,6 +60,7 @@ class Preprocessor:
             self.column_transformer.transformers.append(
                 ("categorical", pipe, self.cat_columns)
             )
+
         # Numerical transformer: min max scalar
         if self.num_columns:
             pipe = Pipeline([
@@ -68,6 +70,7 @@ class Preprocessor:
             self.column_transformer.transformers.append(            
                 ("numerical", pipe, self.num_columns)
             )
+
         # Set type transformers: multilabel binarizer
         if self.set_columns:
             # Each multilabel-column has its own pipeline, because MultilabelBinarizer does not support multi column
