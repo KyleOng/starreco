@@ -1,15 +1,19 @@
+import os
 import operator
 
 import numpy as np
 import nltk
+from nltk.corpus import stopwords
 from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import FunctionTransformer, MultiLabelBinarizer
-from scipy.sparse import lil_matrix
+from scipy.sparse import csr_matrix, lil_matrix
 from tqdm import tqdm
+
+nltk.data.path.append(os.getcwd())
 
 # Done
 class CustomMultiLabelBinarizer(MultiLabelBinarizer):
@@ -35,7 +39,7 @@ class SetTransformer(BaseEstimator, TransformerMixin):
     """
 
     def get_feature_names(self):
-        return self.feature_names
+        return self.vocabs
 
     def fit(self, X, y = None):
         # Reset column transformer for every fit
@@ -51,9 +55,9 @@ class SetTransformer(BaseEstimator, TransformerMixin):
         self.column_transformer.fit(X)
 
         # Get feature names
-        self.feature_names = []
+        self.vocabs = []
         for column in X.columns: 
-            self.feature_names = np.concatenate((self.feature_names,
+            self.vocabs = np.concatenate((self.vocabs,
                                                 self.column_transformer.named_transformers_[column]\
                                                 .named_steps["binarizer"].classes_),
                                                 axis = None)
@@ -73,8 +77,6 @@ class DocTransformer(BaseEstimator, TransformerMixin):
     vocab_size (int): Vocabulary size. Default: 8000.
     """
 
-    word_embeddings = {}
-
     def __init__(self, 
                  max_length:int = 300, 
                  max_df:float = 0.5, 
@@ -87,21 +89,18 @@ class DocTransformer(BaseEstimator, TransformerMixin):
         self.vocab_size = vocab_size
         self.glove_path = glove_path
 
-    def _get_feature_names(self, X):
+    def get_vocabs_(self, X):
         """
-        Get words/feature names from input X.
+        Get vocabularies/words/feature names from input X.
         """
-        words = []
+        vocabs = []
         for column in X.columns:
-            words = np.concatenate((words,
-                                   self.column_transformer\
-                                   .named_transformers_[column]\
-                                   .named_steps["vectorizer"].get_feature_names()),
-                                   axis = None)
-        return words
-
-    def get_feature_names(self):
-        return self.feature_names
+            vocabs = np.concatenate((vocabs,
+                                    self.column_transformer\
+                                    .named_transformers_[column]\
+                                    .named_steps["vectorizer"].get_feature_names()),
+                                    axis = None)
+        return vocabs
 
     def fit(self, X, y = None):
         # Reset column transformer for every fit
@@ -113,56 +112,62 @@ class DocTransformer(BaseEstimator, TransformerMixin):
                                           max_features = None, 
                                           stop_words = "english") 
             pipe = Pipeline([
-                ("imputer", FunctionTransformer(lambda row:row.fillna("").str[:self.max_length])),
+                ("imputer", FunctionTransformer(lambda column:column.fillna("").str[:self.max_length])),
                 ("vectorizer", vectorizer)
             ])         
             self.column_transformer.transformers.append(            
                 (column, pipe, column)
             )
-        self.column_transformer.fit(X)
 
         # Calculate TFIDF
-        tfidf = self.column_transformer.transform(X)
-        words = self._get_feature_names(X)
+        tfidf = self.column_transformer.fit_transform(X)
+        vocabs_ = self.get_vocabs_(X)
         weights = np.ravel(tfidf.mean(axis = 0))
-        word_weights = {word: weight for word, weight in zip(words, weights)}
+        vocab_weights = {word: weight for word, weight in zip(vocabs_, weights)}
 
         # Remove corpus specific stop words that have the TFIDF document frequency higher than 0.5 (default).
-        non_stop_word_weights = {word: weight for word, weight in word_weights.items() if weight < self.max_df}
+        vocab_weights = {word: weight for word, weight in vocab_weights.items() if weight < self.max_df}
 
-        # Keep words in vocabulary.
         # Load pretrained word embeddings model.
-        if not bool(self.word_embeddings):
-            num_lines = sum(1 for _ in open(self.glove_path, 'r', encoding="utf-8"))
-            with open(self.glove_path, 'r', encoding="utf-8") as f:
-                f_tqdm = tqdm(f, total = num_lines)
-                f_tqdm.set_description("Loading glove.6B/glove.6B.50d.txt")
-                for line in f_tqdm:
-                    values = line.split()
-                    word = values[0]
-                    vector = np.asarray(values[1:], "float32")
-                    self.word_embeddings[word] = vector
-        vocabs = list(self.word_embeddings.keys())  
-        vocab_word_weights = {word: weight for word, weight in non_stop_word_weights.items() if word in vocabs}
+        vocabs = []
+        num_lines = sum(1 for _ in open(self.glove_path, 'r', encoding="utf-8"))
+        with open(self.glove_path, 'r', encoding="utf-8") as f:
+            f_tqdm = tqdm(f, total = num_lines)
+            f_tqdm.set_description("loading glove.6B/glove.6B.50d.txt")
+            for line in f_tqdm:
+                values = line.split()
+                word = values[0]
+                vocabs.append(word)
+        # Keep words in vocabulary.
+        vocab_weights = {vocab: weight for vocab, weight in vocab_weights.items() if vocab in vocabs}
 
         # Top 8000 (default) distinct words.
-        sort_word_weights = dict(sorted(vocab_word_weights.items(), key= operator.itemgetter(1), reverse = True))
-        top_word_weights = {word: vocab_word_weights[word] for word in list(sort_word_weights.keys())[:self.vocab_size]}
+        vocab_weights = dict(sorted(vocab_weights.items(), key = operator.itemgetter(1), reverse = True))
+        vocab_weights = {vocab: vocab_weights[vocab] for vocab in list(vocab_weights.keys())[:self.vocab_size]}
 
-        # Get feature names from preprocessed data.
-        self.feature_names = top_words = list(top_word_weights.keys())
+        # New vocabs
+        self.vocabs = list(vocab_weights.keys())
+        self.vocab_map = {vocab: i for i, vocab in enumerate(self.vocabs, start = 2)}
         return self
 
+    def sentence_to_indices(self, sentence):
+        tokens = nltk.word_tokenize(str(sentence))
+        non_stops = [token for token in tokens if token.lower() not in stopwords.words('english')]
+        indices = [self.vocab_map[non_stop.lower()] if non_stop.lower() in self.vocab_map else 1 for non_stop in non_stops]
+
+        return indices
+
+    def pad_zeros(self, x):
+        tqdm.pandas(desc = "0padding sentences")
+        max_len = x.apply(lambda indices: len(indices)).max()
+        return x.progress_apply(lambda indices: np.pad(indices, (0, max_len - len(indices))))
+
     def transform(self, X, y = None):
-        tfidf = self.column_transformer.transform(X)
+        tqdm.pandas(desc = "indexing sentences")
+        X = X.apply(lambda column:column.progress_apply(lambda sentence: self.sentence_to_indices(sentence)))
+        X = X.apply(lambda column:self.pad_zeros(column))
 
-        words = self._get_feature_names(X)
-        top_words_tqdm = tqdm(enumerate(self.feature_names), total = self.vocab_size)
-        top_tfidf = lil_matrix((tfidf.shape[0], len(self.feature_names)), dtype = tfidf.dtype)
+        sparse_stack = csr_matrix(np.vstack(X.values.tolist()))
+
+        return sparse_stack
         
-        for i, top_word in top_words_tqdm:
-            j = np.where(words == top_word)[0][0]
-            top_tfidf[:, i] = tfidf[:, j]
-            top_words_tqdm.set_description(f"Indexing {top_word}: {j} -> {i}")
-
-        return top_tfidf != 0
