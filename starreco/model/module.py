@@ -12,10 +12,7 @@ class BaseModule(pl.LightningModule):
     - criterion: Criterion or objective or loss function.
     """
 
-    def __init__(self, 
-                 lr:float, 
-                 l2_lambda:float, 
-                 criterion):
+    def __init__(self, lr, l2_lambda, criterion):
         super().__init__()
         self.lr = lr
         self.l2_lambda = l2_lambda
@@ -39,7 +36,9 @@ class BaseModule(pl.LightningModule):
         return tensor.view(tensor.shape[0], -1)
 
     def backward_loss(self, *batch):
-        """Calculate loss for backward propagation."""
+        """
+        Calculate loss for backward propagation during training.
+        """
         xs = batch[:-1]
         y = batch[-1]
         y_hat = self.forward(*xs)
@@ -48,7 +47,9 @@ class BaseModule(pl.LightningModule):
         return loss
 
     def logger_loss(self, *batch):
-        """Calculate loss for logger and evaluation. """
+        """
+        Calculate loss for logger and evaluation. 
+        """
         xs = batch[:-1]
         y = batch[-1]
         y_hat = self.forward(*xs)
@@ -60,10 +61,10 @@ class BaseModule(pl.LightningModule):
         batch = [self._transform(tensor) for tensor in batch]
 
         backward_loss = self.backward_loss(*batch)
-        self.log("train_loss", backward_loss, on_step = False, on_epoch = True, prog_bar = True)
+        #self.log("backward_loss", backward_loss, on_step = False, on_epoch = True, prog_bar = True)
 
         logger_loss = self.logger_loss(*batch)
-        self.log("train_loss_", logger_loss, on_step = False, on_epoch = True, prog_bar = True, logger = True)
+        self.log("train_loss", logger_loss, on_step = False, on_epoch = True, prog_bar = True, logger = True)
         
         return backward_loss
 
@@ -74,13 +75,8 @@ class BaseModule(pl.LightningModule):
         if self.current_epoch == 0 and batch_idx == 0:
             self.logger.log_graph(self, batch[:-1])
 
-        backward_loss = self.backward_loss(*batch)
-        self.log("val_loss", backward_loss, on_epoch = True, prog_bar = True, logger = True)
-
         logger_loss = self.logger_loss(*batch)
-        self.log("val_loss_", logger_loss, on_epoch = True, prog_bar = True, logger = True)
-
-        return backward_loss
+        self.log("val_loss", logger_loss, on_epoch = True, prog_bar = True, logger = True)
 
     def test_step(self, batch, batch_idx):
         batch = [self._transform(tensor) for tensor in batch]
