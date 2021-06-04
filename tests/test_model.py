@@ -22,11 +22,11 @@ def quick_test(dm, module):
     logger = TensorBoardLogger("training_logs", name = model, log_graph = True)
     trainer = pl.Trainer(logger = logger,
                          gpus = -1 if gpu else None, 
-                         max_epochs = 2, 
+                         max_epochs = 100, 
                          progress_bar_refresh_rate = 2,
-                         limit_train_batches = 0.1,
-                         limit_val_batches = 0.1,
-                         limit_test_batches = 0.1,
+                         #limit_train_batches = 0.1,
+                         #limit_val_batches = 0.1,
+                         #limit_test_batches = 0.1,
                          weights_summary = "full")
     trainer.fit(module, dm)
     trainer.test(module, datamodule = dm)
@@ -165,7 +165,7 @@ def test_oncf():
 
 # Done
 def test_cnndcf():
-    dm = StarDataModule()
+    dm = StarDataModule(batch_size = 2048)
     dm.setup()
     cnndcf = CNNDCF([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
     return quick_test(dm, cnndcf)
@@ -199,7 +199,7 @@ def test_cfn(matrix_transpose = False, extra_input_all = True):
         feature_dim = dm.item.shape[1]
     else:
         feature_dim = dm.user.shape[1]
-    cfn = CFN(input_output_dim, extra_input_dim = feature_dim, extra_input_all = extra_input_all)
+    cfn = CFN(input_output_dim, feature_dim = feature_dim, feature_input_all = extra_input_all)
     return quick_test(dm,  cfn)
 
 # Done
@@ -222,6 +222,32 @@ def test_sdaecf(matrix_transpose = False):
     
     sdaecf = SDAECF(input_output_dim)
     return quick_test(dm, sdaecf)
+
+# Done
+def test_ccae(matrix_transpose = False):
+    dm = StarDataModule(matrix_form = True,
+                        matrix_transpose = matrix_transpose)
+    dm.setup()
+    input_output_dim = dm.dataset.rating.num_users if matrix_transpose else dm.dataset.rating.num_items
+    ccae = CCAE(input_output_dim)
+    return quick_test(dm, ccae)
+
+# Testing
+def test_cmf(pretrain = True):
+    dm = StarDataModule(add_features = True,
+                        user_features_ignore = ["zipCode"],
+                        item_features_ignore = ["genre"])
+    dm.setup()
+    user_dim = dm.dataset.rating.num_users
+    word_dim = dm.item_preprocessor.column_transformer.named_transformers_["document"].vocab_size + 2
+    max_len = dm.item.shape[-1]
+    vocab_map = dm.item_preprocessor.column_transformer.named_transformers_["document"].vocab_map
+
+    cmf = CMF(user_dim, word_dim, max_len)
+    if pretrain:
+        cmf.load_pretrain_embeddings(vocab_map)
+    return quick_test(dm, cmf)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = "Testing model")
@@ -345,5 +371,11 @@ if __name__ == "__main__":
     # Done
     elif model == "sdaecf_0": test_sdaecf(False)
     elif model == "sdaecf_1": test_sdaecf(True)
+    # Done
+    elif model == "ccae_0": test_ccae(False)
+    elif model == "ccae_1": test_ccae(True)
+    # Test
+    elif model == "cmf_0": test_cmf(False)
+    elif model == "cmf_1": test_cmf(True)
 
         
