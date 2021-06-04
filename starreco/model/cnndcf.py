@@ -15,7 +15,7 @@ class CNNDCF(ONCF):
     - kernel_size (int): Convolution square-window size or convolving square-kernel size. Default: 2
     - stride (int): Convolution stride. Default: 2.
     - activation (str): Activation function applied across the convolution layers. Default: "relu".
-    - batch_norm (bool): If True, apply batch normalization after c. Batch normalization is applied between activation and dropout layer across the convolution layers. Default: True.
+    - batch_norm (bool): If True, apply batch normalization during convolutions. Batch normalization is applied between activation and dropout layer across the convolution layers. Default: True.
     - lr (float): Learning rate. Default: 1e-3.
     - l2_lambda (float): L2 regularization rate. Default: 1e-3.
     - criterion: Criterion or objective or loss function. Default: F.mse_loss.  
