@@ -41,7 +41,7 @@ class NCFPP(NCF):
                  l2_lambda:float = 1e-3,
                  criterion = F.mse_loss):
         assert user_sdae_kwargs["hidden_dims"][-1] and item_sdae_kwargs["hidden_dims"][-1],\
-        "user SDAE and item SDAE latent dimension must be the same"
+        "`user_sdae_kwargs` and `item_sdae_kwargs` last `hidden_dims` (latent dimension) must be the same"
 
         super().__init__(field_dims, embed_dim, hidden_dims, activations, dropouts, batch_norm, lr, l2_lambda, criterion)
         self.save_hyperparameters()
