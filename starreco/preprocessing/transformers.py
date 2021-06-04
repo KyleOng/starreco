@@ -129,7 +129,7 @@ class DocTransformer(BaseEstimator, TransformerMixin):
         num_lines = sum(1 for _ in open(self.glove_path, 'r', encoding="utf-8"))
         with open(self.glove_path, 'r', encoding="utf-8") as f:
             f_tqdm = tqdm(f, total = num_lines)
-            f_tqdm.set_description("loading glove.6B/glove.6B.50d.txt")
+            f_tqdm.set_description("loading pretrained")
             for line in f_tqdm:
                 values = line.split()
                 word = values[0]
