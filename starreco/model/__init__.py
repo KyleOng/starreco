@@ -1,4 +1,3 @@
-from .layers import *
 from .mf import MF
 from .gmf import GMF
 from .ncf import NCF
@@ -18,3 +17,6 @@ from .deeprec import DeepRec
 from .autorec import AutoRec
 from .cfn import CFN
 from .cdae import CDAE
+from .sdaecf import SDAECF
+from .ccae import CCAE
+from .cmf import CMF
