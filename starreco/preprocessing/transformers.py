@@ -13,6 +13,7 @@ from sklearn.preprocessing import FunctionTransformer, MultiLabelBinarizer
 from scipy.sparse import csr_matrix, lil_matrix
 from tqdm import tqdm
 
+# Add current working directory to nltk path
 nltk.data.path.append(os.getcwd())
 
 # Done
