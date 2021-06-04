@@ -39,7 +39,7 @@ class SetTransformer(BaseEstimator, TransformerMixin):
     """
 
     def get_feature_names(self):
-        return self.vocabs
+        return self.feature_names 
 
     def fit(self, X, y = None):
         # Reset column transformer for every fit
@@ -55,9 +55,9 @@ class SetTransformer(BaseEstimator, TransformerMixin):
         self.column_transformer.fit(X)
 
         # Get feature names
-        self.vocabs = []
+        self.feature_names = []
         for column in X.columns: 
-            self.vocabs = np.concatenate((self.vocabs,
+            self.feature_names = np.concatenate((self.feature_names ,
                                                 self.column_transformer.named_transformers_[column]\
                                                 .named_steps["binarizer"].classes_),
                                                 axis = None)
@@ -89,19 +89,6 @@ class DocTransformer(BaseEstimator, TransformerMixin):
         self.vocab_size = vocab_size
         self.glove_path = glove_path
 
-    def get_vocabs_(self, X):
-        """
-        Get vocabularies/words/feature names from input X.
-        """
-        vocabs = []
-        for column in X.columns:
-            vocabs = np.concatenate((vocabs,
-                                    self.column_transformer\
-                                    .named_transformers_[column]\
-                                    .named_steps["vectorizer"].get_feature_names()),
-                                    axis = None)
-        return vocabs
-
     def fit(self, X, y = None):
         # Reset column transformer for every fit
         self.column_transformer = ColumnTransformer([])
@@ -121,7 +108,16 @@ class DocTransformer(BaseEstimator, TransformerMixin):
 
         # Calculate TFIDF
         tfidf = self.column_transformer.fit_transform(X)
-        vocabs_ = self.get_vocabs_(X)
+
+        # Get vocabs from X input
+        vocabs_ = []
+        for column in X.columns:
+            vocabs_ = np.concatenate((vocabs_,
+                                     self.column_transformer\
+                                     .named_transformers_[column]\
+                                     .named_steps["vectorizer"].get_feature_names()),
+                                     axis = None)
+        # Get associate TFIDF frequency/term/weight for each vocab
         weights = np.ravel(tfidf.mean(axis = 0))
         vocab_weights = {word: weight for word, weight in zip(vocabs_, weights)}
 
@@ -146,27 +142,38 @@ class DocTransformer(BaseEstimator, TransformerMixin):
         vocab_weights = {vocab: vocab_weights[vocab] for vocab in list(vocab_weights.keys())[:self.vocab_size]}
 
         # New vocabs
-        self.vocabs = list(vocab_weights.keys())
-        self.vocab_map = {vocab: i for i, vocab in enumerate(self.vocabs, start = 2)}
+        vocabs = list(vocab_weights.keys())
+        self.vocab_map = {vocab: i for i, vocab in enumerate(vocabs, start = 2)}
         return self
 
-    def sentence_to_indices(self, sentence):
-        tokens = nltk.word_tokenize(str(sentence))
-        non_stops = [token for token in tokens if token.lower() not in stopwords.words('english')]
-        indices = [self.vocab_map[non_stop.lower()] if non_stop.lower() in self.vocab_map else 1 for non_stop in non_stops]
-
-        return indices
-
-    def pad_zeros(self, x):
-        tqdm.pandas(desc = "0padding sentences")
-        max_len = x.apply(lambda indices: len(indices)).max()
-        return x.progress_apply(lambda indices: np.pad(indices, (0, max_len - len(indices))))
 
     def transform(self, X, y = None):
-        tqdm.pandas(desc = "indexing sentences")
-        X = X.apply(lambda column:column.progress_apply(lambda sentence: self.sentence_to_indices(sentence)))
-        X = X.apply(lambda column:self.pad_zeros(column))
+        def sentence_to_indices(vocab_map, sentence):
+            """
+            Transform sentences to indices based on the vocabulary mapper.
+            For example, "This document is the first document"-> [1,2,3,4,5,2]
+            """
+            tokens = nltk.word_tokenize(str(sentence))
+            # Remove stop words
+            non_stops = [token for token in tokens if token.lower() not in stopwords.words('english')]
+            indices = [vocab_map[non_stop.lower()] if non_stop.lower() in vocab_map else 1 for non_stop in non_stops]
 
+            return indices
+
+        def pad_zeros(x):
+            """
+            Zero padding word indices until it reached the maximum length.
+            For example, [[1,2,3],[1,2,3,4],[1,2]] -> [[1,2,3,0],[1,2,3,4],[1,2,0,0]]
+            """
+            tqdm.pandas(desc = "0padding sentences")
+            max_len = x.apply(lambda indices: len(indices)).max()
+            return x.progress_apply(lambda indices: np.pad(indices, (0, max_len - len(indices))))
+
+        tqdm.pandas(desc = "indexing sentences")
+        X = X.apply(lambda column:column.progress_apply(lambda sentence: sentence_to_indices(self.vocab_map, sentence)))
+        X = X.apply(lambda column:pad_zeros(column))
+
+        # Transform to sparse for memory efficient
         sparse_stack = csr_matrix(np.vstack(X.values.tolist()))
 
         return sparse_stack
