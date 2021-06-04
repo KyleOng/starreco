@@ -90,9 +90,8 @@ class DocTransformer(BaseEstimator, TransformerMixin):
         self.glove_path = glove_path
 
     def fit(self, X, y = None):
-        # Reset column transformer for every fit
+        # Build and reset column transformer for every fit
         self.column_transformer = ColumnTransformer([])
-
         for column in X.columns:
             vectorizer =  TfidfVectorizer(analyzer = "word", 
                                           tokenizer = nltk.word_tokenize,
@@ -134,14 +133,14 @@ class DocTransformer(BaseEstimator, TransformerMixin):
                 values = line.split()
                 word = values[0]
                 vocabs.append(word)
-        # Keep words in vocabulary.
+        # Keep vocabs which existed in pretrained word embedding vocabularies.
         vocab_weights = {vocab: weight for vocab, weight in vocab_weights.items() if vocab in vocabs}
 
         # Top 8000 (default) distinct words.
         vocab_weights = dict(sorted(vocab_weights.items(), key = operator.itemgetter(1), reverse = True))
         vocab_weights = {vocab: vocab_weights[vocab] for vocab in list(vocab_weights.keys())[:self.vocab_size]}
 
-        # New vocabs
+        # Create vobabulary mapper.
         vocabs = list(vocab_weights.keys())
         self.vocab_map = {vocab: i for i, vocab in enumerate(vocabs, start = 2)}
         return self
@@ -171,6 +170,7 @@ class DocTransformer(BaseEstimator, TransformerMixin):
             max_len = x.apply(lambda indices: len(indices)).max()
             return x.progress_apply(lambda indices: np.pad(indices, (0, max_len - len(indices))))
 
+        # User preset vocabulary mapper for sentence indexing.
         tqdm.pandas(desc = "indexing sentences")
         X = X.apply(lambda column:column.progress_apply(lambda sentence: sentence_to_indices(self.vocab_map, sentence)))
         X = X.apply(lambda column:pad_zeros(column))
