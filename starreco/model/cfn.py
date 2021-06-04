@@ -23,6 +23,7 @@ class CFN(BaseModule):
 
     def __init__(self, 
                  input_output_dim:int,
+                 feature_dim:int,
                  hidden_dims:list = [512, 256, 128], 
                  e_activations:Union[str, list] = "relu", 
                  d_activations:Union[str, list] = "relu", 
@@ -30,13 +31,17 @@ class CFN(BaseModule):
                  d_dropouts:Union[int, float, list] = 0,
                  dropout:float = 0.5,
                  batch_norm:bool = True,
-                 extra_input_dim:int = 0,
-                 extra_input_all:bool = False,
+                 feature_input_all:bool = False,
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
                  criterion = masked_mse_loss):
         super().__init__(lr, weight_decay, criterion)
         self.save_hyperparameters()
+
+        if feature_input_all:
+            extra_input_dims = feature_dim
+        else:
+            extra_input_dims = [feature_dim] + [0] * (len(hidden_dims) * 2 - 1)
 
         self.sdae = StackedDenoisingAutoEncoder(input_output_dim = input_output_dim, 
                                                 hidden_dims = hidden_dims, 
@@ -46,8 +51,8 @@ class CFN(BaseModule):
                                                 d_dropouts = d_dropouts,
                                                 dropout = dropout,
                                                 batch_norm = batch_norm,
-                                                extra_input_dim = extra_input_dim,
-                                                extra_input_all = extra_input_all,
+                                                extra_input_dims = extra_input_dims,
+                                                extra_output_dims = 0,
                                                 noise_factor = 0,
                                                 noise_all = False, 
                                                 mean = 0,
