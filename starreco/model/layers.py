@@ -147,26 +147,24 @@ class MultilayerPerceptrons(torch.nn.Module):
             assert mlp_type in ["sequential", "modulelist"], "`mlp_type` must be 'sequential' or 'modulelist'"
 
             for i in range(len(hidden_dims)):
-                input_dim += extra_input_dims[i]
                 output_dim = hidden_dims[i]
-                output_dim += extra_output_dims[i]
 
-                # Append linear layer         
-                mlp_blocks.append(torch.nn.Linear(input_dim, output_dim))
+                # Linear layer         
+                mlp_blocks.append(torch.nn.Linear(input_dim + extra_input_dims[i], output_dim + extra_output_dims[i]))
 
-                # Append batch normalization
+                # Batch normalization
                 # Batch normalization will not be applied to the last hidden layer (output layer is None)
                 if batch_norm:
                     if i + int(remove_last_batch_norm) != len(hidden_dims):
                         mlp_blocks.append(torch.nn.BatchNorm1d(output_dim))
 
-                # Append activation function
+                # Activation function
                 activation = activations[i].lower()
                 # No activation appended if activation is linear
                 if activation != "linear": 
                     mlp_blocks.append(ActivationFunction(activation))
 
-                # Append dropout layers
+                # Dropout
                 # Dropout will not be applied to the last hidden layer (output layer is None)
                 if dropouts[i] > 0 and dropouts[i] <= 1:
                     if i + int(remove_last_dropout) != len(hidden_dims):
@@ -201,8 +199,8 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
     - d_dropouts (int/float/list): List of dropout values in the decoder layers. Default: 0.
     - dropout (float): Dropout value in the latent space. Default: 0.5.
     - batch_norm (bool): If True, apply batch normalization in all hidden layers. Default: True.
-    - extra_input_dims (int): Extra input neuron. Default: 0.
-    - extra_input_all (bool): If True, extra input neurons are added to all input and hidden layers, else only to input layer. Default: False.
+    - extra_input_dims (int/list): List of extra input dimension at every layer. Default: 0.
+    - extra_output_dims (int/list): List of extra output dimension at every layer. Extra output dimension is not applied to the output layer, if `output_layer` is set with value. Default: 0.
     - noise_rate (int/float): Rate/Percentage of noises to be added to the input. Noise is not applied to extra input neurons. Noise is only applied during training only. Default: 1.
     - noise_factor (int/float): Noise factor. Default: 0.3.
     - noise_all (bool): If True, noise are added to inputs in all input and hidden layers, else only to input layer. Default: False.
@@ -219,8 +217,8 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
                  d_dropouts:Union[int, float, list] = 0,
                  dropout:float = 0.5,
                  batch_norm:bool = True,
-                 extra_input_dim:int = 0,
-                 extra_input_all:bool = False,
+                 extra_input_dims:Union[int,list] = 0,
+                 extra_output_dims:Union[int,list] = 0,
                  noise_rate:Union[int, float] = 1,
                  noise_factor:Union[int, float] = 0.3,
                  noise_all:bool = True,
@@ -228,7 +226,6 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
                  std:Union[int, float] = 1):
         super().__init__()
 
-        self.extra_input_all = extra_input_all
         self.noise_rate = noise_rate
         self.noise_factor = noise_factor
         self.noise_all = noise_all
@@ -236,11 +233,20 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
         self.mean = mean
         self.std = std
 
-        if self.extra_input_all:
-            encoder_extra_input_dims = decoder_extra_input_dims = extra_input_dim
-        else:
-            encoder_extra_input_dims = [extra_input_dim] + [0] * (len(hidden_dims) - 1)
-            decoder_extra_input_dims = 0
+        # if extra dim is type int, transform them to list
+        if type(extra_input_dims) == int:
+            extra_input_dims = [extra_input_dims] * (len(hidden_dims) * 2)
+        if type(extra_output_dims) == int:
+            extra_output_dims = [extra_output_dims] * (len(hidden_dims) * 2)
+        
+        # Error messages for any violations
+        assert len(extra_input_dims) == len(hidden_dims) * 2, ""
+        assert len(extra_output_dims) == len(hidden_dims) * 2, ""
+
+        encoder_extra_input_dims = extra_input_dims[:len(extra_input_dims)//2]
+        encoder_extra_output_dims = extra_output_dims[:len(extra_output_dims)//2]
+        decoder_extra_input_dims = extra_input_dims[len(extra_input_dims)//2:]
+        decoder_extra_output_dims = extra_output_dims[len(extra_output_dims)//2:]
 
         # Encoder layer
         self.encoder = MultilayerPerceptrons(input_dim = input_output_dim,
@@ -252,6 +258,7 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
                                              remove_last_batch_norm = False,
                                              output_layer = None,
                                              extra_input_dims = encoder_extra_input_dims,
+                                             extra_output_dims = encoder_extra_output_dims,
                                              mlp_type = "modulelist")
 
         # Decoder layer 
@@ -264,6 +271,7 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
                                              remove_last_batch_norm = True,
                                              output_layer = None,
                                              extra_input_dims = decoder_extra_input_dims,
+                                             extra_output_dims = decoder_extra_output_dims,
                                              mlp_type = "modulelist")
 
         # Batch normalization and dropout layer inserted before decoding
@@ -296,7 +304,7 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
                 # Noise add only during training
                 if not(not self.noise_all and i):
                     x = self.add_noise(x)
-                if extra is not None and not(not self.extra_input_all and i):
+                if extra is not None and module.in_features > x.shape[-1]:
                     x = torch.cat([x, extra], dim = 1)
             x = module(x)
 
@@ -308,7 +316,7 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
                 # Noise add only during training
                 if self.noise_all:
                     x = self.add_noise(x)
-                if extra is not None and self.extra_input_all:
+                if extra is not None and module.in_features > x.shape[-1]:
                     x = torch.cat([x, extra], dim = 1)
             x = module(x)
         return x
