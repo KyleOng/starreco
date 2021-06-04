@@ -71,23 +71,24 @@ class StarDataModule(pl.LightningDataModule):
         self.X = ratings[[self.dataset.user.column, self.dataset.item.column]].values
         self.y = ratings[self.dataset.rating.column].values
 
-        # user and item preprocessed features data
-        user_preprocessor = Preprocessor(df = df_map_column(self.dataset.user.df, self.dataset.user.column, self.dataset.rating.user_map, "left"), 
-                                         cat_columns = list(set(self.dataset.user.cat_columns) - set(self.user_features_ignore)),
-                                         num_columns = list(set(self.dataset.user.num_columns) - set(self.user_features_ignore)), 
-                                         set_columns = list(set(self.dataset.user.set_columns) - set(self.user_features_ignore)),
-                                         doc_columns = list(set(self.dataset.user.doc_columns) - set(self.user_features_ignore)))
-        item_preprocessor = Preprocessor(df = df_map_column(self.dataset.item.df, self.dataset.item.column, self.dataset.rating.item_map, "left"), 
-                                         cat_columns = list(set(self.dataset.item.cat_columns) - set(self.item_features_ignore)),
-                                         num_columns = list(set(self.dataset.item.num_columns) - set(self.item_features_ignore)), 
-                                         set_columns = list(set(self.dataset.item.set_columns) - set(self.item_features_ignore)),
-                                         doc_columns = list(set(self.dataset.item.doc_columns) - set(self.item_features_ignore)))
-        self.user = user_preprocessor.transform()
-        self.item = item_preprocessor.transform()
+        if self.add_features:
+            # user and item preprocessed features data
+            self.user_preprocessor = Preprocessor(df = df_map_column(self.dataset.user.df, self.dataset.user.column, self.dataset.rating.user_map, "left"), 
+                                            cat_columns = list(set(self.dataset.user.cat_columns) - set(self.user_features_ignore)),
+                                            num_columns = list(set(self.dataset.user.num_columns) - set(self.user_features_ignore)), 
+                                            set_columns = list(set(self.dataset.user.set_columns) - set(self.user_features_ignore)),
+                                            doc_columns = list(set(self.dataset.user.doc_columns) - set(self.user_features_ignore)))
+            self.item_preprocessor = Preprocessor(df = df_map_column(self.dataset.item.df, self.dataset.item.column, self.dataset.rating.item_map, "left"), 
+                                            cat_columns = list(set(self.dataset.item.cat_columns) - set(self.item_features_ignore)),
+                                            num_columns = list(set(self.dataset.item.num_columns) - set(self.item_features_ignore)), 
+                                            set_columns = list(set(self.dataset.item.set_columns) - set(self.item_features_ignore)),
+                                            doc_columns = list(set(self.dataset.item.doc_columns) - set(self.item_features_ignore)))
+            self.user = self.user_preprocessor.transform()
+            self.item = self.item_preprocessor.transform()
 
-        # map user and item to ratings
-        self.user_X = self.user[self.X[:, 0]]
-        self.item_X = self.item[self.X[:, 1]]
+            # map user and item to ratings
+            self.user_X = self.user[self.X[:, 0]]
+            self.item_X = self.item[self.X[:, 1]]
 
     def split(self, random_state:int = 77):
         """
