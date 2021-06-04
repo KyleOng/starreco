@@ -152,6 +152,8 @@ class DocTransformer(BaseEstimator, TransformerMixin):
             """
             Transform sentences to indices based on the vocabulary mapper.
             For example, "This document is the first document"-> [1,2,3,4,5,2]
+
+            Note: vocab map index start from 2, as 1s are for unknown vocab and 0s for padding. 
             """
             tokens = nltk.word_tokenize(str(sentence))
             # Remove stop words
