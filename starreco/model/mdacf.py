@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 from .mf import MF
 
-# Done
+# In progress.
 class _MDACF(MF):
     """
     Marginalized Denoising Autoencoder Collaborative Filtering.
@@ -130,8 +130,7 @@ class _MDACF(MF):
             self.item = self.item.to(self.device)
 
         # Update W and P during training via MDAE
-        if self.training:
-            self.mdae()
+        self.mdae()
 
         user_W = self.user_W.data
         item_W = self.item_W.data
@@ -169,8 +168,8 @@ class MDACF(_MDACF):
     """
 
     def __init__(self, 
-                 user:torch.Tensor, 
-                 item:torch.Tensor,
+                 user:torch.Tensor = None, 
+                 item:torch.Tensor = None,
                  embed_dim:int = 8, 
                  corrupt_ratio:Union[int,float] = 0.3,
                  alpha:Union[int,float] = 0.8, 
