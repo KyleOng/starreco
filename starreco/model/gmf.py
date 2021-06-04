@@ -19,7 +19,7 @@ class GMF(MF):
                  field_dims:list, 
                  embed_dim:int = 8, 
                  lr:float = 1e-3,
-                 l2_lambda:float = 1e-6,
+                 l2_lambda:float = 1e-3,
                  criterion = F.mse_loss):
         super().__init__(field_dims, embed_dim, lr, l2_lambda, criterion)
         self.save_hyperparameters()
