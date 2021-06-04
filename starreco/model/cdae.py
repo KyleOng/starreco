@@ -12,10 +12,10 @@ class CDAE(BaseModule):
     Collaborative Denoising Autoencoder.
 
     - input_output_dim (int): Number of neurons in the input and output layer.
-    - field_dim (int): Field dimension.
     - hidden_dim (int): Number of neurons in the hidden latent space. Default: 256.
     - activation (str): Activation function. Default: "relu".
-    - noise_factor (int/float): Probability of noises to be added to the input. Noise is not applied to extra input neurons. Noise is only applied during training only. Default: 0.3.
+    - noise_rate (int/float): Rate/Percentage of noises to be added to the input. Noise is not applied to extra input neurons. Noise is only applied during training only. Default: 1.
+    - noise_factor (int/float): Noise factor. Default: 0.3
     - noise_all (bool): If True, noise are added to input and hidden layers, else only to input layer. Default: False.
     - mean (int/float): Gaussian noise mean. Default: 0.
     - std (int/float): Gaussian noise standard deviation: 1.
@@ -30,6 +30,7 @@ class CDAE(BaseModule):
                  activation:str = "relu", 
                  dropout:float = 0.5,
                  batch_norm:bool = True,
+                 noise_rate:Union[int, float] = 1,
                  noise_factor:Union[int, float] = 0.3,
                  noise_all:bool = True,
                  mean:Union[int, float] = 0,
@@ -51,24 +52,18 @@ class CDAE(BaseModule):
                                                 d_dropouts = 0,
                                                 dropout = dropout,
                                                 batch_norm = batch_norm,
-                                                extra_input_dim = 0,
-                                                extra_input_all = False,
+                                                extra_input_dims = 0,
+                                                extra_output_dims = 0,
+                                                noise_rate = noise_rate,
                                                 noise_factor = noise_factor,
                                                 noise_all = noise_all, 
                                                 mean = mean,
                                                 std = std)
 
     def forward(self, x, ids):
-        # Add feature node embeddings to the encoded inputs
+        # Add feature node embeddings to latent repsentation
         embed_ids = self.features_embedding(ids.int())
         embed_ids = torch.flatten(embed_ids, start_dim = 1)
-        x = self.sdae.encode(x) + embed_ids
-
-        # Decoder
-        if self.sdae.batch_norm:
-            x = self.sdae.batch_norm(x)
-        if self.sdae.dropout:
-            x = self.sdae.dropout(x)
-        x = self.sdae.decode(x)
+        x = self.sdae.decode(self.sdae.encode(x) + embed_ids)
         return x  
 
