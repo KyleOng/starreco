@@ -23,7 +23,7 @@ class CCAE(BaseModule):
     - dropout (float): Dropout value in the latent space. Default: 0.
     - batch_norm (bool): If True, apply batch normalization in all hidden layers. Default: True.
     - lr (float): Learning rate. Default: 1e-3.
-    - l2_lambda (float): L2 regularization rate. Default: 1e-3.
+    - weight_decay (float): L2 regularization rate. Default: 1e-3.
     - criterion: Criterion or objective or loss function. Default: masked_mse_loss
     """
 

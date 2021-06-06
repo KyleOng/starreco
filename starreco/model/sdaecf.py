@@ -25,7 +25,7 @@ class SDAECF(BaseModule):
     - alpha (int/float): Trade off parameter for denoising loss. Default 1.2.
     - beta (int/float): Trade off parameter for reconstruction loss. Default 0.8.
     - lr (float): Learning rate. Default: 1e-3.
-    - l2_lambda (float): L2 regularization rate. Default: 1e-3.
+    - weight_decay (float): L2 regularization rate. Default: 1e-3.
     - criterion: Criterion or objective or loss function. Default: masked_mse_loss
     """
 

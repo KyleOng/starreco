@@ -20,7 +20,7 @@ class CDAE(BaseModule):
     - mean (int/float): Gaussian noise mean. Default: 0.
     - std (int/float): Gaussian noise standard deviation: 1.
     - lr (float): Learning rate. Default: 1e-3.
-    - l2_lambda (float): L2 regularization rate. Default: 1e-3.
+    - weight_decay (float): L2 regularization rate. Default: 1e-3.
     - criterion: Criterion or objective or loss function. Default: masked_mse_loss
     """
 

@@ -8,18 +8,18 @@ class BaseModule(pl.LightningModule):
     Base Module class.
     
     - lr (float): Learning rate.
-    - l2_lambda (float): L2 regularization rate.
+    - weight_decay (float): L2 regularization rate.
     - criterion: Criterion or objective or loss function.
     """
 
-    def __init__(self, lr, l2_lambda, criterion):
+    def __init__(self, lr, weight_decay, criterion):
         super().__init__()
         self.lr = lr
-        self.l2_lambda = l2_lambda
+        self.weight_decay = weight_decay
         self.criterion = criterion
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr = self.lr, weight_decay = self.l2_lambda)
+        optimizer = torch.optim.Adam(self.parameters(), lr = self.lr, weight_decay = self.weight_decay)
         return optimizer
         
     def _transform(self, tensor):

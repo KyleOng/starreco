@@ -10,7 +10,7 @@ class AutoRec(DeepRec):
     - hidden_dim (int): Number of neurons in the hidden latent space. Default: 256.
     - activation (str): Activation function. Default: "relu".
     - lr (float): Learning rate. Default: 1e-3.
-    - l2_lambda (float): L2 regularization rate. Default: 1e-3.
+    - weight_decay (float): L2 regularization rate. Default: 1e-3.
     - criterion: Criterion or objective or loss function. Default: masked_mse_loss
     """
 

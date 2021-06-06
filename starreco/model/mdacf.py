@@ -17,7 +17,7 @@ class _MDACF(MF):
     - alpha (int/float): Trade-off parameter value for user SDAE.
     - beta (int/float): Trade-off parameter value for item SDAE.
     - lr (float): Learning rate.
-    - l2_lambda (float): L2 regularization rate.
+    - weight_decay (float): L2 regularization rate.
     - criterion: Criterion or objective or loss function.
 
     Warning: This method should not be used directly.
@@ -31,7 +31,7 @@ class _MDACF(MF):
                  alpha:Union[int,float], 
                  beta:Union[int,float],
                  lr:float,
-                 l2_lambda:Union[int,float],
+                 weight_decay:Union[int,float],
                  criterion):
         self.m, self.p = user_dims
         self.n, self.q = item_dims 
@@ -42,7 +42,7 @@ class _MDACF(MF):
         self.corrupt_ratio = corrupt_ratio
         self.alpha = alpha
         self.beta = beta
-        self.l2_lambda = l2_lambda
+        self.weight_decay = weight_decay
 
         # Create weights matrices and projection matrices for marginalized Autoencoder.
         self.user_W = torch.nn.Parameter(torch.rand(self.p, self.p), requires_grad = False)
@@ -113,8 +113,8 @@ class _MDACF(MF):
         V = self.features_embedding.embedding.weight[-self.n:, :].data
 
         # Update weights and projections matrices
-        self.user_W.data = self._update_weights(self.user.T, user_P, U, self.p, self.l2_lambda, self.corrupt_ratio)
-        self.item_W.data = self._update_weights(self.item.T, item_P, V, self.q, self.l2_lambda, self.corrupt_ratio)
+        self.user_W.data = self._update_weights(self.user.T, user_P, U, self.p, self.weight_decay, self.corrupt_ratio)
+        self.item_W.data = self._update_weights(self.item.T, item_P, V, self.q, self.weight_decay, self.corrupt_ratio)
         self.user_P.data = self._update_projections(self.user.T, user_W, U)
         self.item_P.data = self._update_projections(self.item.T, item_W, V)
 
@@ -140,9 +140,9 @@ class _MDACF(MF):
         V = self.features_embedding.embedding.weight[-self.n:, :].data
         
         # User reconstruction loss
-        user_loss = self.l2_lambda * torch.sum(torch.square(torch.matmul(user_P, U.T) - torch.matmul(user_W, self.user.T)))
+        user_loss = self.weight_decay * torch.sum(torch.square(torch.matmul(user_P, U.T) - torch.matmul(user_W, self.user.T)))
         # Item reconstruction loss
-        item_loss = self.l2_lambda * torch.sum(torch.square(torch.matmul(item_P, V.T) - torch.matmul(item_W, self.item.T)))
+        item_loss = self.weight_decay * torch.sum(torch.square(torch.matmul(item_P, V.T) - torch.matmul(item_W, self.item.T)))
         # Rating loss
         rating_loss =  self.alpha * torch.sum(torch.square(y - self.forward(x)))
 
@@ -163,7 +163,7 @@ class MDACF(_MDACF):
     - alpha (int/float): Trade-off parameter value for user SDAE. Default: 0.8.
     - beta (int/float): Trade-off parameter value for item SDAE. Default: 3e-3.
     - lr (float): Learning rate. Default: 1e-3.
-    - l2_lambda (float): L2 regularization rate. Default: 1e-3.
+    - weight_decay (float): L2 regularization rate. Default: 1e-3.
     - criterion: Criterion or objective or loss function. Default: F.mse_loss.  
     """
 
@@ -175,8 +175,8 @@ class MDACF(_MDACF):
                  alpha:Union[int,float] = 0.8, 
                  beta:Union[int,float] = 3e-3,
                  lr:float = 1e-3,
-                 l2_lambda:Union[int,float] = 0.3,
+                 weight_decay:Union[int,float] = 0.3,
                  criterion = F.mse_loss):
-        super().__init__(user.shape, item.shape, embed_dim, corrupt_ratio, alpha, beta, lr, l2_lambda, criterion)
+        super().__init__(user.shape, item.shape, embed_dim, corrupt_ratio, alpha, beta, lr, weight_decay, criterion)
         self.user = user
         self.item = item

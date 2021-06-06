@@ -18,7 +18,7 @@ class GMFPP(GMF):
     - alpha (int/float): Trade off parameter for user feature reconstruction. Default: 1.
     - beta (int/float): Trade off parameter for item feature reconstruction. Default: 1.
     - lr (float): Learning rate. Default: 1e-3.
-    - l2_lambda (float): L2 regularization rate. Default: 1e-3.
+    - weight_decay (float): L2 regularization rate. Default: 1e-3.
     - criterion: Criterion or objective or loss function. Default: F.mse_loss.
     """
 
@@ -30,12 +30,12 @@ class GMFPP(GMF):
                  alpha:Union[int,float] = 1, 
                  beta:Union[int,float] = 1,
                  lr:float = 1e-3,
-                 l2_lambda:float = 1e-6,
+                 weight_decay:float = 1e-6,
                  criterion = F.mse_loss):
         assert user_sdae_kwargs["hidden_dims"][-1] and item_sdae_kwargs["hidden_dims"][-1],\
         "`user_sdae_kwargs` and `item_sdae_kwargs` last `hidden_dims` (latent dimension) must be the same"
 
-        super().__init__(field_dims, embed_dim, lr, l2_lambda, criterion)
+        super().__init__(field_dims, embed_dim, lr, weight_decay, criterion)
         self.save_hyperparameters()
 
         self.alpha = alpha

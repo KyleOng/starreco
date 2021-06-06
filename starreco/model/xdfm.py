@@ -20,7 +20,7 @@ class XDFM(WDL):
     - cross_split_half: If True, convolution output across the cross interaction layers is splitted into half of the 1st dimension. Default: True.
     - batch_norm (bool): If True, apply batch normalization in every layer. Batch normalization is applied between activation and dropout layer. Default: True.
     - lr (float): Learning rate. Default: 1e-3.
-    - l2_lambda (float): L2 regularization rate. Default: 1e-3.
+    - weight_decay (float): L2 regularization rate. Default: 1e-3.
     - criterion: Criterion or objective or loss function. Default: F.mse_loss.
     """
 

@@ -28,7 +28,7 @@ class CMF(BaseModule):
     - fc_dropout (int/float): Fully connected layer dropout rate. Default: 0.
     - batch_norm (bool): If True, apply batch normalization during convolutions and fully connected layer. Batch normalization is applied between activation and dropout layer across the convolution layers. Default: True.
     - lr (float): Learning rate. Default: 1e-3.
-    - l2_lambda (float): L2 regularization rate. Default: 1e-3.
+    - weight_decay (float): L2 regularization rate. Default: 1e-3.
     - criterion: Criterion or objective or loss function. Default: F.mse_loss.
 
     Note: CNN is used to address the problem of varying sentences length by taking the maximum (pooling) of the convoluted sentence embeddings.
@@ -49,9 +49,9 @@ class CMF(BaseModule):
                  fc_dropout:Union[int, float] = 0.2,
                  batch_norm:bool = True,
                  lr:float = 1e-3,
-                 l2_lambda:float = 1e-6,
+                 weight_decay:float = 1e-6,
                  criterion = F.mse_loss):
-        super().__init__(lr, l2_lambda, criterion)
+        super().__init__(lr, weight_decay, criterion)
         self.save_hyperparameters()
 
         # Features embedding layer
