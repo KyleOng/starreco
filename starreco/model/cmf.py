@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from tqdm import tqdm
 
 from .module import BaseModule
-from .layers import MultilayerPerceptrons, ActivationFunction
+from .layers import MultilayerPerceptrons, ActivationFunction, FeaturesEmbedding
 
 # Done
 class CMF(BaseModule):

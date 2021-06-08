@@ -3,7 +3,7 @@ from typing import Union
 import torch
 
 from .module import BaseModule
-from .layers import FeaturesEmbedding, StackedDenoisingAutoEncoder
+from .layers import StackedDenoisingAutoEncoder
 from ..evaluation import masked_mse_loss
 
 # Done
@@ -42,7 +42,7 @@ class CDAE(BaseModule):
         super().__init__(lr, weight_decay, criterion)
         self.save_hyperparameters()
 
-        self.features_embedding = FeaturesEmbedding([input_output_dim], hidden_dim)
+        self.features_embedding = torch.nn.Embedding(input_output_dim, hidden_dim)
 
         self.sdae = StackedDenoisingAutoEncoder(input_output_dim = input_output_dim, 
                                                 hidden_dims = [hidden_dim], 
