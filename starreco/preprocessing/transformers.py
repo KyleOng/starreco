@@ -55,13 +55,12 @@ class SetTransformer(BaseEstimator, TransformerMixin):
             )
         self.column_transformer.fit(X)
 
-        # Get feature names
+        # Get feature names based on fitted X
         self.feature_names = []
         for column in X.columns: 
-            self.feature_names = np.concatenate((self.feature_names ,
-                                                self.column_transformer.named_transformers_[column]\
-                                                .named_steps["binarizer"].classes_),
-                                                axis = None)
+            new_feature_names = self.column_transformer.named_transformers_[column].named_steps["binarizer"].classes_
+            new_feature_names = [ f"{column}_{new_feature_name}" for new_feature_name in new_feature_names]
+            self.feature_names = np.concatenate((self.feature_names, new_feature_names), axis = None)
 
         return self
 
@@ -73,19 +72,21 @@ class DocTransformer(BaseEstimator, TransformerMixin):
     """
     Transformer class for transforming document type data.
 
-    max_length (int): Maximum length of document of each item. Default: 300.
+    max_char (int): Maximum length of document characters of each item. Default: 300.
     max_df (float): Terms will be ignored that have a document frequency higher than the given threshold. Default: 0.5.
     vocab_size (int): Vocabulary size. Default: 8000.
     """
 
+    max_lens_ = {}
+    
     def __init__(self, 
-                 max_length:int = 300, 
+                 max_char:int = 300, 
                  max_df:float = 0.5, 
                  vocab_size:int = 8000,
                  glove_path:str = "glove.6B/glove.6B.50d.txt"):
-        assert max_length > 0 and max_df > 0 and vocab_size > 0
+        assert max_char > 0 and max_df > 0 and vocab_size > 0
 
-        self.max_length = max_length
+        self.max_char = max_char
         self.max_df = max_df
         self.vocab_size = vocab_size
         self.glove_path = glove_path
@@ -99,7 +100,7 @@ class DocTransformer(BaseEstimator, TransformerMixin):
                                           max_features = None, 
                                           stop_words = "english") 
             pipe = Pipeline([
-                ("imputer", FunctionTransformer(lambda column:column.fillna("").str[:self.max_length])),
+                ("imputer", FunctionTransformer(lambda column:column.fillna("").str[:self.max_char])),
                 ("vectorizer", vectorizer)
             ])         
             self.column_transformer.transformers.append(            
@@ -146,7 +147,6 @@ class DocTransformer(BaseEstimator, TransformerMixin):
         self.vocab_map = {vocab: i for i, vocab in enumerate(vocabs, start = 2)}
         return self
 
-
     def transform(self, X, y = None):
         def sentence_to_indices(vocab_map, sentence):
             """
@@ -169,6 +169,10 @@ class DocTransformer(BaseEstimator, TransformerMixin):
             """
             tqdm.pandas(desc = "0padding sentences")
             max_len = x.apply(lambda indices: len(indices)).max()
+
+            # Save transform max len
+            self.max_lens_[x.name] = max_len
+
             return x.progress_apply(lambda indices: np.pad(indices, (0, max_len - len(indices))))
 
         # User preset vocabulary mapper for sentence indexing.
@@ -180,4 +184,3 @@ class DocTransformer(BaseEstimator, TransformerMixin):
         sparse_stack = csr_matrix(np.vstack(X.values.tolist()))
 
         return sparse_stack
-        

@@ -33,6 +33,25 @@ class Preprocessor:
         self.doc_columns = doc_columns
         print(self.cat_columns, self.num_columns, self.set_columns, self.doc_columns)
 
+    def get_feature_names(self):
+        columns_transform = {"categorical": [],
+                             "numerical": [],
+                             "set": [],
+                             "document": []}
+
+        if self.cat_columns:
+            columns_transform["categorical"] = self.column_transformer.named_transformers_["categorical"].named_steps["onehot"].get_feature_names(self.cat_columns)
+        if self.num_columns:
+            columns_transform["numerical"] = self.num_columns
+        if self.set_columns:
+            columns_transform["set"] = self.column_transformer.named_transformers_["set"].get_feature_names()
+        if self.doc_columns:
+            for name, max_len in self.column_transformer.named_transformers_["document"].max_lens_.items():
+                for i in range(max_len):
+                    columns_transform["document"].append(f"{name}_{i}")
+
+        return columns_transform
+
     def transform(self, return_dataframe = False):
         """
         Transform dataframe into algorithm compatible format.
@@ -93,17 +112,8 @@ class Preprocessor:
         # Return transform data as dataframe if return_dataframe set as True
         if return_dataframe:
             try:
-                columns_transform = []
-                # Concatenate new transform columns
-                if self.cat_columns:
-                    columns_transform.append(self.column_transformer.named_transformers_["categorical"].named_steps["onehot"].get_feature_names(self.cat_columns))
-                if self.num_columns:
-                    columns_transform.append(self.num_columns)
-                if self.set_columns:
-                    columns_transform.append(self.column_transformer.named_transformers_[f"set"].get_feature_names())
-                if self.doc_columns:
-                    columns_transform.append([f"doc_{i}" for i in range(self.df_transform.shape[1] - len(columns_transform))])
-                return pd.DataFrame(self.df_transform.toarray(), columns = np.concatenate(columns_transform))
+                columns_transform = np.concatenate(self.get_feature_names().keys())                
+                return pd.DataFrame(self.df_transform.toarray(), columns = columns_transform)
             except MemoryError as e:
                 # Memory error. Return array instead
                 warnings.warn(f"{str(e)}. Return values instead.")
