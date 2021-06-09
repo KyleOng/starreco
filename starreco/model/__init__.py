@@ -20,3 +20,4 @@ from .cdae import CDAE
 from .sdaecf import SDAECF
 from .ccae import CCAE
 from .cmf import CMF
+from .fgcnn import FGCNN
