@@ -69,17 +69,21 @@ Getting Started<a name="start"></a>
 
 Create virtual environment
 
-    python3 -m virtualenv env
+```bash
+python3 -m virtualenv env # Python 3.6 and above
+```
 
 Activate virtual environment
-
-    source env/bin/activate # Linux
-    ./env/Scripts/activate # Windows
+```bash
+source env/bin/activate # Linux
+./env/Scripts/activate # Windows
+```
 
 Clone and install necessary python packages
-
-    git clone https://github.com/KyleOng/star-reco
-    pip install -r requirements.txt
+```bash
+git clone https://github.com/KyleOng/star-reco
+pip install -r requirements.txt
+```
 
 ### Example
 ```python
