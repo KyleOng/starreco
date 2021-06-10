@@ -12,7 +12,7 @@
 
 Features
 ---
-+ Up to 20+ recommendation models across 15 publications.
++ Up to 20+ recommendation models across 20 publications.
 + Built on top of [Pytorch lightning](https://github.com/PyTorchLightning/pytorch-lightning).
 + GPU acceleration execution.
 + Reducing memory usage for large sparse matrices.
