@@ -8,12 +8,12 @@
 
 **starreco** stands for **S**tate-of-**T**he-**A**rt **R**eview **Reco**mmendation System.
 
-**starreco** is a Pytorch and lightning implementation for a series of SOTA deep learning rating-based recommendation systems. This repository also serves as a part of the author's master thesis work's literature review. 
+**starreco** is a Pytorch lightning implementation for a series of SOTA deep learning rating-based recommendation systems. This repository also serves as a part of the author's master thesis work's literature review. 
 
 Features
 ---
 + Up to 20+ recommendation models across 15 publications.
-+ Built on top of [Pytorch lightning](https://github.com/PyTorchLightning/pytorch-lightning)
++ Built on top of [Pytorch lightning](https://github.com/PyTorchLightning/pytorch-lightning).
 + GPU acceleration execution.
 + Reducing memory usage for large sparse matrices.
 + Simple and understandable code.
@@ -38,8 +38,8 @@ Research Models
 |[ONCF](#https://github.com/KyleOng/starreco/blob/master/starreco/model/oncf.py)|Outer-based Product Neural Collaborative Filtering|<a href="#9">[9]</a>|
 |[CNNDCF](#https://github.com/KyleOng/starreco/blob/master/starreco/model/cnndcf.py)|Convolutional Neural Network based Deep Colloborative Filtering|<a href="#10">[10]</a>|
 |[ConvMF](#https://github.com/KyleOng/starreco/blob/master/starreco/model/cmf.py)|Convolutional Matrix Factorization|<a href="#11">[11]|
-|[AutoRec](#https://github.com/KyleOng/starreco/blob/master/starreco/model/autorec.py)|AutoRec|<a href="#12">[1]|
-|[DeepRec](#https://github.com/KyleOng/starreco/blob/master/starreco/model/deeprec.py)|DeepRec|<a href="#13">[1]|
+|[AutoRec](#https://github.com/KyleOng/starreco/blob/master/starreco/model/autorec.py)|AutoRec|<a href="#12">[12]|
+|[DeepRec](#https://github.com/KyleOng/starreco/blob/master/starreco/model/deeprec.py)|DeepRec|<a href="#13">[13]|
 |[CFN](#https://github.com/KyleOng/starreco/blob/master/starreco/model/cfn.py)|Collaborative Filtering Network|<a href="#14">[14]|
 |[CDAE](#https://github.com/KyleOng/starreco/blob/master/starreco/model/cdae.py)|Collaborative Denoising AutoEncoder|<a href="#15">[15]|
 |[CCAE](#https://github.com/KyleOng/starreco/blob/master/starreco/model/ccae.py)|Collaborative Convolutional AutoEncoder|<a href="#16">[16]|
@@ -48,6 +48,14 @@ Research Models
 |[GMF++](#https://github.com/KyleOng/starreco/blob/master/starreco/model/gmfpp.py)|Generalized Matrix Factorization ++|<a href="#1">[19]|
 |[MLP++](#https://github.com/KyleOng/starreco/blob/master/starreco/model/ncfpp.py)|Multilayer Perceptrons ++|<a href="#1">[19]|
 |[NeuMF++](#https://github.com/KyleOng/starreco/blob/master/starreco/model/nmfpp.py)|Neural Matrix Factorization ++|<a href="#20">[20]|
+
+Architecture
+---
+<p align="center">
+  <img src="asset/architecture.png" alt="starrreco v0.1 architecture">
+  <br>
+  <b>Figure</b>: starreco overall architecture
+</p>
 
 Datasets
 ---
@@ -58,6 +66,18 @@ Datasets
 Getting Started<a name="start"></a>
 ---
 ### Installation 
+
+Create virtual environment
+
+    python3 -m virtualenv env
+
+Activate virtual environment
+
+    source env/bin/activate # Linux
+    ./env/Scripts/activate # Windows
+
+Clone and install necessary python packages
+
     git clone https://github.com/KyleOng/star-reco
     pip install -r requirements.txt
 
