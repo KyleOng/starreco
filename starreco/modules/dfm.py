@@ -1,4 +1,3 @@
-from starreco.model.module import BaseModule
 from typing import Union
 
 import torch

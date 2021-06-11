@@ -5,12 +5,13 @@ import time
 import sys
 sys.path.insert(0,"..")
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from starreco.model import *
+from starreco.modules import *
 from starreco.data import *
 from starreco.evaluation import *
 
@@ -232,7 +233,7 @@ def test_ccae(matrix_transpose = False):
     ccae = CCAE(input_output_dim)
     return quick_test(dm, ccae)
 
-# Testing
+# Done
 def test_cmf(pretrain = True):
     dm = StarDataModule(add_features = True,
                         user_features_ignore = ["zipCode"],
@@ -247,6 +248,38 @@ def test_cmf(pretrain = True):
     if pretrain:
         cmf.load_pretrain_embeddings(vocab_map)
     return quick_test(dm, cmf)
+
+# Testing
+def test_fgcnn():
+    dm = StarDataModule(add_features = True,
+                        user_features_ignore = ["zipCode"],
+                        item_features_ignore = ["plot"],
+                        batch_size = 1024)
+    dm.setup()
+
+    user_feature_names = np.concatenate(list(dm.user_preprocessor.get_feature_names().values()))
+    user_features_split = {}
+    for user_feature_name in user_feature_names:
+        column_name = user_feature_name.split("_")[0]
+        if column_name in user_features_split:
+            user_features_split[column_name] += 1
+        else:
+            user_features_split[column_name] = 1
+    user_features_split = list(user_features_split.values())
+
+    item_feature_names = np.concatenate(list(dm.item_preprocessor.get_feature_names().values()))
+    item_features_split = {}
+    for item_feature_name in item_feature_names:
+        column_name = item_feature_name.split("_")[0]
+        if column_name in item_features_split:
+            item_features_split[column_name] += 1
+        else:
+            item_features_split[column_name] = 1
+    item_features_split = list(item_features_split.values())
+
+    fgcnn = FGCNN(user_features_split, item_features_split, [dm.dataset.rating.num_users, dm.dataset.rating.num_items])
+
+    return quick_test(dm, fgcnn)
 
 
 if __name__ == "__main__":
@@ -374,8 +407,10 @@ if __name__ == "__main__":
     # Done
     elif model == "ccae_0": test_ccae(False)
     elif model == "ccae_1": test_ccae(True)
-    # Test
+    # Done
     elif model == "cmf_0": test_cmf(False)
     elif model == "cmf_1": test_cmf(True)
+    # Done
+    elif model == "fgcnn": test_fgcnn()
 
         

@@ -1,20 +1,20 @@
-from starreco.model.module import BaseModule
 from typing import Union
 
 import torch
 import torch.nn.functional as F
 
 from .module import BaseModule
-from .layers import FeaturesEmbedding, FeaturesLinear, MultilayerPerceptrons
+from .layers import FeaturesEmbedding, FeaturesLinear, PairwiseInteraction, MultilayerPerceptrons
 
 # Done
-class WDL(BaseModule):
+class NFM(BaseModule):
     """
-    Wide and Deep Learning.
+    Neural Factorization Machine.
 
     - field_dims (list): List of features dimensions.
-    - embed_dim (int): Embedding dimension. Default: 10.
-    - hidden_dims (list): List of numbers of neurons across the hidden layers. Default: [400, 400, 400].
+    - embed_dim (int): Embedding dimension. Default: 64.
+    - bi_dropout (int/float): Dropout value for Bi-interaction layer. Default: 0.2.
+    - hidden_dims (list): List of numbers of neurons across the hidden layers. Default: [1024, 512, 256].
     - activations (str/list): List of activation functions. Default: "relu".
     - dropouts (int/float/list): List of dropout values. Default: 0.5.
     - batch_norm (bool): If True, apply batch normalization in every layer. Batch normalization is applied between activation and dropout layer. Default: True.
@@ -22,10 +22,10 @@ class WDL(BaseModule):
     - weight_decay (float): L2 regularization rate. Default: 1e-3.
     - criterion: Criterion or objective or loss function. Default: F.mse_loss.
     """
-
     def __init__(self, field_dims:list, 
-                 embed_dim:int = 10, 
-                 hidden_dims:list = [400, 400, 400], 
+                 embed_dim:int = 64, 
+                 bi_dropout:Union[int, float] = 0.2,
+                 hidden_dims:list = [1024, 512, 256], 
                  activations:Union[str, list]  = "relu", 
                  dropouts:Union[int, float, list] = 0.5,
                  batch_norm:bool = True, 
@@ -41,8 +41,14 @@ class WDL(BaseModule):
         # Linear layer
         self.features_linear = FeaturesLinear(field_dims)
 
-        # Multilayer Perceptrons
-        self.net = MultilayerPerceptrons(input_dim = len(field_dims) * embed_dim,
+        # Bi-interaction layer
+        bi_interaction_blocks = [PairwiseInteraction(reduce_sum = False), torch.nn.BatchNorm1d(embed_dim)]
+        if bi_dropout: 
+            bi_interaction_blocks.append(torch.nn.Dropout(bi_dropout))
+        self.bi_interaction = torch.nn.Sequential(*bi_interaction_blocks)
+
+         # Multilayer Perceptrons
+        self.net = MultilayerPerceptrons(input_dim = embed_dim,
                                          hidden_dims = hidden_dims, 
                                          activations = activations, 
                                          dropouts = dropouts,
@@ -50,15 +56,17 @@ class WDL(BaseModule):
                                          batch_norm = batch_norm)
 
     def forward(self, x):
-        # Linear regression
+        # Linear regression 
         linear = self.features_linear(x.int()) 
 
-        # Non linear on concatenated embeddings
+        # Bi-interaction between embedding
         x_embed = self.features_embedding(x.int())
-        embed_concat = torch.flatten(x_embed, start_dim = 1)
-        net = self.net(embed_concat)
+        cross_term = self.bi_interaction(x_embed)
+
+        # Non linear on bi-interaction
+        cross_net = self.net(cross_term)
 
         # Sum
-        y = linear + net 
+        y =  linear + cross_net
 
         return y
