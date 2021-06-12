@@ -50,11 +50,10 @@ class CCAE(BaseModule):
         encoder_blocks = []
         heights = []
         height = math.ceil(math.sqrt(input_output_dim))
-        for i in range(0, len(filter_sizes)):
-            input_channel_size = filter_sizes[i - 1] if i else 1
-            output_channel_size = filter_sizes[i] 
-
+        input_channel_size = 1
+        for filter_size in filter_sizes:          
             # Convolution layer
+            output_channel_size = filter_size 
             heights.append(math.floor(height))
             convolution = torch.nn.Conv2d(input_channel_size, 
                                           output_channel_size, 
@@ -78,12 +77,16 @@ class CCAE(BaseModule):
             height = ((height + 2 * pooling.padding - pooling.dilation * (pooling.kernel_size[0] - 1) - 1)/ pooling.stride[0])+1
 
             # Dropout
-            if i == len(filter_sizes)-1:
+            if filter_size == filter_sizes[-1]:
+                # Latent dropout
                 if dropout > 0 and dropout <= 1:
                     encoder_blocks.append(torch.nn.Dropout(dropout))
             else:
+                # Dropout between encoder layers
                 if e_dropout > 0 and e_dropout <= 1:
                     encoder_blocks.append(torch.nn.Dropout(e_dropout))
+
+            input_channel_size = output_channel_size
 
         self.encoder = torch.nn.Sequential(*encoder_blocks)
 
