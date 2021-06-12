@@ -7,7 +7,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 
-from .transformers import SetTransformer, DocTransformer
+from .transformers import SetTransformer, GloveDocTransformer
 
 # Done
 class Preprocessor:
@@ -31,7 +31,7 @@ class Preprocessor:
         self.num_columns = num_columns
         self.set_columns = set_columns
         self.doc_columns = doc_columns
-        print(self.cat_columns, self.num_columns, self.set_columns, self.doc_columns)
+        #print(self.cat_columns, self.num_columns, self.set_columns, self.doc_columns)
 
     def get_feature_names(self):
         columns_transform = {"categorical": [],
@@ -40,7 +40,8 @@ class Preprocessor:
                              "document": []}
 
         if self.cat_columns:
-            columns_transform["categorical"] = self.column_transformer.named_transformers_["categorical"].named_steps["onehot"].get_feature_names(self.cat_columns)
+            columns_transform["categorical"] = self.column_transformer.named_transformers_["categorical"]\
+                                               .named_steps["onehot"].get_feature_names(self.cat_columns)
         if self.num_columns:
             columns_transform["numerical"] = self.num_columns
         if self.set_columns:
@@ -99,9 +100,10 @@ class Preprocessor:
                 ("set", set_transformer, self.set_columns)
             )
 
-        # Doc type transformers: tfidf vectorizer
+        # Doc type transformers: word indixer based on glove pretrained weights
         if self.doc_columns:
-            doc_transformer = DocTransformer()
+            warnings.warn(f"Doc type columns exist. Make sure 'glove.6B/glove.6B.50d.txt' is in your working directory." )
+            doc_transformer = GloveDocTransformer()
             self.column_transformer.transformers.append(
                 ("document", doc_transformer, self.doc_columns)
             )

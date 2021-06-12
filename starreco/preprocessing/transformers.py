@@ -10,7 +10,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import FunctionTransformer, MultiLabelBinarizer
-from scipy.sparse import csr_matrix, lil_matrix
+from scipy.sparse import csr_matrix
 from tqdm import tqdm
 
 # Add current working directory to nltk path
@@ -68,7 +68,7 @@ class SetTransformer(BaseEstimator, TransformerMixin):
         return self.column_transformer.transform(X)
 
 # Done
-class DocTransformer(BaseEstimator, TransformerMixin):
+class GloveDocTransformer(BaseEstimator, TransformerMixin):
     """
     Transformer class for transforming document type data.
 
@@ -129,8 +129,8 @@ class DocTransformer(BaseEstimator, TransformerMixin):
         vocabs = []
         num_lines = sum(1 for _ in open(self.glove_path, 'r', encoding="utf-8"))
         with open(self.glove_path, 'r', encoding="utf-8") as f:
-            f_tqdm = tqdm(f, total = num_lines)
-            f_tqdm.set_description("loading pretrained")
+            f_tqdm = tqdm(f, total = num_lines, bar_format = "{desc:}{percentage:3.0f}%|{bar:10}{r_bar}")
+            f_tqdm.set_description("loading pretrained glove weights (fit)")
             for line in f_tqdm:
                 values = line.split()
                 word = values[0]
@@ -145,40 +145,52 @@ class DocTransformer(BaseEstimator, TransformerMixin):
         # Create vobabulary mapper.
         vocabs = list(vocab_weights.keys())
         self.vocab_map = {vocab: i for i, vocab in enumerate(vocabs, start = 2)}
+
         return self
 
     def transform(self, X, y = None):
-        def sentence_to_indices(vocab_map, sentence):
+        def sentences_to_indices(x, vocab_map):
             """
             Transform sentences to indices based on the vocabulary mapper.
             For example, "This document is the first document"-> [1,2,3,4,5,2]
 
             Note: vocab map index start from 2, as 1s are for unknown vocab and 0s for padding. 
             """
-            tokens = nltk.word_tokenize(str(sentence))
-            # Remove stop words
-            non_stops = [token for token in tokens if token.lower() not in stopwords.words('english')]
-            indices = [vocab_map[non_stop.lower()] if non_stop.lower() in vocab_map else 1 for non_stop in non_stops]
+            def sentence_to_indices(sentence):
+                tokens = nltk.word_tokenize(str(sentence))
+                # Remove stop words
+                non_stops = [token for token in tokens if token.lower() not in stopwords.words('english')]
+                word_indices = [vocab_map[non_stop.lower()] if non_stop.lower() in vocab_map else 1 for non_stop in non_stops]
+                return word_indices
+        
+            tqdm.pandas(desc = f"indexing {x.name} sentences (transform)", 
+                        bar_format = "{desc:}: {percentage:3.0f}%|{bar:10}{r_bar}")
 
-            return indices
+            x_word_indices = x.progress_apply(lambda sentence: sentence_to_indices(sentence))
+
+            return x_word_indices
 
         def pad_zeros(x):
             """
             Zero padding word indices until it reached the maximum length.
             For example, [[1,2,3],[1,2,3,4],[1,2]] -> [[1,2,3,0],[1,2,3,4],[1,2,0,0]]
             """
-            tqdm.pandas(desc = "0padding sentences")
-            max_len = x.apply(lambda indices: len(indices)).max()
+            tqdm.pandas(desc = f"0padding {x.name} word indices (transform)", 
+                        bar_format = "{desc:}: {percentage:3.0f}%|{bar:10}{r_bar}")
+            max_len = x.apply(lambda word_indices: len(word_indices)).max()
 
             # Save transform max len
             self.max_lens_[x.name] = max_len
 
-            return x.progress_apply(lambda indices: np.pad(indices, (0, max_len - len(indices))))
+            x_pad = x.progress_apply(lambda word_indices: np.pad(word_indices, (0, max_len - len(word_indices))))
 
-        # User preset vocabulary mapper for sentence indexing.
-        tqdm.pandas(desc = "indexing sentences")
-        X = X.apply(lambda column:column.progress_apply(lambda sentence: sentence_to_indices(self.vocab_map, sentence)))
-        X = X.apply(lambda column:pad_zeros(column))
+            return x_pad
+
+        # Vocabulary mapper for sentence indexing.
+        X = X.apply(lambda x:sentences_to_indices(x, self.vocab_map))
+
+        # Zero padding
+        X = X.apply(lambda x:pad_zeros(x))
 
         # Transform to sparse for memory efficient
         sparse_stack = csr_matrix(np.vstack(X.values.tolist()))
