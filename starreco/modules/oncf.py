@@ -40,11 +40,10 @@ class ONCF(MF):
         # Convolution neural network layers
         cnn_blocks = [torch.nn.LayerNorm(embed_dim)]
         # The number of convolutions = math.ceil(math.log(embed_dim, kernel_size))
+        input_channel_size = 1
         for i in range(math.ceil(math.log(embed_dim, kernel_size))):
-            # 1st convolution layer does not have any depth
-            input_channel_size = filter_size if i else 1 
-            output_channel_size = filter_size
             # Convolution 
+            output_channel_size = filter_size
             cnn_blocks.append(torch.nn.Conv2d(input_channel_size, 
                                               output_channel_size, 
                                               kernel_size, 
@@ -56,6 +55,9 @@ class ONCF(MF):
                 cnn_blocks.append(torch.nn.BatchNorm2d(output_channel_size))
             if dropout > 0 and dropout <= 1:
                     cnn_blocks.append(torch.nn.Dropout(dropout))
+
+            input_channel_size = output_channel_size
+            
         # Flatten
         cnn_blocks.append(torch.nn.Flatten())
         # Fully connected layer
