@@ -20,14 +20,14 @@ dm = None
 # Done
 def quick_test(dm, module):
     global gpu
-    logger = TensorBoardLogger("training_logs", name = model, log_graph = True)
+    logger = TensorBoardLogger("training_logs", name = module_name, log_graph = True)
     trainer = pl.Trainer(logger = logger,
                          gpus = -1 if gpu else None, 
-                         max_epochs = 100, 
+                         max_epochs = 2, 
                          progress_bar_refresh_rate = 2,
-                         #limit_train_batches = 0.1,
-                         #limit_val_batches = 0.1,
-                         #limit_test_batches = 0.1,
+                         limit_train_batches = 0.1,
+                         limit_val_batches = 0.1,
+                         limit_test_batches = 0.1,
                          weights_summary = "full")
     trainer.fit(module, dm)
     trainer.test(module, datamodule = dm)
@@ -283,38 +283,38 @@ def test_fgcnn():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description = "Testing model")
-    parser.add_argument("--model", type = str, default = "mf", help = "model")
-    parser.add_argument("--gpu", type = bool, default = False, help = "model")
-    #parser.add_argument("--weights_summary", type = str, default = "top", help = "model")
+    parser = argparse.ArgumentParser(description = "Testing module")
+    parser.add_argument("--module", type = str, default = "mf", help = "module")
+    parser.add_argument("--gpu", type = bool, default = False, help = "gpu")
+    #parser.add_argument("--weights_summary", type = str, default = "top", help = "module_name")
 
     args = parser.parse_args()
 
-    model = args.model
+    module_name = args.module
     gpu = args.gpu
     #weights_summary = args.weights_summary
 
     # Done
-    if model == "mf": test_mf()
+    if module_name == "mf": test_mf()
     # Done
-    elif model == "gmf": test_gmf()
+    elif module_name == "gmf": test_gmf()
     # Done
-    elif model == "ncf": test_ncf()
+    elif module_name == "ncf": test_ncf()
     # Done
-    elif model == "nmf_0": test_nmf(None, False) 
-    elif model == "nmf_1": test_nmf(None, True) 
-    elif model == "nmf_2": test_nmf("gmf", False) 
-    elif model == "nmf_3": test_nmf("gmf", True) 
-    elif model == "nmf_4": test_nmf("ncf", False) 
-    elif model == "nmf_5": test_nmf("ncf", True) 
+    elif module_name == "nmf_0": test_nmf(None, False) 
+    elif module_name == "nmf_1": test_nmf(None, True) 
+    elif module_name == "nmf_2": test_nmf("gmf", False) 
+    elif module_name == "nmf_3": test_nmf("gmf", True) 
+    elif module_name == "nmf_4": test_nmf("ncf", False) 
+    elif module_name == "nmf_5": test_nmf("ncf", True) 
     # Done
-    elif model == "gmfpp_0": test_gmfpp(False)
-    elif model == "gmfpp_1": test_gmfpp(True)
+    elif module_name == "gmfpp_0": test_gmfpp(False)
+    elif module_name == "gmfpp_1": test_gmfpp(True)
     # Done
-    elif model == "ncfpp_0": test_ncfpp(False)
-    elif model == "ncfpp_1": test_ncfpp(True)
+    elif module_name == "ncfpp_0": test_ncfpp(False)
+    elif module_name == "ncfpp_1": test_ncfpp(True)
     # Done
-    elif model == "nmfpp":
+    elif module_name == "nmfpp":
         hparams_grid = dict(
             shared_embed = [None, "gmf++", "ncf++"], 
             shared_sdaes = [None, "gmf++", "ncf++"], 
@@ -335,82 +335,82 @@ if __name__ == "__main__":
             else:
                 print(f"PASS: trial {i} ", hparams)
                 time.sleep(5) # load_all, freeze
-    elif model == "nmfpp_00": test_nmfpp(None, None, False, False)
-    elif model == "nmfpp_01": test_nmfpp(None, None, False, True)
-    elif model == "nmfpp_02": test_nmfpp(None, None, True, False)
-    elif model == "nmfpp_03": test_nmfpp(None, None, True, True)
-    elif model == "nmfpp_04": test_nmfpp(None, "gmf++", False, False)
-    elif model == "nmfpp_05": test_nmfpp(None, "gmf++", False, True)
-    elif model == "nmfpp_06": test_nmfpp(None, "gmf++", True, False)
-    elif model == "nmfpp_07": test_nmfpp(None, "gmf++", True, True)
-    elif model == "nmfpp_08": test_nmfpp(None, "ncf++", False, False)
-    elif model == "nmfpp_09": test_nmfpp(None, "ncf++", False, True)
-    elif model == "nmfpp_10": test_nmfpp(None, "ncf++", True, False)
-    elif model == "nmfpp_11": test_nmfpp(None, "ncf++", True, True)
-    elif model == "nmfpp_12": test_nmfpp("gmf++", None, False, False)
-    elif model == "nmfpp_13": test_nmfpp("gmf++", None, False, True)
-    elif model == "nmfpp_14": test_nmfpp("gmf++", None, True, False)
-    elif model == "nmfpp_15": test_nmfpp("gmf++", None, True, True)
-    elif model == "nmfpp_16": test_nmfpp("gmf++", "gmf++", False, False)
-    elif model == "nmfpp_17": test_nmfpp("gmf++", "gmf++", False, True)
-    elif model == "nmfpp_18": test_nmfpp("gmf++", "gmf++", True, False)
-    elif model == "nmfpp_19": test_nmfpp("gmf++", "gmf++", True, True)
-    elif model == "nmfpp_20": test_nmfpp("gmf++", "ncf++", False, False)
-    elif model == "nmfpp_21": test_nmfpp("gmf++", "ncf++", False, True)
-    elif model == "nmfpp_22": test_nmfpp("gmf++", "ncf++", True, False)
-    elif model == "nmfpp_23": test_nmfpp("gmf++", "ncf++", True, True)
-    elif model == "nmfpp_24": test_nmfpp("ncf++", None, False, False)
-    elif model == "nmfpp_25": test_nmfpp("ncf++", None, False, True)
-    elif model == "nmfpp_26": test_nmfpp("ncf++", None, True, False)
-    elif model == "nmfpp_27": test_nmfpp("ncf++", None, True, True)
-    elif model == "nmfpp_28": test_nmfpp("ncf++", "gmf++", False, False)
-    elif model == "nmfpp_29": test_nmfpp("ncf++", "gmf++", False, True)
-    elif model == "nmfpp_30": test_nmfpp("ncf++", "gmf++", True, False)
-    elif model == "nmfpp_31": test_nmfpp("ncf++", "gmf++", True, True)
-    elif model == "nmfpp_32": test_nmfpp("ncf++", "ncf++", False, False)
-    elif model == "nmfpp_33": test_nmfpp("ncf++", "ncf++", False, True)
-    elif model == "nmfpp_34": test_nmfpp("ncf++", "ncf++", True, False)
-    elif model == "nmfpp_35": test_nmfpp("ncf++", "ncf++", True, True)
+    elif module_name == "nmfpp_00": test_nmfpp(None, None, False, False)
+    elif module_name == "nmfpp_01": test_nmfpp(None, None, False, True)
+    elif module_name == "nmfpp_02": test_nmfpp(None, None, True, False)
+    elif module_name == "nmfpp_03": test_nmfpp(None, None, True, True)
+    elif module_name == "nmfpp_04": test_nmfpp(None, "gmf++", False, False)
+    elif module_name == "nmfpp_05": test_nmfpp(None, "gmf++", False, True)
+    elif module_name == "nmfpp_06": test_nmfpp(None, "gmf++", True, False)
+    elif module_name == "nmfpp_07": test_nmfpp(None, "gmf++", True, True)
+    elif module_name == "nmfpp_08": test_nmfpp(None, "ncf++", False, False)
+    elif module_name == "nmfpp_09": test_nmfpp(None, "ncf++", False, True)
+    elif module_name == "nmfpp_10": test_nmfpp(None, "ncf++", True, False)
+    elif module_name == "nmfpp_11": test_nmfpp(None, "ncf++", True, True)
+    elif module_name == "nmfpp_12": test_nmfpp("gmf++", None, False, False)
+    elif module_name == "nmfpp_13": test_nmfpp("gmf++", None, False, True)
+    elif module_name == "nmfpp_14": test_nmfpp("gmf++", None, True, False)
+    elif module_name == "nmfpp_15": test_nmfpp("gmf++", None, True, True)
+    elif module_name == "nmfpp_16": test_nmfpp("gmf++", "gmf++", False, False)
+    elif module_name == "nmfpp_17": test_nmfpp("gmf++", "gmf++", False, True)
+    elif module_name == "nmfpp_18": test_nmfpp("gmf++", "gmf++", True, False)
+    elif module_name == "nmfpp_19": test_nmfpp("gmf++", "gmf++", True, True)
+    elif module_name == "nmfpp_20": test_nmfpp("gmf++", "ncf++", False, False)
+    elif module_name == "nmfpp_21": test_nmfpp("gmf++", "ncf++", False, True)
+    elif module_name == "nmfpp_22": test_nmfpp("gmf++", "ncf++", True, False)
+    elif module_name == "nmfpp_23": test_nmfpp("gmf++", "ncf++", True, True)
+    elif module_name == "nmfpp_24": test_nmfpp("ncf++", None, False, False)
+    elif module_name == "nmfpp_25": test_nmfpp("ncf++", None, False, True)
+    elif module_name == "nmfpp_26": test_nmfpp("ncf++", None, True, False)
+    elif module_name == "nmfpp_27": test_nmfpp("ncf++", None, True, True)
+    elif module_name == "nmfpp_28": test_nmfpp("ncf++", "gmf++", False, False)
+    elif module_name == "nmfpp_29": test_nmfpp("ncf++", "gmf++", False, True)
+    elif module_name == "nmfpp_30": test_nmfpp("ncf++", "gmf++", True, False)
+    elif module_name == "nmfpp_31": test_nmfpp("ncf++", "gmf++", True, True)
+    elif module_name == "nmfpp_32": test_nmfpp("ncf++", "ncf++", False, False)
+    elif module_name == "nmfpp_33": test_nmfpp("ncf++", "ncf++", False, True)
+    elif module_name == "nmfpp_34": test_nmfpp("ncf++", "ncf++", True, False)
+    elif module_name == "nmfpp_35": test_nmfpp("ncf++", "ncf++", True, True)
     # Done
-    elif model == "mdacf": test_mdacf()
+    elif module_name == "mdacf": test_mdacf()
     # Done
-    elif model == "fm": test_fm()
+    elif module_name == "fm": test_fm()
     # Done
-    elif model == "nfm": test_nfm()
+    elif module_name == "nfm": test_nfm()
     # Done
-    elif model == "wdl": test_wdl()
+    elif module_name == "wdl": test_wdl()
     # Done
-    elif model == "dfm": test_dfm()
+    elif module_name == "dfm": test_dfm()
     # Done
-    elif model == "xdfm": test_xdfm()
+    elif module_name == "xdfm": test_xdfm()
     # Done
-    elif model == "oncf": test_oncf()
+    elif module_name == "oncf": test_oncf()
     # Done
-    elif model == "cnndcf": test_cnndcf()
+    elif module_name == "cnndcf": test_cnndcf()
     # Done
-    elif model == "autorec_0": test_autorec(False)
-    elif model == "autorec_1": test_autorec(True)
+    elif module_name == "autorec_0": test_autorec(False)
+    elif module_name == "autorec_1": test_autorec(True)
     # Done
-    elif model == "deeprec_0": test_deeprec(False)
-    elif model == "deeprec_1": test_deeprec(True)
+    elif module_name == "deeprec_0": test_deeprec(False)
+    elif module_name == "deeprec_1": test_deeprec(True)
     # Done
-    elif model == "cfn_0": test_cfn(False, False)
-    elif model == "cfn_1": test_cfn(False, True)
-    elif model == "cfn_2": test_cfn(True, False)
-    elif model == "cfn_3": test_cfn(True, True)
+    elif module_name == "cfn_0": test_cfn(False, False)
+    elif module_name == "cfn_1": test_cfn(False, True)
+    elif module_name == "cfn_2": test_cfn(True, False)
+    elif module_name == "cfn_3": test_cfn(True, True)
     # Done
-    elif model == "cdae_0": test_cdae(False)
-    elif model == "cdae_1": test_cdae(True)
+    elif module_name == "cdae_0": test_cdae(False)
+    elif module_name == "cdae_1": test_cdae(True)
     # Done
-    elif model == "sdaecf_0": test_sdaecf(False)
-    elif model == "sdaecf_1": test_sdaecf(True)
+    elif module_name == "sdaecf_0": test_sdaecf(False)
+    elif module_name == "sdaecf_1": test_sdaecf(True)
     # Done
-    elif model == "ccae_0": test_ccae(False)
-    elif model == "ccae_1": test_ccae(True)
+    elif module_name == "ccae_0": test_ccae(False)
+    elif module_name == "ccae_1": test_ccae(True)
     # Done
-    elif model == "cmf_0": test_cmf(False)
-    elif model == "cmf_1": test_cmf(True)
+    elif module_name == "cmf_0": test_cmf(False)
+    elif module_name == "cmf_1": test_cmf(True)
     # Done
-    elif model == "fgcnn": test_fgcnn()
+    elif module_name == "fgcnn": test_fgcnn()
 
         
