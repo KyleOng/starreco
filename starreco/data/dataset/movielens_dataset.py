@@ -50,7 +50,7 @@ class MovielensDataset(BaseDataset):
         """
         Get movies with plots.
         """
-        movielinks_extra_path = self._download_path+"ml-1m_links.csv"
+        movielinks_extra_path = "ml-1m_links.csv"
 
         if not os.path.isfile(movielinks_extra_path):
             raise Exception("File not existed.\nPlease manually download 'ml-1m_links.csv' from the link below \n https://drive.google.com/file/d/1k0GTgery8Pyjo3z_igWyQsJ4XeiCBab7/view?usp=sharing\n and place in 'starreco/dataset' directory.")
@@ -98,7 +98,7 @@ class MovielensDataset(BaseDataset):
         """
         Crawl movie plots from IMDB website.
         """
-        movies_path = self._download_path+"ml-1m-movies.csv"
+        movies_path = "ml-1m-movies.csv"
         if os.path.isfile(movies_path):            
             movies = pd.read_csv(movies_path, encoding = "ISO-8859-1", engine = "python")
             warnings.warn(f"File existed.\nThe system does not check for the completeness of data.\nPlease make sure that the data in {movies_path} is completed.")

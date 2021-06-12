@@ -1,13 +1,11 @@
 import os
-import re
-import urllib
 
 import pandas as pd
 import numpy as np
 import requests
 from tqdm import tqdm
 
-
+# Done
 class User:
     """
     User dataframe class.
@@ -18,11 +16,11 @@ class User:
 
     cat_columns = num_columns = set_columns = doc_columns = []
 
-    def __init__(self, df, column):
+    def __init__(self, df:pd.DataFrame, column:str):
         self.df = df
         self.column = column
 
-
+# Done
 class Item:
     """
     Item dataframe class.
@@ -33,24 +31,26 @@ class Item:
 
     cat_columns = num_columns = set_columns = doc_columns = []
 
-    def __init__(self, df, column):
+    def __init__(self, df:pd.DataFrame, column:str):
         self.df = df
         self.column = column
 
-
+# Done
 class Rating:
     """
     Rating dataframe class.
 
     - df (pd.DataFrame): Rating dataframe.
+    - column (str): Rating column.
     - user (User): User dataframe class.
     - item (Item): Item dataframe class.
-    - column (str): Rating column.
-    - num_users (int): Number of users.
-    - num_items (int): Number of items.
     """
 
-    def __init__(self, df, column, user = None, item = None):
+    def __init__(self, 
+                 df:pd.DataFrame, 
+                 column:str, 
+                 user = None, 
+                 item = None):
         self.df = df
         self.user = user
         self.item = item
@@ -127,14 +127,12 @@ class BaseDataset:
     """
     Base class for dataset.
     """
-    
-    _download_path = os.path.realpath(__file__).replace("data/dataset/dataset.py", "dataset/")
 
     def __init__(self):
         # Import data when class object is created
         self.rating, self.user, self.item = self.import_data()
 
-    def download_data(self, url:str):
+    def download_data(self, url):
         """
         Download dataset from the url
 
@@ -143,8 +141,7 @@ class BaseDataset:
         - return: dataset path.
         """
         # Obtain the characters after the last "/" as filename
-        file_name = url.split("/")[-1]
-        dataset_path = self._download_path + file_name
+        dataset_path = url.split("/")[-1]
 
         # Get file from HTTP request
         response = requests.get(url, stream = True)
@@ -152,10 +149,6 @@ class BaseDataset:
 
         # A flag determine whether to download the dataset
         download_flag = False
-
-        # If download directory not exist, make directory
-        if not os.path.exists(self._download_path):
-            os.makedirs(self._download_path)
 
         # If dataset does not exist or partially download, flag set to True, else False.
         if os.path.isfile(dataset_path):
@@ -173,7 +166,7 @@ class BaseDataset:
             try:                    
                 # Streaming, so we can iterate over the response.
                 block_size = 1024 # 1 Kilobyte
-                progress_bar = tqdm(total= total_url_file_size, unit="iB", unit_scale = True)
+                progress_bar = tqdm(total = total_url_file_size, unit = "iB", unit_scale = True)
 
                 with open(dataset_path, "wb") as file:
                     for data in response.iter_content(block_size):
@@ -192,4 +185,3 @@ class BaseDataset:
         
         # Return dataset path
         return dataset_path
-        
