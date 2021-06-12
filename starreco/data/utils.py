@@ -6,7 +6,7 @@ import torch
 from torch.utils.data import Dataset, TensorDataset, DataLoader
 from scipy.sparse import coo_matrix, csr_matrix, lil_matrix, vstack, issparse
 
-
+# Done
 def df_map_column(df, column, mapper, join = "left"):
     """
     Map `df[column]` with according to `mapper`.
@@ -25,7 +25,7 @@ def df_map_column(df, column, mapper, join = "left"):
             df = df_map.merge(df, on = column, how = join)
     return df.sort_values(column)
 
-
+# Done
 def ratings_to_sparse_matrix(users, items, ratings, num_users, num_items):
     """
     Transform user-item ratings dataframe into sparse matrix.
@@ -46,7 +46,7 @@ def ratings_to_sparse_matrix(users, items, ratings, num_users, num_items):
 
     return matrix.tocsr()
 
-
+# Done
 def sparse_coo_to_tensor(coo:coo_matrix):
     """
     Transform scipy sparse coo_matrix to pytorch sprase coo_tensor.
@@ -64,14 +64,14 @@ def sparse_coo_to_tensor(coo:coo_matrix):
 
     return torch.sparse.FloatTensor(i, v, s)
 
-
+# Done
 def sparse_batch_collate(batch:list): 
     """
     Collate function which to transform scipy coo matrix to pytorch sparse tensor
     """
     return sparse_coo_to_tensor(vstack(batch).tocoo())
 
-            
+# Done        
 class SparseDataset(Dataset):
     """
     Custom Dataset class for scipy sparse matrix
@@ -88,7 +88,7 @@ class SparseDataset(Dataset):
     def __len__(self):
         return self.sparse.shape[0]
 
-
+# Done
 class MatrixDataset(TensorDataset):
     """
     Custom Dataset class for matrix type data, which later transform to `torch.Tensor` during initialization.
