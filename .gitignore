@@ -132,5 +132,7 @@ dmypy.json
 backup
 results
 tests/*/
+tests/*.csv
+tests/*.zip
 starreco/dataset/*
 !starreco/dataset/ml-1m_links.csv
