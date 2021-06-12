@@ -71,19 +71,24 @@ class StarDataModule(pl.LightningDataModule):
         self.X = ratings[[self.dataset.user.column, self.dataset.item.column]].values
         self.y = ratings[self.dataset.rating.column].values
 
+        # Include features to batch
         if self.add_features:
-            # user and item preprocessed features data
-            self.user_preprocessor = Preprocessor(df = df_map_column(self.dataset.user.df, self.dataset.user.column, self.dataset.rating.user_map, "left"), 
-                                            cat_columns = list(set(self.dataset.user.cat_columns) - set(self.user_features_ignore)),
-                                            num_columns = list(set(self.dataset.user.num_columns) - set(self.user_features_ignore)), 
-                                            set_columns = list(set(self.dataset.user.set_columns) - set(self.user_features_ignore)),
-                                            doc_columns = list(set(self.dataset.user.doc_columns) - set(self.user_features_ignore)))
-            self.item_preprocessor = Preprocessor(df = df_map_column(self.dataset.item.df, self.dataset.item.column, self.dataset.rating.item_map, "left"), 
-                                            cat_columns = list(set(self.dataset.item.cat_columns) - set(self.item_features_ignore)),
-                                            num_columns = list(set(self.dataset.item.num_columns) - set(self.item_features_ignore)), 
-                                            set_columns = list(set(self.dataset.item.set_columns) - set(self.item_features_ignore)),
-                                            doc_columns = list(set(self.dataset.item.doc_columns) - set(self.item_features_ignore)))
+            # user preprocessed features data            
+            user = df_map_column(self.dataset.user.df, self.dataset.user.column, self.dataset.rating.user_map, "left")
+            user_cat_columns = list(set(self.dataset.user.cat_columns) - set(self.user_features_ignore))
+            user_num_columns = list(set(self.dataset.user.num_columns) - set(self.user_features_ignore))
+            user_set_columns = list(set(self.dataset.user.set_columns) - set(self.user_features_ignore))
+            user_doc_columns = list(set(self.dataset.user.doc_columns) - set(self.user_features_ignore))
+            self.user_preprocessor = Preprocessor(user, user_cat_columns, user_num_columns, user_set_columns, user_doc_columns)
             self.user = self.user_preprocessor.transform()
+
+            # item preprocessed features data
+            item = df_map_column(self.dataset.item.df, self.dataset.item.column, self.dataset.rating.item_map, "left")
+            item_cat_columns = list(set(self.dataset.item.cat_columns) - set(self.item_features_ignore))
+            item_num_columns = list(set(self.dataset.item.num_columns) - set(self.item_features_ignore))
+            item_set_columns = list(set(self.dataset.item.set_columns) - set(self.item_features_ignore))
+            item_doc_columns = list(set(self.dataset.item.doc_columns) - set(self.item_features_ignore))
+            self.item_preprocessor = Preprocessor(item, item_cat_columns, item_num_columns, item_set_columns, item_doc_columns)
             self.item = self.item_preprocessor.transform()
 
             # map user and item to ratings
@@ -96,7 +101,7 @@ class StarDataModule(pl.LightningDataModule):
 
         Note: General rule of thumb 60/20/20 train valid test split 
         """
-        train_val_split = (self.val_split + self.test_split)/ (self.train_split + self.val_split + self.test_split)
+        train_val_split = (self.val_split + self.test_split) / (self.train_split + self.val_split + self.test_split)
         val_test_split = self.val_split/(self.val_split + self.test_split)
 
         if not self.matrix_form and self.add_features:
@@ -140,11 +145,13 @@ class StarDataModule(pl.LightningDataModule):
                                                 self.y_train, 
                                                 self.dataset.rating.num_users, 
                                                 self.dataset.rating.num_items)
+
         self.X_val = ratings_to_sparse_matrix(self.X_val[:, 0], 
                                               self.X_val[:, 1], 
                                               self.y_val, 
                                               self.dataset.rating.num_users, 
                                               self.dataset.rating.num_items)
+
         if self.test_split:
             self.X_test = ratings_to_sparse_matrix(self.X_test[:, 0], 
                                                    self.X_test[:, 1], 
@@ -159,17 +166,15 @@ class StarDataModule(pl.LightningDataModule):
             if self.test_split:
                 self.X_test = self.X_test.T
 
-        # Since reconstruction input = output, set y = x
+        # Since reconstruction input as y, set y as x
         self.y_train = self.X_train
         self.y_val = self.X_val
         if self.test_split:
             self.y_test = self.X_test
 
-    def setup(self, stage:str = None):
+    def setup(self, stage = None):
         """
         Data operation for each training/validating/testing.
-
-        stage (str): Seperate setup logic for pytorch_lightining `trainer.fit` and `trainer.test`. Default: None
         """
         self.prepare_data()
         self.split()
