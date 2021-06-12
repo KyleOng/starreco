@@ -25,29 +25,29 @@ Research Models
 ---
 |Research model |Description|Reference|
 |-|-|-|
-|[MF](https://github.com/KyleOng/starreco/blob/master/starreco/model/mf.py)|Matrix Factorization|<a href="#1">[1]</a>|
-|[GMF](https://github.com/KyleOng/starreco/blob/master/starreco/model/gmf.py)|Generalized Matrix Factorization|<a href="#2">[2]</a>|
-|[MLP](https://github.com/KyleOng/starreco/blob/master/starreco/model/ncf.py)|Multilayer Perceptrons|<a href="#2">[2]</a>|
-|[NeuMF](https://github.com/KyleOng/starreco/blob/master/starreco/model/nmf.py)|Neural Matrix Factorization|<a href="#2">[2]</a>|
-|[FM](https://github.com/KyleOng/starreco/blob/master/starreco/model/fm.py)|Factorization Machine|<a href="#3">[3]</a>|
-|[NeuFM](https://github.com/KyleOng/starreco/blob/master/starreco/model/nfm.py)|Neural Factorization Machine|<a href="#4">[4]</a>|
-|[WDL](https://github.com/KyleOng/starreco/blob/master/starreco/model/wdl.py)|Wide & Deep Learning|<a href="#5">[5]</a>|
-|[DeepFM](https://github.com/KyleOng/starreco/blob/master/starreco/model/dfm.py)|Deep Factorization Machine|<a href="#6">[6]</a>|
-|[xDeepFM](https://github.com/KyleOng/starreco/blob/master/starreco/model/xdfm.py)|Extreme Deep Factorization Machine|<a href="#7">[7]</a>|
-|[FGCNN](https://github.com/KyleOng/starreco/blob/master/starreco/model/fgcnn.py)|Feature Generation by using Convolutional Neural Network|<a href="#8">[8]</a>|
-|[ONCF](https://github.com/KyleOng/starreco/blob/master/starreco/model/oncf.py)|Outer-based Product Neural Collaborative Filtering|<a href="#9">[9]</a>|
-|[CNNDCF](https://github.com/KyleOng/starreco/blob/master/starreco/model/cnndcf.py)|Convolutional Neural Network based Deep Colloborative Filtering|<a href="#10">[10]</a>|
-|[ConvMF](https://github.com/KyleOng/starreco/blob/master/starreco/model/cmf.py)|Convolutional Matrix Factorization|<a href="#11">[11]|
-|[AutoRec](https://github.com/KyleOng/starreco/blob/master/starreco/model/autorec.py)|AutoRec|<a href="#12">[12]|
-|[DeepRec](https://github.com/KyleOng/starreco/blob/master/starreco/model/deeprec.py)|DeepRec|<a href="#13">[13]|
-|[CFN](https://github.com/KyleOng/starreco/blob/master/starreco/model/cfn.py)|Collaborative Filtering Network|<a href="#14">[14]|
-|[CDAE](https://github.com/KyleOng/starreco/blob/master/starreco/model/cdae.py)|Collaborative Denoising AutoEncoder|<a href="#15">[15]|
-|[CCAE](https://github.com/KyleOng/starreco/blob/master/starreco/model/ccae.py)|Collaborative Convolutional AutoEncoder|<a href="#16">[16]|
-|[SDAECF](https://github.com/KyleOng/starreco/blob/master/starreco/model/sdaecf.py)|Stacked Denoising AutoEncoder for Collaborative Filtering|<a href="#17">[17]|
-|[mDACF](https://github.com/KyleOng/starreco/blob/master/starreco/model/mdacf.py)|marginalized Denoising AutoEncoder Collaborative Filtering|<a href="#18">[18]|
-|[GMF++](https://github.com/KyleOng/starreco/blob/master/starreco/model/gmfpp.py)|Generalized Matrix Factorization ++|<a href="#1">[19]|
-|[MLP++](https://github.com/KyleOng/starreco/blob/master/starreco/model/ncfpp.py)|Multilayer Perceptrons ++|<a href="#1">[19]|
-|[NeuMF++](https://github.com/KyleOng/starreco/blob/master/starreco/model/nmfpp.py)|Neural Matrix Factorization ++|<a href="#20">[20]|
+|[MF](https://github.com/KyleOng/starreco/blob/master/starreco/modules/mf.py)|Matrix Factorization|<a href="#1">[1]</a>|
+|[GMF](https://github.com/KyleOng/starreco/blob/master/starreco/modules/gmf.py)|Generalized Matrix Factorization|<a href="#2">[2]</a>|
+|[MLP](https://github.com/KyleOng/starreco/blob/master/starreco/modules/ncf.py)|Multilayer Perceptrons|<a href="#2">[2]</a>|
+|[NeuMF](https://github.com/KyleOng/starreco/blob/master/starreco/modules/nmf.py)|Neural Matrix Factorization|<a href="#2">[2]</a>|
+|[FM](https://github.com/KyleOng/starreco/blob/master/starreco/modules/fm.py)|Factorization Machine|<a href="#3">[3]</a>|
+|[NeuFM](https://github.com/KyleOng/starreco/blob/master/starreco/modules/nfm.py)|Neural Factorization Machine|<a href="#4">[4]</a>|
+|[WDL](https://github.com/KyleOng/starreco/blob/master/starreco/modules/wdl.py)|Wide & Deep Learning|<a href="#5">[5]</a>|
+|[DeepFM](https://github.com/KyleOng/starreco/blob/master/starreco/modules/dfm.py)|Deep Factorization Machine|<a href="#6">[6]</a>|
+|[xDeepFM](https://github.com/KyleOng/starreco/blob/master/starreco/modules/xdfm.py)|Extreme Deep Factorization Machine|<a href="#7">[7]</a>|
+|[FGCNN](https://github.com/KyleOng/starreco/blob/master/starreco/modules/fgcnn.py)|Feature Generation by using Convolutional Neural Network|<a href="#8">[8]</a>|
+|[ONCF](https://github.com/KyleOng/starreco/blob/master/starreco/modules/oncf.py)|Outer-based Product Neural Collaborative Filtering|<a href="#9">[9]</a>|
+|[CNNDCF](https://github.com/KyleOng/starreco/blob/master/starreco/modules/cnndcf.py)|Convolutional Neural Network based Deep Colloborative Filtering|<a href="#10">[10]</a>|
+|[ConvMF](https://github.com/KyleOng/starreco/blob/master/starreco/modules/cmf.py)|Convolutional Matrix Factorization|<a href="#11">[11]|
+|[AutoRec](https://github.com/KyleOng/starreco/blob/master/starreco/modules/autorec.py)|AutoRec|<a href="#12">[12]|
+|[DeepRec](https://github.com/KyleOng/starreco/blob/master/starreco/modules/deeprec.py)|DeepRec|<a href="#13">[13]|
+|[CFN](https://github.com/KyleOng/starreco/blob/master/starreco/modules/cfn.py)|Collaborative Filtering Network|<a href="#14">[14]|
+|[CDAE](https://github.com/KyleOng/starreco/blob/master/starreco/modules/cdae.py)|Collaborative Denoising AutoEncoder|<a href="#15">[15]|
+|[CCAE](https://github.com/KyleOng/starreco/blob/master/starreco/modules/ccae.py)|Collaborative Convolutional AutoEncoder|<a href="#16">[16]|
+|[SDAECF](https://github.com/KyleOng/starreco/blob/master/starreco/modules/sdaecf.py)|Stacked Denoising AutoEncoder for Collaborative Filtering|<a href="#17">[17]|
+|[mDACF](https://github.com/KyleOng/starreco/blob/master/starreco/modules/mdacf.py)|marginalized Denoising AutoEncoder Collaborative Filtering|<a href="#18">[18]|
+|[GMF++](https://github.com/KyleOng/starreco/blob/master/starreco/modules/gmfpp.py)|Generalized Matrix Factorization ++|<a href="#1">[19]|
+|[MLP++](https://github.com/KyleOng/starreco/blob/master/starreco/modules/ncfpp.py)|Multilayer Perceptrons ++|<a href="#1">[19]|
+|[NeuMF++](https://github.com/KyleOng/starreco/blob/master/starreco/modules/nmfpp.py)|Neural Matrix Factorization ++|<a href="#20">[20]|
 
 Architecture
 ---
