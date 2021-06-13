@@ -103,6 +103,7 @@ model = MF([data_module.dataset.rating.num_users, data_module.dataset.rating.num
 
 # setup
 # checkpoint callback
+current_version = max(0, len(list(os.walk("checkpoints/mf")))-1)
 checkpoint_callback = ModelCheckpoint(dirpath = f"checkpoints/mf/version_{i + current_version}",
                                       monitor = "val_loss",
                                       filename = "mf-{epoch:02d}-{train_loss:.4f}-{val_loss:.4f}")
