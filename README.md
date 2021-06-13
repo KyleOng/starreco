@@ -106,8 +106,8 @@ model = MF([data_module.dataset.rating.num_users,
 # setup
 # checkpoint callback
 checkpoint_callback = ModelCheckpoint(dirpath = f"checkpoints/mf/version_{i + current_version}",
-                                      monitor = "val_loss_",
-                                      filename = "mf-{epoch:02d}-{train_loss_:.4f}-{val_loss_:.4f}")
+                                      monitor = "val_loss",
+                                      filename = "mf-{epoch:02d}-{train_loss:.4f}-{val_loss:.4f}")
 # logger
 logger = TensorBoardLogger("training_logs", 
                            name = "mf", 
