@@ -87,24 +87,29 @@ pip install -r requirements.txt
 
 ### Example
 ```python
+import os
+import sys
+sys.path.insert(0,"..")
+
+import torch
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 
-from starreco.model import *
+from starreco.modules import *
 from starreco.data import *
     
 # data module
-data_module = DataModule("ml-1m")
+data_module = StarDataModule("ml-1m")
 data_module.setup()
     
-# model
-model = MF([data_module.dataset.rating.num_users, data_module.dataset.rating.num_items])
+# module
+module = MF([data_module.dataset.rating.num_users, data_module.dataset.rating.num_items])
 
 # setup
 # checkpoint callback
 current_version = max(0, len(list(os.walk("checkpoints/mf")))-1)
-checkpoint_callback = ModelCheckpoint(dirpath = f"checkpoints/mf/version_{i + current_version}",
+checkpoint_callback = ModelCheckpoint(dirpath = f"checkpoints/mf/version_{current_version}",
                                       monitor = "val_loss",
                                       filename = "mf-{epoch:02d}-{train_loss:.4f}-{val_loss:.4f}")
 # logger
