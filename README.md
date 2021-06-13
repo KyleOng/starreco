@@ -107,9 +107,7 @@ checkpoint_callback = ModelCheckpoint(dirpath = f"checkpoints/mf/version_{i + cu
                                       monitor = "val_loss",
                                       filename = "mf-{epoch:02d}-{train_loss:.4f}-{val_loss:.4f}")
 # logger
-logger = TensorBoardLogger("training_logs", 
-                           name = "mf", 
-                           log_graph = True)
+logger = TensorBoardLogger("training_logs", name = "mf")
 # trainer
 trainer = Trainer(logger = logger,
                   gpus = -1 if torch.cuda.is_available() else None, 
