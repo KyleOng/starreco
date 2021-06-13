@@ -88,8 +88,6 @@ pip install -r requirements.txt
 ### Example
 ```python
 import os
-import sys
-sys.path.insert(0,"..")
 
 import torch
 from pytorch_lightning import Trainer
