@@ -202,7 +202,7 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
     - extra_input_dims (int/list): List of extra input dimension at every layer. Default: 0.
     - extra_output_dims (int/list): List of extra output dimension at every layer. Extra output dimension is not applied to the output layer, if `output_layer` is set with value. Default: 0.
     - noise_rate (int/float): Rate/Percentage of noises to be added to the input. Noise is not applied to extra input neurons. Noise is only applied during training only. Default: 1.
-    - noise_factor (int/float): Noise factor. Default: 0.3.
+    - noise_factor (int/float): Noise factor. Default: 1.
     - noise_all (bool): If True, noise are added to inputs in all input and hidden layers, else only to input layer. Default: False.
     - mean (int/float): Gaussian noise mean. Default: 0.
     - std (int/float): Gaussian noise standard deviation: 1.
@@ -220,7 +220,7 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
                  extra_input_dims:Union[int,list] = 0,
                  extra_output_dims:Union[int,list] = 0,
                  noise_rate:Union[int, float] = 1,
-                 noise_factor:Union[int, float] = 0.3,
+                 noise_factor:Union[int, float] = 1,
                  noise_all:bool = True,
                  mean:Union[int, float] = 0,
                  std:Union[int, float] = 1):
@@ -261,6 +261,10 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
                                              mlp_type = "modulelist")
 
         # Decoder layer 
+        if len(hidden_dims) > 1:
+            d_activations = [d_activations] * (len(hidden_dims) - 1) + ["relu"]
+        else:
+            d_activations = ["relu"]
         self.decoder = MultilayerPerceptrons(input_dim = hidden_dims[-1],
                                              hidden_dims = [*hidden_dims[:-1][::-1], input_output_dim], 
                                              activations = d_activations, 
