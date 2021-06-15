@@ -229,7 +229,6 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
         self.noise_rate = noise_rate
         self.noise_factor = noise_factor
         self.noise_all = noise_all
-        self.noise_masks = []
         self.mean = mean
         self.std = std
 
@@ -322,6 +321,7 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
         return x
 
     def forward(self, x, extra = None):
+        self.noise_masks = []
         x = self.decode(self.encode(x, extra), extra)
         return x       
 
