@@ -78,23 +78,20 @@ class SDAECF(BaseModule):
         """
         Custom backward loss.
         """
-        if self.training:
-            # Balance whether the network would focus on denoising the input (α) or reconstructing theinput
-            xs = batch[:-1]
-            y = batch[-1]
-            y_hat = self.forward(*xs)
+        # Balance whether the network would focus on denoising the input (α) or reconstructing theinput
+        xs = batch[:-1]
+        y = batch[-1]
+        y_hat = self.forward(*xs)
 
-            # Denoising loss
-            y_denoised = y * self.sdae.noise_masks[0]
-            denoising_loss = self.alpha * self.criterion(y_hat, y_denoised)
+        # Denoising loss
+        y_denoised = y * self.sdae.noise_masks[0]
+        denoising_loss = self.alpha * self.criterion(y_hat, y_denoised)
 
-            # Reconstruction loss
-            y_reconstructed = y * ~self.sdae.noise_masks[0]
-            reconstruction_loss = self.beta * self.criterion(y_hat, y_reconstructed)
+        # Reconstruction loss
+        y_reconstructed = y * ~self.sdae.noise_masks[0]
+        reconstruction_loss = self.beta * self.criterion(y_hat, y_reconstructed)
 
-            loss = denoising_loss + reconstruction_loss
+        loss = denoising_loss + reconstruction_loss
 
-            return loss
-        else:
-            return super().backward_loss(*batch)
+        return loss
 
