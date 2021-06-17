@@ -21,19 +21,6 @@ class BaseModule(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr = self.lr, weight_decay = self.weight_decay)
         return optimizer
-        
-    def _transform(self, tensor):
-        """
-        Transform tensor.
-
-        Warning: This method should not be used directly.
-        """
-        # Convert tensor to dense if tensor is sparse
-        if tensor.layout == torch.sparse_coo:
-            tensor = tensor.to_dense()
-
-        # Reshape tensor
-        return tensor.view(tensor.shape[0], -1)
 
     def backward_loss(self, *batch):
         """
@@ -58,8 +45,7 @@ class BaseModule(pl.LightningModule):
         return loss
 
     def training_step(self, batch, batch_idx):
-        batch = [self._transform(tensor) for tensor in batch]
-
+        batch = [tensor.view(tensor.shape[0], -1) for tensor in batch]
         backward_loss = self.backward_loss(*batch)
         #self.log("backward_loss", backward_loss, on_step = False, on_epoch = True, prog_bar = True)
 
@@ -69,8 +55,7 @@ class BaseModule(pl.LightningModule):
         return backward_loss
 
     def validation_step(self, batch, batch_idx):
-        batch = [self._transform(tensor) for tensor in batch]
-
+        batch = [tensor.view(tensor.shape[0], -1) for tensor in batch]
         # Log graph on the first validation step (took less time than training step)
         if self.current_epoch == 0 and batch_idx == 0:
             self.logger.log_graph(self, batch[:-1])
@@ -79,8 +64,7 @@ class BaseModule(pl.LightningModule):
         self.log("val_loss", logger_loss, on_epoch = True, prog_bar = True, logger = True)
 
     def test_step(self, batch, batch_idx):
-        batch = [self._transform(tensor) for tensor in batch]
-
+        batch = [tensor.view(tensor.shape[0], -1) for tensor in batch]
         logger_loss = self.logger_loss(*batch)
         self.log("test_loss", logger_loss)
 
