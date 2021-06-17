@@ -7,3 +7,4 @@ scipy==1.5.4
 torch==1.8.1
 nltk==3.6.2
 optuna==2.8.0
+deprecated==1.2.12
