@@ -5,14 +5,15 @@ import torch.nn.functional as F
 
 from .gmf import GMF
 from .layers import StackedDenoisingAutoEncoder
+from .utils import l2_regularization
 
 # Testing
 class GMFPP(GMF):
     """
     Generalized Matrix Factorization ++.
 
-    - user_sdae_kwargs (dict): User SDAE hyperparameteres.
-    - item_sdae_kwargs (dict): Item SDAE hyperparameteres.
+    - user_sdae_hparams (dict): User SDAE hyperparameteres.
+    - item_sdae_hparams (dict): Item SDAE hyperparameteres.
     - field_dims (list): List of features dimensions.
     - embed_dim (int): Embedding dimension. Default: 8.
     - alpha (int/float): Trade off parameter for user feature reconstruction. Default: 1.
@@ -23,30 +24,40 @@ class GMFPP(GMF):
     """
 
     def __init__(self, 
-                 user_sdae_kwargs:dict, 
-                 item_sdae_kwargs:dict, 
+                 user_sdae_hparams:dict, 
+                 item_sdae_hparams:dict, 
                  field_dims:list, 
                  embed_dim:int = 8, 
                  alpha:Union[int,float] = 1, 
                  beta:Union[int,float] = 1,
                  lr:float = 1e-3,
                  weight_decay:float = 1e-6,
-                 criterion = F.mse_loss):
-        assert user_sdae_kwargs["hidden_dims"][-1] and item_sdae_kwargs["hidden_dims"][-1],\
-        "`user_sdae_kwargs` and `item_sdae_kwargs` last `hidden_dims` (latent dimension) must be the same"
+                 user_weight_decay:float = 1e-6,
+                 item_weight_decay:float = 1e-6,
+                 criterion = F.mse_loss,
+                 user_criterion = F.mse_loss,
+                 item_criterion = F.mse_loss):
+        assert user_sdae_hparams["hidden_dims"][-1] and item_sdae_hparams["hidden_dims"][-1],\
+        "`user_sdae_hparams` and `item_sdae_hparams` last `hidden_dims` (latent dimension) must be the same"
 
-        super().__init__(field_dims, embed_dim, lr, weight_decay, criterion)
+        # Set weight decay as 0 in super()__.init__ as we manually set the regularizer
+        super().__init__(field_dims, embed_dim, lr, 0, criterion)
         self.save_hyperparameters()
 
         self.alpha = alpha
         self.beta = beta
+        self.weight_decay = weight_decay
+        self.user_weight_decay = user_weight_decay
+        self.item_weight_decay = item_weight_decay
+        self.user_criterion = user_criterion
+        self.item_criterion = item_criterion
 
         # Stacked denoising autoencoder for feature extraction
-        self.user_sdae = StackedDenoisingAutoEncoder(**user_sdae_kwargs)
-        self.item_sdae = StackedDenoisingAutoEncoder(**item_sdae_kwargs)
+        self.user_sdae = StackedDenoisingAutoEncoder(**user_sdae_hparams)
+        self.item_sdae = StackedDenoisingAutoEncoder(**item_sdae_hparams)
 
         # Replace the first layer with reshape input features
-        latent_dim = user_sdae_kwargs["hidden_dims"][-1] and item_sdae_kwargs["hidden_dims"][-1]
+        latent_dim = user_sdae_hparams["hidden_dims"][-1] and item_sdae_hparams["hidden_dims"][-1]
         input_dim = self.net.mlp[0].in_features
         output_dim = self.net.mlp[0].out_features
         self.net.mlp[0] = torch.nn.Linear(input_dim + latent_dim, output_dim)        
@@ -74,12 +85,21 @@ class GMFPP(GMF):
         Custom backward loss.
         """
         x, user_x, item_x, y = batch
+
         # User reconstruction loss with trade off parameter alpha
-        user_loss = self.alpha * self.criterion(self.user_sdae.forward(user_x), user_x)
+        user_loss = self.user_criterion(self.user_sdae.forward(user_x), user_x)
+        user_reg = l2_regularization(self.user_weight_decay, self.user_sdae.parameters(), self.device)
+        user_loss *= self.alpha
+        user_loss += user_reg
         # Item reconstruction loss with trade off parameter beta
-        item_loss = self.beta * self.criterion(self.item_sdae.forward(item_x), item_x)
+        item_loss = self.item_criterion(self.item_sdae.forward(item_x), item_x)
+        item_reg = l2_regularization(self.item_weight_decay, self.item_sdae.parameters(), self.device)
+        item_loss *= self.beta
+        item_loss += item_reg
         # Rating loss
         rating_loss = super().backward_loss(*batch)
+        rating_reg = l2_regularization(self.weight_decay, super().parameters(), self.device)
+        rating_loss += rating_reg
 
         # Total loss
         loss = rating_loss + user_loss +  item_loss
