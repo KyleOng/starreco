@@ -5,7 +5,7 @@ def weight_init(m):
     """
     Weight initialization on specific layer.
     """
-    if type(m) == torch.nn.Linear:
+    if isinstance(m, torch.nn.Linear):
         torch.nn.init.xavier_uniform_(m.weight)
     
         if m.bias is not None:
@@ -50,3 +50,11 @@ def freeze_partial_linear_params(layer:torch.nn.Linear,
     bias_hook_handle = layer.bias.register_hook(freezing_hook_bias)
 
     return weight_hook_handle, bias_hook_handle
+
+def l2_regularization(l2_lambda:float, 
+                      parameters:dict,
+                      device:str = None):
+    l2_reg = torch.tensor(0.).to(device)
+    for param in parameters:
+        l2_reg += torch.norm(param)
+    return (l2_reg * l2_lambda)
