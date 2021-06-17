@@ -1,13 +1,12 @@
 import numpy as np
 import pytorch_lightning as pl 
 from torch.utils.data import DataLoader
-from pytorch_lightning.trainer.supporters import CombinedLoader
 from sklearn.model_selection import train_test_split
 from scipy.sparse import issparse
 
 from starreco.preprocessing import Preprocessor
 from .dataset import BookCrossingDataset, MovielensDataset
-from .utils import MatrixDataset, SparseDataset, sparse_batch_collate, ratings_to_sparse_matrix, df_map_column
+from .utils import MatrixDataset, sparse_batch_collate, ratings_to_sparse_matrix, df_map_column
 
 # Done
 class StarDataModule(pl.LightningDataModule):
@@ -38,7 +37,7 @@ class StarDataModule(pl.LightningDataModule):
                  user_features_ignore:list = [],
                  item_features_ignore:list = [],
                  train_val_test_split:list = [60, 20 ,20],
-                 num_workers:int = 1):
+                 num_workers:int = 8):
         assert download in self._downloads, (f"`download` = '{download}' not include in prefixed dataset downloads. Choose from {self._downloads}.")
         assert not(not matrix_form and matrix_transpose), ("`matrix_form` and 'matrix_transpose` must be either False:False, True:False or True:True, cannot be False:True.")
         assert not(not matrix_form and add_ids), ("`matrix_form` and 'add_ids` must be either False:False, True:False or True:True, cannot be False:True.")
@@ -200,17 +199,13 @@ class StarDataModule(pl.LightningDataModule):
         if self.add_ids and self.matrix_form:
             train_data.insert(-1, np.arange(self.X_train.shape[0]))
 
-        train_dls = []
-        for train_datum in train_data:
-            if issparse(train_datum):
-                train_ds = SparseDataset(train_datum)
-                train_dl = DataLoader(train_ds, batch_size = self.batch_size, collate_fn = sparse_batch_collate)
-            else:
-                train_ds = MatrixDataset(train_datum)
-                train_dl = DataLoader(train_ds, batch_size = self.batch_size, num_workers = self.num_workers)
-            train_dls.append(train_dl)
+        train_ds = MatrixDataset(*train_data)
+        train_dl = DataLoader(train_ds, 
+                              batch_size = self.batch_size, 
+                              collate_fn = sparse_batch_collate, 
+                              num_workers = self.num_workers)
 
-        return train_dls
+        return train_dl
                           
     def val_dataloader(self):
         """
@@ -231,17 +226,12 @@ class StarDataModule(pl.LightningDataModule):
         if self.add_ids and self.matrix_form:
             val_data.insert(-1, np.arange(self.X_val.shape[0]))
 
-        val_dls = []
-        for val_datum in val_data:
-            if issparse(val_datum):
-                val_ds = SparseDataset(val_datum)
-                val_dl = DataLoader(val_ds, batch_size = self.batch_size, collate_fn = sparse_batch_collate)
-            else:
-                val_ds = MatrixDataset(val_datum)
-                val_dl = DataLoader(val_ds, batch_size = self.batch_size, num_workers = self.num_workers)
-            val_dls.append(val_dl)
-
-        return CombinedLoader(val_dls, "max_size_cycle")
+        val_ds = MatrixDataset(*val_data)
+        val_dl = DataLoader(val_ds, 
+                            batch_size = self.batch_size, 
+                            collate_fn = sparse_batch_collate, 
+                            num_workers = self.num_workers)
+        return val_dl
 
     def test_dataloader(self):
         """
@@ -263,16 +253,12 @@ class StarDataModule(pl.LightningDataModule):
             if self.add_ids and self.matrix_form:
                 test_data.insert(-1, np.arange(self.X_test.shape[0]))
 
-            test_dls = []
-            for test_datum in test_data:
-                if issparse(test_datum):
-                    test_ds = SparseDataset(test_datum)
-                    test_dl = DataLoader(test_ds, batch_size = self.batch_size, collate_fn = sparse_batch_collate)
-                else:
-                    test_ds = MatrixDataset(test_datum)
-                    test_dl = DataLoader(test_ds, batch_size = self.batch_size, num_workers = self.num_workers)
-                test_dls.append(test_dl)
+            test_ds = MatrixDataset(*test_data)
+            test_dl = DataLoader(test_ds, 
+                                batch_size = self.batch_size, 
+                                collate_fn = sparse_batch_collate, 
+                                num_workers = self.num_workers)
 
-            return CombinedLoader(test_dls, "max_size_cycle")
+            return test_dl
         else:
             return None
