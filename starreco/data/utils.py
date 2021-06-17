@@ -1,10 +1,9 @@
-from typing import Union
-
 import numpy as np
 import pandas as pd
 import torch
-from torch.utils.data import Dataset, TensorDataset, DataLoader
-from scipy.sparse import coo_matrix, csr_matrix, lil_matrix, vstack, issparse
+from torch.utils.data import Dataset
+from scipy.sparse import coo_matrix, csr_matrix, lil_matrix, vstack
+from deprecated import deprecated
 
 # Done
 def df_map_column(df, column, mapper, join = "left"):
@@ -46,7 +45,8 @@ def ratings_to_sparse_matrix(users, items, ratings, num_users, num_items):
 
     return matrix.tocsr()
 
-# Done
+# Deprecated
+@deprecated(version = "1.0.0", reason = "Sparse matrix transformed inside collate_fn.")
 def sparse_coo_to_tensor(coo:coo_matrix):
     """
     Transform scipy sparse coo_matrix to pytorch sprase coo_tensor.
@@ -67,41 +67,24 @@ def sparse_coo_to_tensor(coo:coo_matrix):
 # Done
 def sparse_batch_collate(batch:list): 
     """
-    Collate function which to transform scipy coo matrix to pytorch sparse tensor
+    Collate function which to transform matrix to tensor.
     """
-    return sparse_coo_to_tensor(vstack(batch).tocoo())
+    return [torch.Tensor(vstack(tensor).toarray()) if isinstance(tensor[0], csr_matrix) 
+            else torch.Tensor(tensor) for tensor in zip(*batch)]
 
 # Done        
-class SparseDataset(Dataset):
+class MatrixDataset(Dataset):
     """
-    Custom Dataset class for scipy sparse matrix
-
-    Warning: This Dataset class is written such that it only accepts 1 argument.
+    Custom Dataset class for numpy array, csr matrix and coo matrix.
     """
 
-    def __init__(self, sparse:Union[coo_matrix, csr_matrix]):
-        self.sparse = sparse.tocsr() if isinstance(sparse, coo_matrix) else sparse 
+    def __init__(self, *matrices):
+        self.matrices = [matrix.tocsr() if isinstance(matrix, coo_matrix)  
+                         else matrix for matrix in matrices]
         
-    def __getitem__(self, index:int):
-        return self.sparse[index]
+    def __getitem__(self, index):
+        return tuple(tensor[index] for tensor in self.matrices)
 
     def __len__(self):
-        return self.sparse.shape[0]
-
-# Done
-class MatrixDataset(TensorDataset):
-    """
-    Custom Dataset class for matrix type data, which later transform to `torch.Tensor` during initialization.
-
-    Warning: This Dataset class is written such that it only accepts 1 argument.
-    """
-
-    def __init__(self, matrix:np.array):
-        self.tensor = torch.Tensor(matrix)
-
-    def __getitem__(self, index:int):
-        return self.tensor[index]
-
-    def __len__(self):
-        return self.tensor.shape[0]
+        return self.matrices[0].shape[0]
 
