@@ -6,15 +6,15 @@ from .nmf import NMF
 from .gmfpp import GMFPP
 from .ncfpp import NCFPP
 from .layers import MultilayerPerceptrons
-from .utils import freeze_partial_linear_params
+from .utils import freeze_partial_linear_params, l2_regularization
 
 # Done
 class NMFPP(BaseModule):
     """
     Neural Matrix Factorization ++ with seperated user-item SDAEs.
 
-    - gmfpp_kwargs (dict): GMF++ keyword arguments or hyperparameters.
-    - ncfpp_kwargs (dict): NCF++ keyword arguments or hyperparameters.
+    - gmfpp_hparams (dict): GMF++ keyword arguments or hyperparameters.
+    - ncfpp_hparams (dict): NCF++ keyword arguments or hyperparameters.
     - shared_embed (str): Model which to share feature embeddings. Default: None.
         - If "gmf++", GMF++ and NCF++ embeddings will be obtained from GMF++ features embedding layer, NCF++ features embedding layer will be deleted/ignored.
         - If "ncf++", GMF++ and NCF++ embeddings will be obtained from NCF++ features embedding layer, GMF++ features embedding layer will be deleted/ignored.
@@ -29,8 +29,8 @@ class NMFPP(BaseModule):
     """
 
     def __init__(self, 
-                 gmfpp_kwargs:dict,
-                 ncfpp_kwargs:dict,
+                 gmfpp_hparams:dict,
+                 ncfpp_hparams:dict,
                  shared_embed:str= None,
                  shared_sdaes:str= None,
                  lr:float = 1e-3,
@@ -39,13 +39,14 @@ class NMFPP(BaseModule):
         assert shared_embed in [None, "gmf++", "ncf++"], "`shared_embed` must be either None, 'gmf++' or 'ncf++'."
         assert shared_sdaes in [None, "gmf++", "ncf++"], "`shared_sdaes` must be either None, 'gmf++' or 'ncf++'."
 
-        super().__init__(lr, weight_decay, criterion)
+        super().__init__(lr, 0, criterion)
         self.save_hyperparameters()
+        self.weight_decay = weight_decay
         self.shared_embed = shared_embed
         self.shared_sdaes = shared_sdaes
 
-        self.gmfpp = GMFPP(**gmfpp_kwargs)
-        self.ncfpp = NCFPP(**ncfpp_kwargs)
+        self.gmfpp = GMFPP(**gmfpp_hparams)
+        self.ncfpp = NCFPP(**ncfpp_hparams)
 
         # If `shared_embed` is not None, delete one of the feature embedding layer based on arg value.
         if shared_embed == "gmf++":
@@ -70,9 +71,9 @@ class NMFPP(BaseModule):
             del self.ncfpp.net.mlp[-1]
 
         # Add input dim
-        input_dim = gmfpp_kwargs["embed_dim"]
-        input_dim += gmfpp_kwargs["user_sdae_kwargs"]["hidden_dims"][-1] and gmfpp_kwargs["item_sdae_kwargs"]["hidden_dims"][-1]
-        input_dim += ncfpp_kwargs["hidden_dims"][-1]
+        input_dim = gmfpp_hparams["embed_dim"]
+        input_dim += gmfpp_hparams["user_sdae_hparams"]["hidden_dims"][-1] and gmfpp_hparams["item_sdae_hparams"]["hidden_dims"][-1]
+        input_dim += ncfpp_hparams["hidden_dims"][-1]
         self.net = MultilayerPerceptrons(input_dim = input_dim, 
                                          output_layer = "relu")
 
@@ -144,25 +145,37 @@ class NMFPP(BaseModule):
         """
         x, user_x, item_x, y = batch
 
-        # User and item reconsturction loss
+        # User and item reconstruction loss
         if self.shared_sdaes== "gmf++":
-            user_loss_gmfpp = user_loss_ncfpp = self.gmfpp.alpha * self.criterion(self.gmfpp.user_sdae.forward(user_x), user_x)
-            item_loss_gmfpp = item_loss_ncfpp = self.gmfpp.beta  * self.criterion(self.gmfpp.item_sdae.forward(item_x), item_x)
+            reconstruction_loss = self.gmfpp.reconstruction_loss(user_x, item_x)
         elif self.shared_sdaes == "ncf++":
-            user_loss_gmfpp = user_loss_ncfpp = self.ncfpp.alpha * self.criterion(self.ncfpp.user_sdae.forward(user_x), user_x)
-            item_loss_gmfpp = item_loss_ncfpp = self.ncfpp.beta  * self.criterion(self.ncfpp.item_sdae.forward(item_x), item_x)
+            reconstruction_loss = self.ncfpp.reconstruction_loss(user_x, item_x)
         else:
-            user_loss_gmfpp = self.gmfpp.alpha * self.criterion(self.gmfpp.user_sdae.forward(user_x), user_x)
-            item_loss_gmfpp = self.gmfpp.beta  * self.criterion(self.gmfpp.item_sdae.forward(item_x), item_x)
-            user_loss_ncfpp = self.ncfpp.alpha * self.criterion(self.ncfpp.user_sdae.forward(user_x), user_x)
-            item_loss_ncfpp = self.ncfpp.beta  * self.criterion(self.ncfpp.item_sdae.forward(item_x), item_x)
+            reconstruction_loss = self.gmfpp.reconstruction_loss(user_x, item_x)
+            reconstruction_loss += self.ncfpp.reconstruction_loss(user_x, item_x)
 
         # Rating loss
         rating_loss = super().backward_loss(*batch)
 
-        # Total loss
-        loss = rating_loss + user_loss_gmfpp + item_loss_gmfpp + user_loss_ncfpp + item_loss_ncfpp
+        # L2 regularization
+        if self.shared_embed == "gmf++":
+            # L2 regularization on GMF++ feature embeddings layer.
+            features_reg = l2_regularization(self.gmfpp.weight_decay, self.gmfpp.features_embedding.parameters(), self.device)
+        elif self.shared_embed == "ncf++":
+            # L2 regularization on NCF++ feature embeddings layer,
+            features_reg = l2_regularization(self.ncfpp.weight_decay, self.ncfpp.features_embedding.parameters(), self.device)
+        else: 
+            # L2 regularization on both GMF++ and NCF++ feature embeddings layer.
+            features_reg = l2_regularization(self.gmfpp.weight_decay, self.gmfpp.features_embedding.parameters(), self.device)
+            features_reg += l2_regularization(self.ncfpp.weight_decay, self.ncfpp.features_embedding.parameters(), self.device)
+        # 
+        ncfpp_reg = l2_regularization(self.weight_decay, self.ncfpp.net.parameters(), self.device)
+        nmf_reg = l2_regularization(self.weight_decay, self.net.parameters(), self.device)
+        reg = features_reg + ncfpp_reg + nmf_reg
 
+        # Total loss
+        loss = rating_loss + reconstruction_loss + reg
+        
         return loss
 
     def load_all_pretrain_weights(self, gmfpp_weights, ncfpp_weights, freeze = True):
