@@ -120,4 +120,3 @@ compare_models(modelA, model.modelA)
 compare_models(model.modelA, model_test.modelA)
 compare_models(modelB, model.modelB)
 compare_models(model.modelB, model_test.modelB)
-

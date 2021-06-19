@@ -23,11 +23,11 @@ def quick_test(dm, module):
     logger = TensorBoardLogger("training_logs", name = module_name, log_graph = True)
     trainer = pl.Trainer(logger = logger,
                          gpus = -1 if gpu else None, 
-                         max_epochs = 2, 
+                         max_epochs = 1, 
                          progress_bar_refresh_rate = 2,
-                         limit_train_batches = 0.1,
-                         limit_val_batches = 0.1,
-                         limit_test_batches = 0.1,
+                         #limit_train_batches = 0.1,
+                         #limit_val_batches = 0.1,
+                         #limit_test_batches = 0.1,
                          weights_summary = "full")
     trainer.fit(module, dm)
     trainer.test(module, datamodule = dm)
@@ -61,7 +61,7 @@ def test_nmf(shared_embed = None, freeze = True):
 
     gmf = GMF([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
     ncf = NCF([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
-    nmf = NMF(gmf.hparams, ncf.hparams, shared_embed, l2_lambda = 0)
+    nmf = NMF(gmf.hparams, ncf.hparams, shared_embed, weight_decay = 0)
     nmf.load_pretrain_weights(gmf.state_dict(), ncf.state_dict(), freeze)
     
     nmf = quick_test(dm, nmf)
@@ -114,7 +114,7 @@ def test_nmfpp(shared_embed = None, shared_sdaes = None, load_all = False, freez
     ncf = NCF([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
     ncfpp = NCFPP(user_ae_hparams, item_ae_hparams, **ncf.hparams)
     nmf = NMF(gmf.hparams, ncf.hparams, shared_embed.replace("++","") if shared_embed else shared_embed)
-    nmfpp = NMFPP(gmfpp.hparams, ncfpp.hparams, shared_embed, shared_sdaes, l2_lambda = 0)
+    nmfpp = NMFPP(gmfpp.hparams, ncfpp.hparams, shared_embed, shared_sdaes, weight_decay = 0)
     if load_all:
         nmfpp.load_all_pretrain_weights(gmfpp.state_dict(), ncfpp.state_dict(), freeze)
     else:
@@ -161,7 +161,7 @@ def test_xdfm():
 def test_oncf():
     dm = StarDataModule()
     dm.setup()
-    oncf = ONCF([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
+    oncf = ONCF([dm.dataset.rating.num_users, dm.dataset.rating.num_items], 64, 64)
     return quick_test(dm, oncf)
 
 # Done
