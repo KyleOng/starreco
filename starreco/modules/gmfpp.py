@@ -78,7 +78,22 @@ class GMFPP(GMF):
         # Non linear on concatenated vectors
         y = self.net(concat)
 
-        return y        
+        return y   
+
+    def reconstruction_loss(self, user_x, item_x):
+        # User reconstruction loss with trade off parameter alpha
+        user_loss = self.user_criterion(self.user_sdae.forward(user_x), user_x)
+        user_reg = l2_regularization(self.user_weight_decay, self.user_sdae.parameters(), self.device)
+        user_loss *= self.alpha
+        user_loss += user_reg
+        
+        # Item reconstruction loss with trade off parameter beta
+        item_loss = self.item_criterion(self.item_sdae.forward(item_x), item_x)
+        item_reg = l2_regularization(self.item_weight_decay, self.item_sdae.parameters(), self.device)
+        item_loss *= self.beta
+        item_loss += item_reg
+        
+        return user_loss + item_loss     
 
     def backward_loss(self, *batch):
         """
@@ -86,23 +101,16 @@ class GMFPP(GMF):
         """
         x, user_x, item_x, y = batch
 
-        # User reconstruction loss with trade off parameter alpha
-        user_loss = self.user_criterion(self.user_sdae.forward(user_x), user_x)
-        user_reg = l2_regularization(self.user_weight_decay, self.user_sdae.parameters(), self.device)
-        user_loss *= self.alpha
-        user_loss += user_reg
-        # Item reconstruction loss with trade off parameter beta
-        item_loss = self.item_criterion(self.item_sdae.forward(item_x), item_x)
-        item_reg = l2_regularization(self.item_weight_decay, self.item_sdae.parameters(), self.device)
-        item_loss *= self.beta
-        item_loss += item_reg
+        # User and item reconstruction loss
+        reconstruction_loss = self.reconstruction_loss(user_x, item_x)
+        
         # Rating loss
         rating_loss = super().backward_loss(*batch)
         rating_reg = l2_regularization(self.weight_decay, super().parameters(), self.device)
         rating_loss += rating_reg
 
         # Total loss
-        loss = rating_loss + user_loss +  item_loss
+        loss = rating_loss + reconstruction_loss
 
         return loss
 

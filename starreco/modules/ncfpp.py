@@ -5,14 +5,15 @@ import torch.nn.functional as F
 
 from .ncf import NCF
 from .layers import StackedDenoisingAutoEncoder
+from .utils import l2_regularization
 
 # Done
 class NCFPP(NCF):
     """
     Neural Collaborative Filtering ++.
 
-    - user_sdae_kwargs (dict): User SDAE hyperparameteres.
-    - item_sdae_kwargs (dict): Item SDAE hyperparameteres.
+    - user_sdae_hparams (dict): User SDAE hyperparameteres.
+    - item_sdae_hparams (dict): Item SDAE hyperparameteres.
     - field_dims (list): List of features dimensions.
     - embed_dim (int): Embedding dimension.
     - hidden_dims (list): List of numbers of neurons throughout the hidden layers. Default: [32,16,8].
@@ -27,8 +28,8 @@ class NCFPP(NCF):
     """
 
     def __init__(self, 
-                 user_sdae_kwargs:dict, 
-                 item_sdae_kwargs:dict, 
+                 user_sdae_hparams:dict, 
+                 item_sdae_hparams:dict, 
                  field_dims:list,
                  embed_dim:int = 8,
                  hidden_dims:list = [32, 16, 8], 
@@ -39,22 +40,31 @@ class NCFPP(NCF):
                  beta:Union[int,float] = 1,
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
-                 criterion = F.mse_loss):
-        assert user_sdae_kwargs["hidden_dims"][-1] and item_sdae_kwargs["hidden_dims"][-1],\
-        "`user_sdae_kwargs` and `item_sdae_kwargs` last `hidden_dims` (latent dimension) must be the same"
+                 user_weight_decay:float = 1e-6,
+                 item_weight_decay:float = 1e-6,
+                 criterion = F.mse_loss,
+                 user_criterion = F.mse_loss,
+                 item_criterion = F.mse_loss):
+        assert user_sdae_hparams["hidden_dims"][-1] and item_sdae_hparams["hidden_dims"][-1],\
+        "`user_sdae_hparams` and `item_sdae_hparams` last `hidden_dims` (latent dimension) must be the same"
 
-        super().__init__(field_dims, embed_dim, hidden_dims, activations, dropouts, batch_norm, lr, weight_decay, criterion)
+        super().__init__(field_dims, embed_dim, hidden_dims, activations, dropouts, batch_norm, lr, 0, criterion)
         self.save_hyperparameters()
                 
         self.alpha = alpha
         self.beta = beta
+        self.weight_decay = weight_decay
+        self.user_weight_decay = user_weight_decay
+        self.item_weight_decay = item_weight_decay
+        self.user_criterion = user_criterion
+        self.item_criterion = item_criterion
 
         # Stacked denoising autoencoder for feature extraction.
-        self.user_sdae = StackedDenoisingAutoEncoder(**user_sdae_kwargs)
-        self.item_sdae = StackedDenoisingAutoEncoder(**item_sdae_kwargs)
+        self.user_sdae = StackedDenoisingAutoEncoder(**user_sdae_hparams)
+        self.item_sdae = StackedDenoisingAutoEncoder(**item_sdae_hparams)
 
         # Replace the first layer with reshape input features
-        latent_dim = user_sdae_kwargs["hidden_dims"][-1] and item_sdae_kwargs["hidden_dims"][-1]
+        latent_dim = user_sdae_hparams["hidden_dims"][-1] and item_sdae_hparams["hidden_dims"][-1]
         input_dim = self.net.mlp[0].in_features
         output_dim = self.net.mlp[0].out_features
         self.net.mlp[0] = torch.nn.Linear(input_dim + latent_dim * 2, output_dim)       
@@ -74,22 +84,39 @@ class NCFPP(NCF):
         # Non linear on concatenated vectors
         y = self.net(concat)
 
-        return y     
+        return y    
+
+    def reconstruction_loss(self, user_x, item_x):
+        # User reconstruction loss with trade off parameter alpha
+        user_loss = self.user_criterion(self.user_sdae.forward(user_x), user_x)
+        user_reg = l2_regularization(self.user_weight_decay, self.user_sdae.parameters(), self.device)
+        user_loss *= self.alpha
+        user_loss += user_reg
+        
+        # Item reconstruction loss with trade off parameter beta
+        item_loss = self.item_criterion(self.item_sdae.forward(item_x), item_x)
+        item_reg = l2_regularization(self.item_weight_decay, self.item_sdae.parameters(), self.device)
+        item_loss *= self.beta
+        item_loss += item_reg
+        
+        return user_loss + item_loss
 
     def backward_loss(self, *batch):
         """
         Custom backward loss
         """
         x, user_x, item_x, y = batch
-        # User reconstruction loss with trade off parameter alpha
-        user_loss = self.alpha * self.criterion(self.user_sdae.forward(user_x), user_x)
-        # Item reconstruction loss with trade off parameter beta
-        item_loss = self.beta * self.criterion(self.item_sdae.forward(item_x), item_x)
+
+        # User and item reconstruction loss
+        reconstruction_loss = self.reconstruction_loss(user_x, item_x)
+        
         # Rating loss
         rating_loss = super().backward_loss(*batch)
+        rating_reg = l2_regularization(self.weight_decay, super().parameters(), self.device)
+        rating_loss += rating_reg
 
         # Total loss
-        loss = rating_loss + user_loss +  item_loss
+        loss = rating_loss + reconstruction_loss
 
         return loss
 
