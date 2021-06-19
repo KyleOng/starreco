@@ -131,6 +131,7 @@ dmypy.json
 # ==============
 backup
 results
+experiments
 tests/*/
 tests/*.csv
 tests/*.zip
