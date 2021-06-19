@@ -102,7 +102,9 @@ data_module = StarDataModule("ml-1m")
 data_module.setup()
     
 # module
-module = MF([data_module.dataset.rating.num_users, data_module.dataset.rating.num_items])
+module = MF([data_module.dataset.rating.num_users, data_module.dataset.rating.num_items],
+            "lr" = 0.007629571188584098,
+            "weight_decay" = 1.0643056040513936e-05)
 
 # setup
 # checkpoint callback
