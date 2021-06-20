@@ -1,11 +1,11 @@
 import torch
 
 # Done
-def weight_init(m):
+def weight_init(m, *instances):
     """
     Weight initialization on specific layer.
     """
-    if isinstance(m, torch.nn.Linear):
+    if isinstance(m, (instances)):
         torch.nn.init.xavier_uniform_(m.weight)
     
         if m.bias is not None:
