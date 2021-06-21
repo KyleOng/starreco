@@ -58,7 +58,7 @@ class NMF(BaseModule):
         self.net = MultilayerPerceptrons(input_dim = input_dim, 
                                          output_layer = "relu")
 
-    def forward(self, x):
+    def fusion(self, x):
         if self.shared_embed == "gmf":
             # Share embeddings from GMF features embedding layer.
             x_embed_gmf = x_embed_ncf = self.gmf.features_embedding(x.int())
@@ -83,10 +83,16 @@ class NMF(BaseModule):
         output_ncf = self.ncf.net(embed_concat)
 
         # Concatenate GMF element wise product and NCF last hidden layer output
-        concat = torch.cat([output_gmf, output_ncf], dim = 1)
+        fusion = torch.cat([output_gmf, output_ncf], dim = 1)
 
-        # Non linear on concatenated vectors
-        y = self.net(concat)
+        return fusion
+
+    def forward(self, x):
+        # Fusion of GMF and NCF
+        fusion = self.fusion(x)
+
+        # Non linear on fusion vectors
+        y = self.net(fusion)
 
         return y
 

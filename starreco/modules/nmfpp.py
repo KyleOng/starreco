@@ -77,7 +77,7 @@ class NMFPP(BaseModule):
         self.net = MultilayerPerceptrons(input_dim = input_dim, 
                                          output_layer = "relu")
 
-    def forward(self, x, user_x, item_x):
+    def fusion(self, x, user_x, item_x):
         if self.shared_embed == "gmf++":
             # Share embeddings from GMF++ features embedding layer
             x_embed_gmfpp = x_embed_ncfpp = self.gmfpp.features_embedding(x.int())
@@ -132,20 +132,23 @@ class NMFPP(BaseModule):
         output_ncfpp = self.ncfpp.net(concat_ncfpp)
         
         # Concatenate GMF++ element wise product and NCF++ last hidden layer output
-        concat = torch.cat([output_ncfpp, output_gmfpp], dim = 1)
+        fusion = torch.cat([output_ncfpp, output_gmfpp], dim = 1)
 
-        # Non linear on concatenated vectors
-        y = self.net(concat)
+        return fusion
+
+    def forward(self, x, user_x, item_x):
+        # Fusion of GMF++ and NCF++
+        fusion = self.fusion(x, user_x, item_x)
+
+        # Non linear on fusion vectors
+        y = self.net(fusion)
 
         return y
 
-    def backward_loss(self, *batch):
+    def reconstruction_loss(self, user_x, item_x):
         """
-        Custom backward loss.
+        Total reconstruction loss for backward propagation.
         """
-        x, user_x, item_x, y = batch
-
-        # User and item reconstruction loss
         if self.shared_sdaes== "gmf++":
             reconstruction_loss = self.gmfpp.reconstruction_loss(user_x, item_x)
         elif self.shared_sdaes == "ncf++":
@@ -154,10 +157,12 @@ class NMFPP(BaseModule):
             reconstruction_loss = self.gmfpp.reconstruction_loss(user_x, item_x)
             reconstruction_loss += self.ncfpp.reconstruction_loss(user_x, item_x)
 
-        # Rating loss
-        rating_loss = super().backward_loss(*batch)
+        return reconstruction_loss
 
-        # L2 regularization
+    def l2_regularization(self):
+        """
+        Total L2 regularization for backward propagration.
+        """
         if self.shared_embed == "gmf++":
             # L2 regularization on GMF++ feature embeddings layer.
             features_reg = l2_regularization(self.gmfpp.weight_decay, self.gmfpp.features_embedding.parameters(), self.device)
@@ -172,6 +177,21 @@ class NMFPP(BaseModule):
         ncfpp_reg = l2_regularization(self.weight_decay, self.ncfpp.net.parameters(), self.device)
         nmf_reg = l2_regularization(self.weight_decay, self.net.parameters(), self.device)
         reg = features_reg + ncfpp_reg + nmf_reg
+
+        return reg
+
+    def backward_loss(self, *batch):
+        """
+        Custom backward loss.
+        """
+        x, user_x, item_x, y = batch
+
+        # Rating loss
+        rating_loss = super().backward_loss(*batch)
+        # User and item reconstruction loss
+        reconstruction_loss = self.reconstruction_loss(user_x, item_x)
+        # L2 regularization
+        reg = self.l2_regularization()
 
         # Total loss
         loss = rating_loss + reconstruction_loss + reg
