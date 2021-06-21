@@ -61,8 +61,6 @@ Datasets
 ---
 - **Movielen Dataset**: A movie rating dataset collected from the Movielens websites by the GroupLensResearch Project  at University of Minnesota. The datasets were collected over various time periods, depending on the sizes given. **Movielen 1M Dataset**** has been chosen. It contains 1,000,209 anonymous ratings of approximately 3,900 movies made by 6,040 MovieLens users who joined MovieLens in 2000.
 
-- **Amazon Dataset**: Amazon dataset is the consumption records from Amazon.com, which contains product reviews and metadata. It includes 142.8 million reviewscollected from May 1996 to July 2004. The Amazon dataset is also categorized into smaller datasets with different categories of productsuch as books, electronics, movie, etc. Hence, researchers can select smaller datasetsbased on their interest of domain of research. **Amazon Instant Video**, **Amazon Android Apps** and **Amazon Digital Music** have been chosen.
-
 Getting Started<a name="start"></a>
 ---
 ### Installation 
