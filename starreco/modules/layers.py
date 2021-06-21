@@ -204,6 +204,7 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
     - noise_rate (int/float): Rate/Percentage of noises to be added to the input. Noise is not applied to extra input neurons. Noise is only applied during training only. Default: 1.
     - noise_factor (int/float): Noise factor. Default: 1.
     - noise_all (bool): If True, noise are added to inputs in all input and hidden layers, else only to input layer. Default: False.
+    - noise_mask (bool): If True, append noise mask into self.noise_masks for each batch. self.noise_mask will be emptied for each batch. Default: False.
     - mean (int/float): Gaussian noise mean. Default: 0.
     - std (int/float): Gaussian noise standard deviation: 1.
     """
@@ -222,6 +223,7 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
                  noise_rate:Union[int, float] = 1,
                  noise_factor:Union[int, float] = 1,
                  noise_all:bool = True,
+                 noise_mask:bool = False,
                  mean:Union[int, float] = 0,
                  std:Union[int, float] = 1):
         super().__init__()
@@ -229,6 +231,7 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
         self.noise_rate = noise_rate
         self.noise_factor = noise_factor
         self.noise_all = noise_all
+        self.noise_mask = noise_mask
         self.mean = mean
         self.std = std
 
@@ -291,7 +294,8 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
             noise_mask = torch.cat([zeros, ones])
             noise_mask = noise_mask[torch.randperm(noise_mask.shape[0])]
             noise_mask = noise_mask.view(x.shape).to(x.device).bool()
-            self.noise_masks.append(noise_mask)
+            if self.noise_mask:
+                self.noise_masks.append(noise_mask)
 
             noise = torch.randn(x.shape).to(x.device) * self.std + self.mean
             noise *= noise_mask
@@ -325,7 +329,8 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
         return x
 
     def forward(self, x, extra = None):
-        self.noise_masks = []
+        if self.noise_mask: 
+            self.noise_masks = []
         x = self.decode(self.encode(x, extra), extra)
         return x       
 
