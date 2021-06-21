@@ -67,6 +67,7 @@ class SDAECF(BaseModule):
                                                 noise_rate = noise_rate,
                                                 noise_factor = noise_factor,
                                                 noise_all = noise_all, 
+                                                noise_mask = True,
                                                 mean = mean,
                                                 std = std)
 
