@@ -114,7 +114,7 @@ class Preprocessor:
         # Return transform data as dataframe if return_dataframe set as True
         if return_dataframe:
             try:
-                columns_transform = np.concatenate(self.get_feature_names().keys())                
+                columns_transform = np.concatenate(list(self.get_feature_names().values()))        
                 return pd.DataFrame(self.df_transform.toarray(), columns = columns_transform)
             except MemoryError as e:
                 # Memory error. Return array instead
