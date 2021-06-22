@@ -67,7 +67,6 @@ class SDAECF(BaseModule):
                                                 noise_rate = noise_rate,
                                                 noise_factor = noise_factor,
                                                 noise_all = noise_all, 
-                                                noise_mask = True,
                                                 mean = mean,
                                                 std = std)
 
@@ -84,12 +83,15 @@ class SDAECF(BaseModule):
         y = batch[-1]
         y_hat = self.forward(*xs)
 
+        # Get noise mask
+        noise_mask = self.sdae.encoder_noise_masks[0]
+
         # Denoising loss
-        y_denoised = y * self.sdae.noise_masks[0]
+        y_denoised = y * noise_mask
         denoising_loss = self.alpha * self.criterion(y_hat, y_denoised)
 
         # Reconstruction loss
-        y_reconstructed = y * ~self.sdae.noise_masks[0]
+        y_reconstructed = y * ~noise_mask
         reconstruction_loss = self.beta * self.criterion(y_hat, y_reconstructed)
 
         loss = denoising_loss + reconstruction_loss

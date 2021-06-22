@@ -77,6 +77,7 @@ class ActivationFunction(torch.nn.Module):
 
     def __init__(self, name:str = "relu"):
         super().__init__()
+        name = name.lower()
         
         if (name == "relu"): self.activation = torch.nn.ReLU()
         elif (name == "relu_true"): self.activation = torch.nn.ReLU(True)
@@ -91,10 +92,11 @@ class ActivationFunction(torch.nn.Module):
         elif (name == "tanh"): self.activation = torch.nn.Tanh()
         elif (name == "sigmoid"): self.activation = torch.nn.Sigmoid()
         elif (name == "softmax"): self.activation = torch.nn.Softmax()
+        elif (name == "linear"): self.activation = None
         else: raise ValueError("Unknown non-linearity type")
 
     def forward(self, x):
-        return self.activation(x)
+        return self.activation(x) if self.activation else x
 
 # Done
 class MultilayerPerceptrons(torch.nn.Module):
@@ -160,9 +162,7 @@ class MultilayerPerceptrons(torch.nn.Module):
 
                 # Activation function
                 activation = activations[i].lower()
-                # No activation appended if activation is linear
-                if activation != "linear": 
-                    mlp_blocks.append(ActivationFunction(activation))
+                mlp_blocks.append(ActivationFunction(activation))
 
                 # Dropout
                 # Dropout will not be applied to the last hidden layer (output layer is None)
@@ -175,8 +175,7 @@ class MultilayerPerceptrons(torch.nn.Module):
             
         if output_layer:
             mlp_blocks.append(torch.nn.Linear(input_dim, 1))
-            if output_layer != "linear":
-                mlp_blocks.append(ActivationFunction(output_layer))
+            mlp_blocks.append(ActivationFunction(output_layer))
             
         if mlp_type == "sequential":
             self.mlp = torch.nn.Sequential(*mlp_blocks) 
@@ -204,7 +203,6 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
     - noise_rate (int/float): Rate/Percentage of noises to be added to the input. Noise is not applied to extra input neurons. Noise is only applied during training only. Default: 1.
     - noise_factor (int/float): Noise factor. Default: 1.
     - noise_all (bool): If True, noise are added to inputs in all input and hidden layers, else only to input layer. Default: False.
-    - noise_mask (bool): If True, append noise mask into self.noise_masks for each batch. self.noise_mask will be emptied for each batch. Default: False.
     - mean (int/float): Gaussian noise mean. Default: 0.
     - std (int/float): Gaussian noise standard deviation: 1.
     """
@@ -231,7 +229,6 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
         self.noise_rate = noise_rate
         self.noise_factor = noise_factor
         self.noise_all = noise_all
-        self.noise_mask = noise_mask
         self.mean = mean
         self.std = std
 
@@ -264,6 +261,7 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
                                              mlp_type = "modulelist")
 
         # Decoder layer 
+        # Set the decoder last activation to ReLU
         if len(hidden_dims) > 1:
             d_activations = [d_activations] * (len(hidden_dims) - 1) + ["relu"]
         else:
@@ -279,7 +277,7 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
                                              extra_input_dims = decoder_extra_input_dims,
                                              extra_output_dims = decoder_extra_output_dims,
                                              mlp_type = "modulelist")
-
+        
         # Batch normalization and dropout layer inserted before decoding
         if batch_norm:
             self.decoder.mlp.insert(0, torch.nn.BatchNorm1d(hidden_dims[-1]))
@@ -287,50 +285,54 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
             self.decoder.mlp.insert(1, torch.nn.Dropout(dropout))
 
     def add_noise(self, x):
-        if self.training:
-            # Get noise mask
-            ones = torch.ones(math.ceil(self.noise_rate * x.nelement()))
-            zeros = torch.zeros(x.nelement() - ones.nelement())
-            noise_mask = torch.cat([zeros, ones])
-            noise_mask = noise_mask[torch.randperm(noise_mask.shape[0])]
-            noise_mask = noise_mask.view(x.shape).to(x.device).bool()
-            if self.noise_mask:
-                self.noise_masks.append(noise_mask)
+        # Get noise mask
+        ones = torch.ones(math.ceil(self.noise_rate * x.nelement()))
+        zeros = torch.zeros(x.nelement() - ones.nelement())
+        noise_mask = torch.cat([zeros, ones])
+        noise_mask = noise_mask[torch.randperm(noise_mask.shape[0])]
+        noise_mask = noise_mask.view(x.shape).to(x.device).bool()
 
-            noise = torch.randn(x.shape).to(x.device) * self.std + self.mean
-            noise *= noise_mask
-            noise *= self.noise_factor
+        noise = torch.randn(x.shape).to(x.device) * self.std + self.mean
+        noise *= noise_mask
+        noise *= self.noise_factor
 
-            return x + noise
-        else:
-            return x
+        return x + noise, noise_mask
 
     def encode(self, x, extra = None):
+        if self.training:
+            self.encoder_noise_masks = []
+
         for i, module in enumerate(self.encoder.mlp):
             if type(module) == torch.nn.Linear:
                 # Noise add only during training
-                if not(not self.noise_all and i):
-                    x = self.add_noise(x)
+                if not(not self.noise_all and i) and self.training:
+                    x, noise_mask = self.add_noise(x)
+                    # Append noise mask
+                    self.encoder_noise_masks.append(noise_mask)
+                # Concatenate extra to x
                 if extra is not None and module.in_features > x.shape[-1]:
                     x = torch.cat([x, extra], dim = 1)
             x = module(x)
-
         return x
 
     def decode(self, x, extra = None):
+        if self.training:
+            self.decoder_noise_masks = []
+
         for i, module in enumerate(self.decoder.mlp):
             if type(module) == torch.nn.Linear:
                 # Noise add only during training
-                if self.noise_all:
-                    x = self.add_noise(x)
+                if self.noise_all and self.training:
+                    x, noise_mask = self.add_noise(x)
+                    # Append noise mask
+                    self.decoder_noise_masks.append(noise_mask)
+                # Concatenate extra to x
                 if extra is not None and module.in_features > x.shape[-1]:
                     x = torch.cat([x, extra], dim = 1)
             x = module(x)
         return x
 
     def forward(self, x, extra = None):
-        if self.noise_mask: 
-            self.noise_masks = []
         x = self.decode(self.encode(x, extra), extra)
         return x       
 
