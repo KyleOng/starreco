@@ -103,9 +103,6 @@ class MovielensDataset(BaseDataset):
             movies = pd.read_csv(movies_path, encoding = "ISO-8859-1", engine = "python")
             warnings.warn(f"File existed.\nThe system does not check for the completeness of data.\nPlease make sure that the data in {movies_path} is completed.")
         else:
-            # Create new column named plot on movies
-            movies["plot"] = np.nan
-
             # Create a logging file using current timestamp.
             timestamp = int(time.time())
             logging.basicConfig(filename = f"movies_logging_{timestamp}.log",
