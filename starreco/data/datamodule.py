@@ -106,26 +106,53 @@ class StarDataModule(pl.LightningDataModule):
         val_test_split = self.val_split/(self.val_split + self.test_split)
         
         if not self.matrix_form and self.add_features:
-            self.X_train, self.X_val, self.user_X_train, self.user_X_val, self.item_X_train, self.item_X_val, self.y_train, self.y_val \
-            = train_test_split(self.X, self.user_X, self.item_X, self.y, stratify = self.y, test_size = train_val_split, random_state = random_state)
+            self.X_train, self.X_val, self.user_X_train, self.user_X_val, self.item_X_train, self.item_X_val, self.y_train, self.y_val = train_test_split(self.X, 
+                                                                                                                                                          self.user_X, 
+                                                                                                                                                          self.item_X, 
+                                                                                                                                                          self.y, 
+                                                                                                                                                          stratify = self.y, 
+                                                                                                                                                          test_size = train_val_split, 
+                                                                                                                                                          random_state = random_state)
             if self.test_split:
-                self.X_val, self.X_test, self.user_X_val, self.user_X_test, self.item_X_val, self.item_X_test, self.y_val, self.y_test \
-                = train_test_split(self.X_val, self.user_X_val, self.item_X_val, self.y_val, stratify = self.y_val, test_size = val_test_split, random_state = random_state) 
+                self.X_val, self.X_test, self.user_X_val, self.user_X_test, self.item_X_val, self.item_X_test, self.y_val, self.y_test = train_test_split(self.X_val, 
+                                                                                                                                                          self.user_X_val, 
+                                                                                                                                                          self.item_X_val, 
+                                                                                                                                                          self.y_val, 
+                                                                                                                                                          stratify = self.y_val, 
+                                                                                                                                                          test_size = val_test_split, 
+                                                                                                                                                          random_state = random_state) 
         else:
-            self.X_train, self.X_val, self.y_train, self.y_val \
-            = train_test_split(self.X, self.y, stratify = self.y, test_size = train_val_split, random_state = random_state) 
+            self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X, 
+                                                                                  self.y, 
+                                                                                  stratify = self.y, 
+                                                                                  test_size = train_val_split, 
+                                                                                  random_state = random_state) 
             if self.test_split:
-                self.X_val, self.X_test, self.y_val, self.y_test \
-                = train_test_split(self.X_val, self.y_val, stratify = self.y_val, test_size = val_test_split, random_state = random_state)                
+                self.X_val, self.X_test, self.y_val, self.y_test = train_test_split(self.X_val, 
+                                                                                    self.y_val, 
+                                                                                    stratify = self.y_val, 
+                                                                                    test_size = val_test_split, random_state = random_state)                
 
     def to_matrix(self):
         """
         Transform rating dataframe with M*N rows to rating matrix with M rows and N columns.
         """
-        self.X_train = ratings_to_sparse_matrix(self.X_train[:, 0], self.X_train[:, 1], self.y_train, self.dataset.rating.num_users,  self.dataset.rating.num_items)
-        self.X_val = ratings_to_sparse_matrix(self.X_val[:, 0], self.X_val[:, 1], self.y_val, self.dataset.rating.num_users, self.dataset.rating.num_items)
+        self.X_train = ratings_to_sparse_matrix(self.X_train[:, 0], 
+                                                self.X_train[:, 1], 
+                                                self.y_train, 
+                                                self.dataset.rating.num_users, 
+                                                self.dataset.rating.num_items)
+        self.X_val = ratings_to_sparse_matrix(self.X_val[:, 0], 
+                                              self.X_val[:, 1], 
+                                              self.y_val, 
+                                              self.dataset.rating.num_users, 
+                                              self.dataset.rating.num_items)
         if self.test_split:
-            self.X_test = ratings_to_sparse_matrix(self.X_test[:, 0], self.X_test[:, 1], self.y_test, self.dataset.rating.num_users, self.dataset.rating.num_items)
+            self.X_test = ratings_to_sparse_matrix(self.X_test[:, 0], 
+                                                   self.X_test[:, 1], 
+                                                   self.y_test, 
+                                                   self.dataset.rating.num_users, 
+                                                   self.dataset.rating.num_items)
 
         # Transpose X
         if self.matrix_transpose:
@@ -155,6 +182,7 @@ class StarDataModule(pl.LightningDataModule):
         """
         train_data = [self.X_train, self.y_train]
 
+        # If matrix form, append user and item, else append user_x and item_x
         if self.add_features:
             if self.matrix_form:
                 if self.matrix_transpose:
@@ -165,6 +193,7 @@ class StarDataModule(pl.LightningDataModule):
                 train_data.insert(-1, self.user_X_train)
                 train_data.insert(-1, self.item_X_train)
 
+        # Add ids only in matrix form
         if self.add_ids and self.matrix_form:
             train_data.insert(-1, np.arange(self.X_train.shape[0]))
 
@@ -173,7 +202,6 @@ class StarDataModule(pl.LightningDataModule):
                               batch_size = self.batch_size, 
                               collate_fn = sparse_batch_collate, 
                               num_workers = self.num_workers)
-
         return train_dl
                           
     def val_dataloader(self):
@@ -182,6 +210,7 @@ class StarDataModule(pl.LightningDataModule):
         """
         val_data = [self.X_val, self.y_val]
 
+        # If matrix form, append user and item, else append user_x and item_x
         if self.add_features:
             if self.matrix_form:
                 if self.matrix_transpose:
@@ -190,8 +219,9 @@ class StarDataModule(pl.LightningDataModule):
                     val_data.insert(-1, self.user)
             else:
                 val_data.insert(-1, self.user_X_val)
-                val_data.insert(-1, self.item_X_val)
+                val_data.insert(-1, self.item_X_val) 
 
+        # Add ids only in matrix form
         if self.add_ids and self.matrix_form:
             val_data.insert(-1, np.arange(self.X_val.shape[0]))
 
@@ -209,6 +239,7 @@ class StarDataModule(pl.LightningDataModule):
         if self.test_split:
             test_data = [self.X_test, self.y_test]
 
+            # If matrix form, append user and item, else append user_x and item_x
             if self.add_features:
                 if self.matrix_form:
                     if self.matrix_transpose:
@@ -219,15 +250,15 @@ class StarDataModule(pl.LightningDataModule):
                     test_data.insert(-1, self.user_X_test)
                     test_data.insert(-1, self.item_X_test)
 
+            # Add ids only in matrix form
             if self.add_ids and self.matrix_form:
                 test_data.insert(-1, np.arange(self.X_test.shape[0]))
 
             test_ds = MatrixDataset(*test_data)
             test_dl = DataLoader(test_ds, 
-                                batch_size = self.batch_size, 
-                                collate_fn = sparse_batch_collate, 
-                                num_workers = self.num_workers)
-
+                                 batch_size = self.batch_size, 
+                                 collate_fn = sparse_batch_collate, 
+                                 num_workers = self.num_workers)
             return test_dl
         else:
             return None
