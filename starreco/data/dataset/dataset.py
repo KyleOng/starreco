@@ -1,7 +1,6 @@
 import os
 
 import pandas as pd
-import numpy as np
 import requests
 from tqdm import tqdm
 
@@ -57,31 +56,18 @@ class Rating:
         self.column = column
         self.num_users = df[user.column].nunique()
         self.num_items = df[item.column].nunique()
-        
-    def _reindex(self, df, column):
-        """
-        Reindex a dataframe column.
-
-        - df (pd.DataFrame): Dataframe.
-        - column (str): Column.
-
-        - return: reindexed df.
-        
-        Warning: This method should not be used directly.
-        """
-        df = df.copy()
-        df[column] = df[column].astype("category").cat.codes
-        return df
     
     @property
     def reindex(self):
         """
         Return `self.df` with reindexed `self.user.column` and `self.item.column`
         """
-        return self._reindex(
-            self._reindex(self.df, self.user.column), 
-            self.item.column
-        )
+        def _reindex(df, column):
+            df = df.copy()
+            df[column] = df[column].astype("category").cat.codes
+            return df
+
+        return _reindex(_reindex(self.df, self.user.column), self.item.column)
     
     @property
     def user_map(self):
@@ -102,8 +88,6 @@ class Rating:
     def _select_related(self, parent_df, column):
         """
         Return a dataframe which "follow" the foreign-key relationship on `column` between parent class 一 `parent_df` and foreign class 一 `self.df`. 
-
-        Warning: This method should not be used directly.
         """
         merge = self.df.merge(parent_df, on = column, how = "left")
         return merge[parent_df.columns]
