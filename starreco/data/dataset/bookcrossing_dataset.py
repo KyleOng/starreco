@@ -3,9 +3,10 @@ import requests
 import time
 import warnings
 import logging
-
+import os
 
 import pandas as pd
+import numpy as np
 from tqdm import tqdm
 
 from .dataset import BaseDataset, User, Item, Rating
@@ -44,9 +45,12 @@ class BookCrossingDataset(BaseDataset):
 
         return rating, user, item
 
-    def get_books_with_descriptions(self, books):
+    def get_books_with_descriptions(self, books = None):
         books_path = "BX-Books.csv"
+        last_valid_index = 0
 
+        assert books is None and os.path.isfile(books_path)
+        
         # Create a logging file using current timestamp.
         timestamp = int(time.time())
         logging.basicConfig(filename = f"bx_logging_{timestamp}.log",
@@ -55,9 +59,17 @@ class BookCrossingDataset(BaseDataset):
                             level = logging.INFO)
         print(f"Log file created in your working directory at {timestamp}")
 
+        # If path exist, resume from last description valid index
+        if os.path.isfile(books_path):
+            books = pd.read_csv(books_path, low_memory = False)
+            last_valid_index = books["description"].last_valid_index() + 1
+            
+            print(f"{books_path} exist. Continue from last description value index {last_valid_index}.")
+            logging.info(f"{books_path} exist. Continue from last description value index {last_valid_index}.")
+
         # Start crawling
-        print("Start crawling")
-        for i, isbn in tqdm(enumerate(books["ISBN"]), total = len(books)):
+        for i in tqdm(range(last_valid_index, len(books))):
+            isbn = books.loc[i, "ISBN"]
             description = ""
             google_api_link = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn.zfill(10)}"
 
