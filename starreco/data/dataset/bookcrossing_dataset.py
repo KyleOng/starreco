@@ -48,8 +48,6 @@ class BookCrossingDataset(BaseDataset):
     def get_books_with_descriptions(self, books = None):
         books_path = "BX-Books.csv"
         last_valid_index = 0
-
-        assert books is None and os.path.isfile(books_path)
         
         # Create a logging file using current timestamp.
         timestamp = int(time.time())
@@ -101,3 +99,4 @@ class BookCrossingDataset(BaseDataset):
         print("End crawling")
         return books
 
+        # http.client.RemoteDisconnected: Remote end closed connection without response
