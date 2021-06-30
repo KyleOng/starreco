@@ -7,7 +7,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 
-from .transformers import SetTransformer, GloveDocTransformer
+from .transformers import SetTransformer, DocTransformer
 
 # Done
 class Preprocessor:
@@ -103,7 +103,7 @@ class Preprocessor:
         # Doc type transformers: word indixer based on glove pretrained weights
         if self.doc_columns:
             warnings.warn(f"Doc type columns exist. Make sure 'glove.6B/glove.6B.50d.txt' is in your working directory." )
-            doc_transformer = GloveDocTransformer()
+            doc_transformer = DocTransformer()
             self.column_transformer.transformers.append(
                 ("document", doc_transformer, self.doc_columns)
             )

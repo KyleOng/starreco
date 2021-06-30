@@ -68,7 +68,7 @@ class SetTransformer(BaseEstimator, TransformerMixin):
         return self.column_transformer.transform(X)
 
 # Done
-class GloveDocTransformer(BaseEstimator, TransformerMixin):
+class DocTransformer(BaseEstimator, TransformerMixin):
     """
     Transformer class for transforming document type data.
 
