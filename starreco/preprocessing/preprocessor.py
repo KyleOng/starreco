@@ -74,39 +74,27 @@ class Preprocessor:
         # Each column type has its own transformation pipeline
         # Categorical transformer: one hot encoder
         if self.cat_columns:
-            pipe = Pipeline([
-                ("imputer", SimpleImputer(strategy = "constant", fill_value = "missing")),
-                ("onehot", OneHotEncoder(handle_unknown = "ignore"))
-            ])
-            self.column_transformer.transformers.append(
-                ("categorical", pipe, self.cat_columns)
-            )
+            pipe = Pipeline([("imputer", SimpleImputer(strategy = "constant", fill_value = "missing")),
+                             ("onehot", OneHotEncoder(handle_unknown = "ignore"))])
+            self.column_transformer.transformers.append(("categorical", pipe, self.cat_columns))
 
         # Numerical transformer: min max scalar
         if self.num_columns:
-            pipe = Pipeline([
-                ("imputer", SimpleImputer(strategy = "mean")),
-                ("onehot", MinMaxScaler())
-            ])
-            self.column_transformer.transformers.append(            
-                ("numerical", pipe, self.num_columns)
-            )
+            pipe = Pipeline([("imputer", SimpleImputer(strategy = "mean")),
+                             ("onehot", MinMaxScaler())])
+            self.column_transformer.transformers.append(("numerical", pipe, self.num_columns))
 
         # Set type transformers: multilabel binarizer
         if self.set_columns:
             # Each multilabel-column has its own pipeline, because MultilabelBinarizer does not support multi column
            set_transformer = SetTransformer()
-           self.column_transformer.transformers.append(
-                ("set", set_transformer, self.set_columns)
-            )
+           self.column_transformer.transformers.append(("set", set_transformer, self.set_columns))
 
         # Doc type transformers: word indixer based on glove pretrained weights
         if self.doc_columns:
             warnings.warn(f"Doc type columns exist. Make sure 'glove.6B/glove.6B.50d.txt' is in your working directory." )
             doc_transformer = DocTransformer()
-            self.column_transformer.transformers.append(
-                ("document", doc_transformer, self.doc_columns)
-            )
+            self.column_transformer.transformers.append(("document", doc_transformer, self.doc_columns))
 
         # Perform transformation/preprocessing
         self.df_transform = self.column_transformer.fit_transform(self.df)
