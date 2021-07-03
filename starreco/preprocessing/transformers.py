@@ -46,13 +46,11 @@ class SetTransformer(BaseEstimator, TransformerMixin):
         # Reset column transformer for every fit
         self.column_transformer = ColumnTransformer([])
         for column in X.columns: 
-            pipe = Pipeline([
-                ("imputer", SimpleImputer(strategy = "constant", fill_value = {})),
-                ("binarizer", CustomMultiLabelBinarizer(sparse_output = True))
-            ])
-            self.column_transformer.transformers.append(
-                (column, pipe, [column])
-            )
+            pipe = Pipeline([("imputer", SimpleImputer(strategy = "constant", fill_value = {})),
+                             ("binarizer", CustomMultiLabelBinarizer(sparse_output = True))])
+            self.column_transformer.transformers.append((column, pipe, [column]))
+        
+        # Fit
         self.column_transformer.fit(X)
 
         # Get feature names based on fitted X
@@ -65,6 +63,7 @@ class SetTransformer(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y = None):
+        # Transform
         return self.column_transformer.transform(X)
 
 # Done
@@ -99,13 +98,9 @@ class DocTransformer(BaseEstimator, TransformerMixin):
                                           tokenizer = nltk.word_tokenize,
                                           max_features = None, 
                                           stop_words = "english") 
-            pipe = Pipeline([
-                ("imputer", FunctionTransformer(lambda column:column.fillna("").str[:self.max_char])),
-                ("vectorizer", vectorizer)
-            ])         
-            self.column_transformer.transformers.append(            
-                (column, pipe, column)
-            )
+            pipe = Pipeline([("imputer", FunctionTransformer(lambda column:column.fillna("").str[:self.max_char])),
+                             ("vectorizer", vectorizer)])         
+            self.column_transformer.transformers.append((column, pipe, column))
 
         # Calculate TFIDF
         tfidf = self.column_transformer.fit_transform(X)
@@ -114,10 +109,11 @@ class DocTransformer(BaseEstimator, TransformerMixin):
         vocabs_ = []
         for column in X.columns:
             vocabs_ = np.concatenate((vocabs_,
-                                     self.column_transformer\
-                                     .named_transformers_[column]\
-                                     .named_steps["vectorizer"].get_feature_names()),
+                                      self.column_transformer\
+                                      .named_transformers_[column]\
+                                      .named_steps["vectorizer"].get_feature_names()),
                                      axis = None)
+
         # Get associate TFIDF frequency/term/weight for each vocab
         weights = np.ravel(tfidf.mean(axis = 0))
         vocab_weights = {word: weight for word, weight in zip(vocabs_, weights)}
@@ -135,6 +131,7 @@ class DocTransformer(BaseEstimator, TransformerMixin):
                 values = line.split()
                 word = values[0]
                 vocabs.append(word)
+                
         # Keep vocabs which existed in pretrained word embedding vocabularies.
         vocab_weights = {vocab: weight for vocab, weight in vocab_weights.items() if vocab in vocabs}
 
