@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
+from sklearn.preprocessing import MinMaxScaler, OneHotEncoder, LabelEncoder
 
 from .transformers import SetTransformer, DocTransformer
 
@@ -14,10 +14,11 @@ class Preprocessor:
     """
     Preprocessor class for data prerocessing.
 
-    cat_columns (list): List of categorical columns.
-    num_columns (list): List of numerical columns.
-    set_columns (list): List of set columns.
-    doc_columns (list): List of document columns.
+    cat_columns (list): List of categorical columns. Default = [].
+    num_columns (list): List of numerical columns. Default = [].
+    set_columns (list): List of set columns. Default = [].
+    doc_columns (list): List of document columns. Default = [].
+    cat_transformer (str): Column transformer for categorical columns, either ["onehot", "label"]. Default: onehot.
     """
     
     def __init__(self, 
@@ -25,12 +26,16 @@ class Preprocessor:
                  cat_columns:list = [], 
                  num_columns:list = [], 
                  set_columns:list = [],
-                 doc_columns:list = []):
+                 doc_columns:list = [],
+                 cat_transformer:str = "onehot"): 
+        assert cat_transformer in ["onehot", "label"], "cat_transformer can be either 'onehot' (OneHotEncoder) or 'label' (LabelEncoder)"
+
         self.df = df
         self.cat_columns = cat_columns
         self.num_columns = num_columns
         self.set_columns = set_columns
         self.doc_columns = doc_columns
+        self.cat_transformer = cat_transformer
         #print(self.cat_columns, self.num_columns, self.set_columns, self.doc_columns)
 
     def get_feature_names(self):
@@ -41,7 +46,7 @@ class Preprocessor:
 
         if self.cat_columns:
             columns_transform["categorical"] = self.column_transformer.named_transformers_["categorical"]\
-                                               .named_steps["onehot"].get_feature_names(self.cat_columns)
+                                               .named_steps[self.cat_transformer].get_feature_names(self.cat_columns)
         if self.num_columns:
             columns_transform["numerical"] = self.num_columns
         if self.set_columns:
@@ -74,8 +79,12 @@ class Preprocessor:
         # Each column type has its own transformation pipeline
         # Categorical transformer: one hot encoder
         if self.cat_columns:
+            if self.cat_transformer == "onehot":
+                cat_transformer = OneHotEncoder(handle_unknown = "ignore")
+            elif self.cat_transformer == "label":
+                cat_transformer = LabelEncoder()
             pipe = Pipeline([("imputer", SimpleImputer(strategy = "constant", fill_value = "missing")),
-                             ("onehot", OneHotEncoder(handle_unknown = "ignore"))])
+                             (self.cat_transformer, cat_transformer)])
             self.column_transformer.transformers.append(("categorical", pipe, self.cat_columns))
 
         # Numerical transformer: min max scalar
