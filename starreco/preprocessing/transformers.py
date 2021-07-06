@@ -9,7 +9,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import FunctionTransformer, MultiLabelBinarizer
+from sklearn.preprocessing import FunctionTransformer, MultiLabelBinarizer, LabelEncoder
 from scipy.sparse import csr_matrix
 from tqdm import tqdm
 
@@ -32,6 +32,31 @@ class CustomMultiLabelBinarizer(MultiLabelBinarizer):
 
     def fit_transform(self, X, y = None):
         return super().fit_transform(np.ravel(X))
+
+# Testing
+class CustomMultiColumnLabelEncoder(LabelEncoder):
+    """
+    Custom MultiColumnLabelEncoder
+
+    Notes: Original LabelEncoder only accept 1-d array. Hence, by looping through the input X and apply LabelEncoder on each fix the problem.
+    """
+    
+    def fit(self, X, y = None):
+        return self # not relevant
+
+    def transform(self, X):
+        # reset array for each transform
+        self.label_encoders = []
+
+        output = X.copy()
+        for i in range(X.shape[-1]):
+            label_encoder = LabelEncoder()
+            output[:,i] = label_encoder.fit_transform(X[:,i])
+            self.label_encoders.append(label_encoder)
+        return output
+
+    def fit_transform(self, X, y = None):
+        return self.fit(X).transform(X)
 
 # Done
 class SetTransformer(BaseEstimator, TransformerMixin):
