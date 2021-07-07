@@ -5,9 +5,10 @@ import numpy as np
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler, OneHotEncoder, LabelEncoder
+from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
+from scipy.sparse.csr import csr_matrix
 
-from .transformers import SetTransformer, DocTransformer
+from .transformers import CustomMultiColumnLabelEncoder, SetTransformer, DocTransformer
 
 # Done
 class Preprocessor:
@@ -27,7 +28,7 @@ class Preprocessor:
                  num_columns:list = [], 
                  set_columns:list = [],
                  doc_columns:list = [],
-                 cat_transformer:str = "onehot"): 
+                 cat_transformer:str = "label"): 
         assert cat_transformer in ["onehot", "label"], "cat_transformer can be either 'onehot' (OneHotEncoder) or 'label' (LabelEncoder)"
 
         self.df = df
@@ -45,8 +46,11 @@ class Preprocessor:
                              "document": []}
 
         if self.cat_columns:
-            columns_transform["categorical"] = self.column_transformer.named_transformers_["categorical"]\
-                                               .named_steps[self.cat_transformer].get_feature_names(self.cat_columns)
+            if self.cat_transformer == "onehot":
+                columns_transform["categorical"] = self.column_transformer.named_transformers_["categorical"]\
+                                                .named_steps[self.cat_transformer].get_feature_names(self.cat_columns)
+            elif self.cat_transformer == "label":
+                columns_transform["categorical"] = self.cat_columns
         if self.num_columns:
             columns_transform["numerical"] = self.num_columns
         if self.set_columns:
@@ -82,7 +86,7 @@ class Preprocessor:
             if self.cat_transformer == "onehot":
                 cat_transformer = OneHotEncoder(handle_unknown = "ignore")
             elif self.cat_transformer == "label":
-                cat_transformer = LabelEncoder()
+                cat_transformer = CustomMultiColumnLabelEncoder()
             pipe = Pipeline([("imputer", SimpleImputer(strategy = "constant", fill_value = "missing")),
                              (self.cat_transformer, cat_transformer)])
             self.column_transformer.transformers.append(("categorical", pipe, self.cat_columns))
@@ -111,8 +115,11 @@ class Preprocessor:
         # Return transform data as dataframe if return_dataframe set as True
         if return_dataframe:
             try:
-                columns_transform = np.concatenate(list(self.get_feature_names().values()))        
-                return pd.DataFrame(self.df_transform.toarray(), columns = columns_transform)
+                columns_transform = np.concatenate(list(self.get_feature_names().values()))    
+                if isinstance(self.df_transform, csr_matrix):  
+                    return pd.DataFrame(self.df_transform.toarray(), columns = columns_transform)
+                else:
+                    return pd.DataFrame(self.df_transform, columns = columns_transform)
             except MemoryError as e:
                 # Memory error. Return array instead
                 warnings.warn(f"{str(e)}. Return values instead.")
