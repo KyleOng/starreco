@@ -23,6 +23,7 @@ class StarDataModule(pl.LightningDataModule):
     item_features_ignore (list): Item features to be ignored. Default: [].
     train_val_test_split (list): Train validation testing split ratio. Default: [60, 20, 20].
     num_workers (int): Number of CPU workers for Matrix Dataset. Default: 8.
+    cat_transformer (str): Column transformer for categorical columns, either ["onehot", "label"]. Default: onehot.
     """
 
     _downloads = ["ml-1m", "book-crossing"]
@@ -37,7 +38,8 @@ class StarDataModule(pl.LightningDataModule):
                  user_features_ignore:list = [],
                  item_features_ignore:list = [],
                  train_val_test_split:list = [60, 20 ,20],
-                 num_workers:int = 8):
+                 num_workers:int = 8,
+                 cat_transformer:bool = "onehot"):
         assert download in self._downloads, (f"`download` = '{download}' not include in prefixed dataset downloads. Choose from {self._downloads}.")
         assert not(not matrix_form and matrix_transpose), ("`matrix_form` and 'matrix_transpose` must be either False:False, True:False or True:True, cannot be False:True.")
         assert not(not matrix_form and add_ids), ("`matrix_form` and 'add_ids` must be either False:False, True:False or True:True, cannot be False:True.")
@@ -52,6 +54,7 @@ class StarDataModule(pl.LightningDataModule):
         self.item_features_ignore = item_features_ignore
         self.train_split, self.val_split, self.test_split = train_val_test_split
         self.num_workers = num_workers
+        self.cat_transformer = cat_transformer
         
         # Download dataset
         if download == "ml-1m": 
@@ -78,7 +81,12 @@ class StarDataModule(pl.LightningDataModule):
             user_num_columns = list(set(self.dataset.user.num_columns) - set(self.user_features_ignore))
             user_set_columns = list(set(self.dataset.user.set_columns) - set(self.user_features_ignore))
             user_doc_columns = list(set(self.dataset.user.doc_columns) - set(self.user_features_ignore))
-            self.user_preprocessor = Preprocessor(user, user_cat_columns, user_num_columns, user_set_columns, user_doc_columns)
+            self.user_preprocessor = Preprocessor(user, 
+                                                  user_cat_columns, 
+                                                  user_num_columns, 
+                                                  user_set_columns, 
+                                                  user_doc_columns,
+                                                  self.cat_transformer)
             self.user = self.user_preprocessor.transform()
 
             # item preprocessed features data
@@ -87,7 +95,12 @@ class StarDataModule(pl.LightningDataModule):
             item_num_columns = list(set(self.dataset.item.num_columns) - set(self.item_features_ignore))
             item_set_columns = list(set(self.dataset.item.set_columns) - set(self.item_features_ignore))
             item_doc_columns = list(set(self.dataset.item.doc_columns) - set(self.item_features_ignore))
-            self.item_preprocessor = Preprocessor(item, item_cat_columns, item_num_columns, item_set_columns, item_doc_columns)
+            self.item_preprocessor = Preprocessor(item, 
+                                                  item_cat_columns, 
+                                                  item_num_columns, 
+                                                  item_set_columns, 
+                                                  item_doc_columns,
+                                                  self.cat_transformer)
             self.item = self.item_preprocessor.transform()
 
             # map user and item to ratings
