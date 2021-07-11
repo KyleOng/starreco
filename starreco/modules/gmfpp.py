@@ -68,32 +68,20 @@ class GMFPP(GMF):
         user_embed, item_embed = x_embed[:, 0], x_embed[:, 1]
         embed_product = user_embed * item_embed
 
-        # Element wise product between user and item latent representations
-        user_z, item_z = self.user_sdae.encode(user_x), self.item_sdae.encode(item_x)     
+        # Element wise product between user and item latent features
+        # Perform user and features reconstruction (add noise during reconstruction)
+        user_y, item_y = self.user_sdae.forward(user_x), self.item_sdae.forward(item_x)   
+        # Extract user and item latent features (remove noise during extraction)
+        user_z, item_z = self.user_sdae.encode(user_x, add_noise = False), self.item_sdae.encode(item_x, add_noise = False) 
         z_product = user_z * item_z
 
-        # Concatenate user and item embeddings and latent representations
+        # Concatenate user and item embeddings and latent features
         concat = torch.cat([embed_product, z_product], dim = 1)
         
         # Non linear on concatenated vectors
         y = self.net(concat)
 
-        return y   
-
-    def reconstruction_loss(self, user_x, item_x):
-        # User reconstruction loss with trade off parameter alpha
-        user_loss = self.user_criterion(self.user_sdae.forward(user_x), user_x)
-        user_reg = l2_regularization(self.user_weight_decay, self.user_sdae.parameters(), self.device)
-        user_loss *= self.alpha
-        user_loss += user_reg
-        
-        # Item reconstruction loss with trade off parameter beta
-        item_loss = self.item_criterion(self.item_sdae.forward(item_x), item_x)
-        item_reg = l2_regularization(self.item_weight_decay, self.item_sdae.parameters(), self.device)
-        item_loss *= self.beta
-        item_loss += item_reg
-        
-        return user_loss + item_loss     
+        return y, user_y, item_y  
 
     def backward_loss(self, *batch):
         """
@@ -101,16 +89,39 @@ class GMFPP(GMF):
         """
         x, user_x, item_x, y = batch
 
-        # User and item reconstruction loss
-        reconstruction_loss = self.reconstruction_loss(user_x, item_x)
+        # Prediction
+        y_hat, user_x_hat, item_x_hat = self.forward(x, user_x, item_x)
+
+        # User reconstruction loss
+        user_loss = self.user_criterion(user_x_hat, user_x)
+        user_reg = l2_regularization(self.user_weight_decay, self.user_sdae.parameters(), self.device)
+        user_loss *= self.alpha
+        user_loss += user_reg
+
+        # Item reconstruction loss
+        item_loss = self.item_criterion(item_x_hat, item_x)
+        item_reg = l2_regularization(self.item_weight_decay, self.item_sdae.parameters(), self.device)
+        item_loss *= self.alpha
+        item_loss += item_reg
         
         # Rating loss
-        rating_loss = super().backward_loss(*batch)
+        rating_loss = self.criterion(y_hat, y)
         rating_reg = l2_regularization(self.weight_decay, super().parameters(), self.device)
         rating_loss += rating_reg
 
         # Total loss
-        loss = rating_loss + reconstruction_loss
+        loss = rating_loss + user_loss + item_loss
+
+        return loss
+
+    def logger_loss(self, *batch):
+        """
+        Overwrite logger loss which focus evaluation on y_hat only
+        """
+        xs = batch[:-1]
+        y = batch[-1]
+        y_hat, _, _ = self.forward(*xs)
+        loss = self.criterion(y_hat, y)
 
         return loss
 
