@@ -17,7 +17,7 @@ from starreco.evaluation import *
 
 dm = None
 
-# Done
+# Testing
 def quick_test(dm, module):
     global gpu
     logger = TensorBoardLogger("training_logs", name = module_name, log_graph = True)
@@ -33,28 +33,28 @@ def quick_test(dm, module):
     trainer.test(module, datamodule = dm)
     return module
 
-# Done
+# Testing
 def test_mf():
     dm = StarDataModule()
     dm.setup()
     mf = MF([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
     return quick_test(dm, mf)
 
-# Done
+# Testing
 def test_gmf():
     dm = StarDataModule()
     dm.setup()
     gmf = GMF([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
     return quick_test(dm, gmf)
 
-# Done
+# Testing
 def test_ncf():
     dm = StarDataModule()
     dm.setup()
     ncf = NCF([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
     return quick_test(dm, ncf)
 
-# Done
+# Testing
 def test_nmf(shared_embed = None, freeze = True):
     dm = StarDataModule()
     dm.setup()
@@ -68,7 +68,7 @@ def test_nmf(shared_embed = None, freeze = True):
     pdb.set_trace()
     return nmf
 
-# Done
+# Testing
 def test_mdacf():
     dm = StarDataModule()
     dm.setup()
@@ -77,7 +77,7 @@ def test_mdacf():
 
 # Done
 def test_gmfpp(load = False):
-    dm = StarDataModule(add_features = True)
+    dm = StarDataModule(add_features = True, user_features_ignore=["zipCode"], item_features_ignore = ["plot"])
     dm.setup()
     user_ae_hparams = dict(input_output_dim = dm.user_X.shape[-1], hidden_dims = [8])
     item_ae_hparams = dict(input_output_dim = dm.item_X.shape[-1], hidden_dims = [8])
@@ -90,7 +90,7 @@ def test_gmfpp(load = False):
 
 # Done
 def test_ncfpp(load = False):
-    dm = StarDataModule(add_features = True)
+    dm = StarDataModule(add_features = True, user_features_ignore=["zipCode"], item_features_ignore = ["plot"])
     dm.setup()
     user_ae_hparams = dict(input_output_dim = dm.user_X.shape[-1], hidden_dims = [8])
     item_ae_hparams = dict(input_output_dim = dm.item_X.shape[-1], hidden_dims = [8])
@@ -101,7 +101,7 @@ def test_ncfpp(load = False):
     ncfpp = quick_test(dm, ncfpp)
     return ncfpp
 
-# Done
+# Testing
 def test_nmfpp(shared_embed = None, shared_sdaes = None, load_all = False, freeze = True):
     global dm
     if dm is None:
@@ -122,56 +122,56 @@ def test_nmfpp(shared_embed = None, shared_sdaes = None, load_all = False, freez
     nmfpp = quick_test(dm, nmfpp)
     return nmfpp
 
-# Done
+# Testing
 def test_fm():
     dm = StarDataModule()
     dm.setup()
     fm = FM([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
     return quick_test(dm, fm)
 
-# Done
+# Testing
 def test_nfm():
     dm = StarDataModule()
     dm.setup()
     nfm = NFM([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
     return quick_test(dm, nfm)
 
-# Done
+# Testing
 def test_wdl():
     dm = StarDataModule()
     dm.setup()
     wdl = WDL([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
     return quick_test(dm, wdl)
 
-# Done
+# Testing
 def test_dfm():
     dm = StarDataModule()
     dm.setup()
     dfm = DFM([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
     return quick_test(dm, dfm)
 
-# Done
+# Testing
 def test_xdfm():
     dm = StarDataModule()
     dm.setup()
     xdfm = XDFM([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
     return quick_test(dm, xdfm)
  
-# Done
+# Testing
 def test_oncf():
     dm = StarDataModule()
     dm.setup()
     oncf = ONCF([dm.dataset.rating.num_users, dm.dataset.rating.num_items], 64, 64)
     return quick_test(dm, oncf)
 
-# Done
+# Testing
 def test_cnndcf():
     dm = StarDataModule(batch_size = 2048)
     dm.setup()
     cnndcf = CNNDCF([dm.dataset.rating.num_users, dm.dataset.rating.num_items])
     return quick_test(dm, cnndcf)
 
-# Done
+# Testing
 def test_autorec(matrix_transpose = False):
     dm = StarDataModule(matrix_form = True,
                         matrix_transpose = matrix_transpose)
@@ -180,7 +180,7 @@ def test_autorec(matrix_transpose = False):
     autorec = AutoRec(input_output_dim)
     return quick_test(dm, autorec)
 
-# Done
+# Testing
 def test_deeprec(matrix_transpose = False):
     dm = StarDataModule(matrix_form = True,
                         matrix_transpose = matrix_transpose)
@@ -189,7 +189,7 @@ def test_deeprec(matrix_transpose = False):
     deeprec = DeepRec(input_output_dim)
     return quick_test(dm, deeprec)
 
-# Done
+# Testing
 def test_cfn(matrix_transpose = False, extra_input_all = True):
     dm = StarDataModule(matrix_form = True,
                         add_features = True,
@@ -203,7 +203,7 @@ def test_cfn(matrix_transpose = False, extra_input_all = True):
     cfn = CFN(input_output_dim, feature_dim = feature_dim, feature_input_all = extra_input_all)
     return quick_test(dm,  cfn)
 
-# Done
+# Testing
 def test_cdae(matrix_transpose = False):
     dm = StarDataModule(matrix_form = True,
                         matrix_transpose = matrix_transpose,
@@ -214,7 +214,7 @@ def test_cdae(matrix_transpose = False):
     cdae = CDAE(input_output_dim)
     return quick_test(dm, cdae)
 
-# Done
+# Testing
 def test_sdaecf(matrix_transpose = False):
     dm = StarDataModule(matrix_form = True,
                         matrix_transpose = matrix_transpose)
@@ -224,7 +224,7 @@ def test_sdaecf(matrix_transpose = False):
     sdaecf = SDAECF(input_output_dim)
     return quick_test(dm, sdaecf)
 
-# Done
+# Testing
 def test_ccae(matrix_transpose = False):
     dm = StarDataModule(matrix_form = True,
                         matrix_transpose = matrix_transpose)
@@ -233,7 +233,7 @@ def test_ccae(matrix_transpose = False):
     ccae = CCAE(input_output_dim)
     return quick_test(dm, ccae)
 
-# Done
+# Testing
 def test_cmf(pretrain = True):
     dm = StarDataModule(add_features = True,
                         user_features_ignore = ["zipCode"],
@@ -294,26 +294,26 @@ if __name__ == "__main__":
     gpu = args.gpu
     #weights_summary = args.weights_summary
 
-    # Done
+    # Testing
     if module_name == "mf": test_mf()
-    # Done
+    # Testing
     elif module_name == "gmf": test_gmf()
-    # Done
+    # Testing
     elif module_name == "ncf": test_ncf()
-    # Done
+    # Testing
     elif module_name == "nmf_0": test_nmf(None, False) 
     elif module_name == "nmf_1": test_nmf(None, True) 
     elif module_name == "nmf_2": test_nmf("gmf", False) 
     elif module_name == "nmf_3": test_nmf("gmf", True) 
     elif module_name == "nmf_4": test_nmf("ncf", False) 
     elif module_name == "nmf_5": test_nmf("ncf", True) 
-    # Done
+    # Testing
     elif module_name == "gmfpp_0": test_gmfpp(False)
     elif module_name == "gmfpp_1": test_gmfpp(True)
-    # Done
+    # Testing
     elif module_name == "ncfpp_0": test_ncfpp(False)
     elif module_name == "ncfpp_1": test_ncfpp(True)
-    # Done
+    # Testing
     elif module_name == "nmfpp":
         hparams_grid = dict(
             shared_embed = [None, "gmf++", "ncf++"], 
@@ -371,46 +371,46 @@ if __name__ == "__main__":
     elif module_name == "nmfpp_33": test_nmfpp("ncf++", "ncf++", False, True)
     elif module_name == "nmfpp_34": test_nmfpp("ncf++", "ncf++", True, False)
     elif module_name == "nmfpp_35": test_nmfpp("ncf++", "ncf++", True, True)
-    # Done
+    # Testing
     elif module_name == "mdacf": test_mdacf()
-    # Done
+    # Testing
     elif module_name == "fm": test_fm()
-    # Done
+    # Testing
     elif module_name == "nfm": test_nfm()
-    # Done
+    # Testing
     elif module_name == "wdl": test_wdl()
-    # Done
+    # Testing
     elif module_name == "dfm": test_dfm()
-    # Done
+    # Testing
     elif module_name == "xdfm": test_xdfm()
-    # Done
+    # Testing
     elif module_name == "oncf": test_oncf()
-    # Done
+    # Testing
     elif module_name == "cnndcf": test_cnndcf()
-    # Done
+    # Testing
     elif module_name == "autorec_0": test_autorec(False)
     elif module_name == "autorec_1": test_autorec(True)
-    # Done
+    # Testing
     elif module_name == "deeprec_0": test_deeprec(False)
     elif module_name == "deeprec_1": test_deeprec(True)
-    # Done
+    # Testing
     elif module_name == "cfn_0": test_cfn(False, False)
     elif module_name == "cfn_1": test_cfn(False, True)
     elif module_name == "cfn_2": test_cfn(True, False)
     elif module_name == "cfn_3": test_cfn(True, True)
-    # Done
+    # Testing
     elif module_name == "cdae_0": test_cdae(False)
     elif module_name == "cdae_1": test_cdae(True)
-    # Done
+    # Testing
     elif module_name == "sdaecf_0": test_sdaecf(False)
     elif module_name == "sdaecf_1": test_sdaecf(True)
-    # Done
+    # Testing
     elif module_name == "ccae_0": test_ccae(False)
     elif module_name == "ccae_1": test_ccae(True)
-    # Done
+    # Testing
     elif module_name == "cmf_0": test_cmf(False)
     elif module_name == "cmf_1": test_cmf(True)
-    # Done
+    # Testing
     elif module_name == "fgcnn": test_fgcnn()
 
         
