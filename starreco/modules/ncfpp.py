@@ -89,15 +89,10 @@ class NCFPP(NCF):
 
         return y, user_y, item_y   
 
-    def backward_loss(self, *batch):
+    def reconstruction_loss(self, user_x, item_x, user_x_hat, item_x_hat):
         """
-        Custom backward loss.
+        Reconstruction loss.
         """
-        x, user_x, item_x, y = batch
-
-        # Prediction
-        y_hat, user_x_hat, item_x_hat = self.forward(x, user_x, item_x)
-
         # User reconstruction loss
         user_loss = self.user_criterion(user_x_hat, user_x)
         user_reg = l2_regularization(self.user_weight_decay, self.user_sdae.parameters(), self.device)
@@ -109,6 +104,21 @@ class NCFPP(NCF):
         item_reg = l2_regularization(self.item_weight_decay, self.item_sdae.parameters(), self.device)
         item_loss *= self.alpha
         item_loss += item_reg
+
+        return user_loss + item_loss
+
+
+    def backward_loss(self, *batch):
+        """
+        Custom backward loss.
+        """
+        x, user_x, item_x, y = batch
+
+        # Prediction
+        y_hat, user_x_hat, item_x_hat = self.forward(x, user_x, item_x)
+
+        # Reconstruction loss
+        reconstruction_loss = self.reconstruction_loss(user_x, item_x, user_x_hat, item_x_hat)
         
         # Rating loss
         rating_loss = self.criterion(y_hat, y)
@@ -116,7 +126,7 @@ class NCFPP(NCF):
         rating_loss += rating_reg
 
         # Total loss
-        loss = rating_loss + user_loss + item_loss
+        loss = rating_loss + reconstruction_loss
 
         return loss
 
