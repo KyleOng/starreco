@@ -101,11 +101,11 @@ def test_ncfpp(load = False):
     ncfpp = quick_test(dm, ncfpp)
     return ncfpp
 
-# Testing
+# Done
 def test_nmfpp(shared_embed = None, shared_sdaes = None, load_all = False, freeze = True):
     global dm
     if dm is None:
-        dm = StarDataModule(add_features = True)
+        dm = StarDataModule(add_features = True, user_features_ignore=["zipCode"], item_features_ignore = ["plot"])
         dm.setup()
     user_ae_hparams = dict(input_output_dim = dm.user_X.shape[-1], hidden_dims = [8])
     item_ae_hparams = dict(input_output_dim = dm.item_X.shape[-1], hidden_dims = [8])
