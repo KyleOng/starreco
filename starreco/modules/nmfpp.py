@@ -19,9 +19,9 @@ class NMFPP(BaseModule):
         - If "gmf++", GMF++ and NCF++ embeddings will be obtained from GMF++ features embedding layer, NCF++ features embedding layer will be deleted/ignored.
         - If "ncf++", GMF++ and NCF++ embeddings will be obtained from NCF++ features embedding layer, GMF++ features embedding layer will be deleted/ignored.
         - If None, GMF++ and NCF++ will perform feature embeddings seperately.
-    - shared_sdaes (str): Model which to share user and item latent representations. Also applied on trade-off parameter alpha and beta. Default: None.
-        - If "gmf++", GMF++ and NCF++ latent representations will be obtained from GMF++ user and item SDAEs, NCF++ user and item SDAEs will be deleted/ignored.
-        - If "ncf++", GMF++ and NCF++ latent representations will be obtained from NCF++ user and item SDAEs, GMF++ user and item SDAEs will be deleted/ignored.
+    - shared_sdaes (str): Model which to share user and item latent features. Also applied on trade-off parameter alpha and beta. Default: None.
+        - If "gmf++", GMF++ and NCF++ latent features will be obtained from GMF++ user and item SDAEs, NCF++ user and item SDAEs will be deleted/ignored.
+        - If "ncf++", GMF++ and NCF++ latent features will be obtained from NCF++ user and item SDAEs, GMF++ user and item SDAEs will be deleted/ignored.
         - If None, GMF++ and NCF++ will perform user and item latent representation extraction seperately.
     - lr (float): Learning rate. Default: 1e-3.
     - weight_decay (float): L2 regularization rate. Default: 1e-3.
@@ -77,7 +77,8 @@ class NMFPP(BaseModule):
         self.net = MultilayerPerceptrons(input_dim = input_dim, 
                                          output_layer = "relu")
 
-    def fusion(self, x, user_x, item_x):
+    def forward(self, x, user_x, item_x):
+        # Fusion of GMF++ and NCF++
         if self.shared_embed == "gmf++":
             # Share embeddings from GMF++ features embedding layer
             x_embed_gmfpp = x_embed_ncfpp = self.gmfpp.features_embedding(x.int())
@@ -91,26 +92,40 @@ class NMFPP(BaseModule):
 
         if self.shared_sdaes== "gmf++":
             # Share latent representation from GMF++ user and item SDAE.
-            user_z_gmfpp = user_z_ncfpp = self.gmfpp.user_sdae.encode(user_x)
-            item_z_gmfpp = item_z_ncfpp = self.gmfpp.item_sdae.encode(item_x) 
+            # Perform user and features reconstruction (add noise during reconstruction)
+            user_y = self.gmfpp.user_sdae.forward(user_x)
+            item_y = self.gmfpp.item_sdae.forward(item_x) 
+            # Extract user and item latent features (remove noise during extraction)
+            user_z_gmfpp = user_z_ncfpp = self.gmfpp.user_sdae.encode(user_x, add_noise = False)
+            item_z_gmfpp = item_z_ncfpp = self.gmfpp.item_sdae.encode(item_x, add_noise = False) 
         elif self.shared_sdaes == "ncf++":
             # Share latent representation from NCF++ user and item SDAE.
-            user_z_gmfpp = user_z_ncfpp = self.ncfpp.user_sdae.encode(user_x)
-            item_z_gmfpp = item_z_ncfpp = self.ncfpp.item_sdae.encode(item_x) 
+            # Perform user and features reconstruction (add noise during reconstruction)
+            user_y = self.ncfpp.user_sdae.forward(user_x)
+            item_y = self.ncfpp.item_sdae.forward(item_x) 
+            # Extract user and item latent features (remove noise during extraction)
+            user_z_gmfpp = user_z_ncfpp = self.ncfpp.user_sdae.encode(user_x, add_noise = False)
+            item_z_gmfpp = item_z_ncfpp = self.ncfpp.item_sdae.encode(item_x, add_noise = False) 
         else: 
             # Seperate latent representation extraction between GMF++ and NCF++.
-            user_z_gmfpp = self.gmfpp.user_sdae.encode(user_x)
-            item_z_gmfpp = self.gmfpp.item_sdae.encode(item_x) 
-            user_z_ncfpp = self.ncfpp.user_sdae.encode(user_x)
-            item_z_ncfpp = self.ncfpp.item_sdae.encode(item_x) 
+            # Perform user and features reconstruction (add noise during reconstruction)
+            user_y_gmfpp = self.gmfpp.user_sdae.forward(user_x)
+            item_y_gmfpp = self.gmfpp.item_sdae.forward(item_x) 
+            user_y_ncfpp = self.ncfpp.user_sdae.forward(user_x)
+            item_y_ncfpp = self.ncfpp.item_sdae.forward(item_x) 
+            # Extract user and item latent features (remove noise during extraction)
+            user_z_gmfpp = self.gmfpp.user_sdae.encode(user_x, add_noise = False)
+            item_z_gmfpp = self.gmfpp.item_sdae.encode(item_x, add_noise = False) 
+            user_z_ncfpp = self.ncfpp.user_sdae.encode(user_x, add_noise = False)
+            item_z_ncfpp = self.ncfpp.item_sdae.encode(item_x, add_noise = False) 
         
         # GMF++ interaction function
         # Element wise product between user and item embeddings
         user_embed_gmfpp, item_embed_gmfpp = x_embed_gmfpp[:, 0], x_embed_gmfpp[:, 1]
         embed_concat_gmfpp = user_embed_gmfpp * item_embed_gmfpp
-        # Element wise product between user and item latent representations
+        # Element wise product between user and item latent features
         z_concat_gmfpp = user_z_gmfpp * item_z_gmfpp
-        # Concatenate user and item embeddings and latent representations
+        # Concatenate user and item embeddings and latent features
         """
         IMPORTANT: Concatenate latent representation 1st, then embeddings.
         So that it is easier to replace the defined embedding weights with pretrained embedding weights. Go to line 119.
@@ -120,9 +135,9 @@ class NMFPP(BaseModule):
         # NCF++ interaction function
         # Concatenate user and item embeddings
         embed_concat_ncfpp = torch.flatten(x_embed_ncfpp, start_dim = 1)
-        # Concatenate user and item latent representations.
+        # Concatenate user and item latent features.
         z_concat_ncfpp = torch.cat([user_z_ncfpp, item_z_ncfpp], dim = 1)
-        # Concatenate user and item emebddings and latent representations
+        # Concatenate user and item emebddings and latent features
         """
         IMPORTANT: Concatenate embeddings 1st, then latent representation.
         So that we can freeze the 1st N weights (embeddings weights), and train the latter weights for latent representation. Go to line 226.
@@ -134,30 +149,15 @@ class NMFPP(BaseModule):
         # Concatenate GMF++ element wise product and NCF++ last hidden layer output
         fusion = torch.cat([output_ncfpp, output_gmfpp], dim = 1)
 
-        return fusion
-
-    def forward(self, x, user_x, item_x):
-        # Fusion of GMF++ and NCF++
-        fusion = self.fusion(x, user_x, item_x)
-
         # Non linear on fusion vectors
         y = self.net(fusion)
 
-        return y
-
-    def reconstruction_loss(self, user_x, item_x):
-        """
-        Total reconstruction loss for backward propagation.
-        """
         if self.shared_sdaes== "gmf++":
-            reconstruction_loss = self.gmfpp.reconstruction_loss(user_x, item_x)
+            return y, user_y, item_y
         elif self.shared_sdaes == "ncf++":
-            reconstruction_loss = self.ncfpp.reconstruction_loss(user_x, item_x)
+            return y, user_y, item_y
         else:
-            reconstruction_loss = self.gmfpp.reconstruction_loss(user_x, item_x)
-            reconstruction_loss += self.ncfpp.reconstruction_loss(user_x, item_x)
-
-        return reconstruction_loss
+            return y, user_y_gmfpp, item_y_gmfpp, user_y_ncfpp, item_y_ncfpp
 
     def l2_regularization(self):
         """
@@ -186,16 +186,41 @@ class NMFPP(BaseModule):
         """
         x, user_x, item_x, y = batch
 
+        # Prediction
+        if self.shared_sdaes== "gmf++":
+            y_hat, user_x_hat, item_x_hat = self.forward(x, user_x, item_x)
+            # Reconstruction loss
+            reconstruction_loss = self.gmfpp.reconstruction_loss(user_x, item_x, user_x_hat, item_x_hat)
+        elif self.shared_sdaes == "ncf++":
+            y_hat, user_x_hat, item_x_hat = self.forward(x, user_x, item_x)
+            # Reconstruction loss
+            reconstruction_loss = self.ncfpp.reconstruction_loss(user_x, item_x, user_x_hat, item_x_hat)
+        else:
+            y_hat, user_x_hat_gmfpp, item_x_hat_gmfpp, user_x_hat_ncfpp, item_x_hat_ncfpp = self.forward(x, user_x, item_x)
+            # Reconstruction loss
+            reconstruction_loss = self.gmfpp.reconstruction_loss(user_x, item_x, user_x_hat_gmfpp, item_x_hat_gmfpp)
+            reconstruction_loss += self.ncfpp.reconstruction_loss(user_x, item_x, user_x_hat_ncfpp, item_x_hat_ncfpp)
+
         # Rating loss
-        rating_loss = super().backward_loss(*batch)
-        # User and item reconstruction loss
-        reconstruction_loss = self.reconstruction_loss(user_x, item_x)
+        rating_loss = self.criterion(y_hat, y)
+        
         # L2 regularization
         reg = self.l2_regularization()
 
         # Total loss
         loss = rating_loss + reconstruction_loss + reg
         
+        return loss
+
+    def logger_loss(self, *batch):
+        """
+        Overwrite logger loss which focus evaluation on y_hat only
+        """
+        xs = batch[:-1]
+        y = batch[-1]
+        preds = self.forward(*xs)
+        loss = self.criterion(preds[0], y)
+
         return loss
 
     def load_all_pretrain_weights(self, gmfpp_weights, ncfpp_weights, freeze = True):
