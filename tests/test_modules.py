@@ -25,9 +25,9 @@ def quick_test(dm, module):
                          gpus = -1 if gpu else None, 
                          max_epochs = 1, 
                          progress_bar_refresh_rate = 2,
-                         #limit_train_batches = 0.1,
-                         #limit_val_batches = 0.1,
-                         #limit_test_batches = 0.1,
+                         limit_train_batches = 0.1,
+                         limit_val_batches = 0.1,
+                         limit_test_batches = 0.1,
                          weights_summary = "full")
     trainer.fit(module, dm)
     trainer.test(module, datamodule = dm)
