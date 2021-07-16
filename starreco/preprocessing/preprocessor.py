@@ -105,7 +105,6 @@ class Preprocessor:
 
         # Doc type transformers: word indixer based on glove pretrained weights
         if self.doc_columns:
-            warnings.warn(f"Doc type columns exist. Make sure 'glove.6B/glove.6B.50d.txt' is in your working directory." )
             doc_transformer = DocTransformer()
             self.column_transformer.transformers.append(("document", doc_transformer, self.doc_columns))
 
