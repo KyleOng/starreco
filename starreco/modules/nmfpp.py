@@ -173,12 +173,11 @@ class NMFPP(BaseModule):
             # L2 regularization on both GMF++ and NCF++ feature embeddings layer.
             features_reg = l2_regularization(self.gmfpp.weight_decay, self.gmfpp.features_embedding.parameters(), self.device)
             features_reg += l2_regularization(self.ncfpp.weight_decay, self.ncfpp.features_embedding.parameters(), self.device)
-        # 
+        # L2 regularization on MLP++ layer and NeuMF layer.
         ncfpp_reg = l2_regularization(self.weight_decay, self.ncfpp.net.parameters(), self.device)
         nmf_reg = l2_regularization(self.weight_decay, self.net.parameters(), self.device)
-        reg = features_reg + ncfpp_reg + nmf_reg
 
-        return reg
+        return features_reg + ncfpp_reg + nmf_reg
 
     def backward_loss(self, *batch):
         """
@@ -186,16 +185,18 @@ class NMFPP(BaseModule):
         """
         x, user_x, item_x, y = batch
 
-        # Prediction
         if self.shared_sdaes== "gmf++":
+            # Prediction
             y_hat, user_x_hat, item_x_hat = self.forward(x, user_x, item_x)
             # Reconstruction loss
             reconstruction_loss = self.gmfpp.reconstruction_loss(user_x, item_x, user_x_hat, item_x_hat)
         elif self.shared_sdaes == "ncf++":
+            # Prediction
             y_hat, user_x_hat, item_x_hat = self.forward(x, user_x, item_x)
             # Reconstruction loss
             reconstruction_loss = self.ncfpp.reconstruction_loss(user_x, item_x, user_x_hat, item_x_hat)
         else:
+            # Prediction
             y_hat, user_x_hat_gmfpp, item_x_hat_gmfpp, user_x_hat_ncfpp, item_x_hat_ncfpp = self.forward(x, user_x, item_x)
             # Reconstruction loss
             reconstruction_loss = self.gmfpp.reconstruction_loss(user_x, item_x, user_x_hat_gmfpp, item_x_hat_gmfpp)
