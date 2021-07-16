@@ -33,7 +33,7 @@ class CustomMultiLabelBinarizer(MultiLabelBinarizer):
     def fit_transform(self, X, y = None):
         return super().fit_transform(np.ravel(X))
 
-# Testing
+# Done
 class CustomMultiColumnLabelEncoder(LabelEncoder):
     """
     Custom MultiColumnLabelEncoder
@@ -210,7 +210,7 @@ class DocTransformer(BaseEstimator, TransformerMixin):
                 return word_indices
 
             if self.progress_bar: 
-                tqdm.pandas(desc = f"[Transform] Indexing {x.name} sentences".ljust(len(x.name)+38), 
+                tqdm.pandas(desc = f"[Transform] Indexing {x.name} sentences".ljust(len(max(X.columns))+38), 
                             bar_format = "{desc:}: {percentage:3.0f}%|{bar:10}{r_bar}")
                 x_word_indices = x.progress_apply(lambda sentence: sentence_to_indices(sentence))
             else:
@@ -229,7 +229,7 @@ class DocTransformer(BaseEstimator, TransformerMixin):
             self.max_lens_[x.name] = max_len
 
             if self.progress_bar: 
-                tqdm.pandas(desc = f"[Transform] Zero padding {x.name} word indices".ljust(len(x.name)+38), 
+                tqdm.pandas(desc = f"[Transform] Zero padding {x.name} word indices".ljust(len(max(X.columns))+38), 
                             bar_format = "{desc:}: {percentage:3.0f}%|{bar:10}{r_bar}")
                 x_pad = x.progress_apply(lambda word_indices: np.pad(word_indices, (0, max_len - len(word_indices))))
             else:
@@ -241,9 +241,9 @@ class DocTransformer(BaseEstimator, TransformerMixin):
         X = X.apply(lambda x:sentences_to_indices(x, self.vocab_map))
 
         # Zero padding
-        X = X.apply(lambda x:pad_zeros(x))
+        X = X.apply(lambda x:pad_zeros(x))       
 
-        # Transform to sparse for memory efficient
-        sparse_stack = csr_matrix(np.vstack(X.values.tolist()))
+        # Reshape and transform to sparse for memory efficient
+        sparse_stack = csr_matrix(np.array(X.values.tolist()).reshape(len(X),-1))
 
         return sparse_stack
