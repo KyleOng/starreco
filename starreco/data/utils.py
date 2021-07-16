@@ -6,6 +6,19 @@ from scipy.sparse import coo_matrix, csr_matrix, lil_matrix, vstack
 from deprecated import deprecated
 
 # Done
+def df_reindex(df, column):
+    df = df.copy()
+    df[column] = df[column].astype("category").cat.codes
+    return df
+
+# Done
+def df_map(df, column):
+    """
+    Return a map dictionary which store reindexed column values.
+    """
+    return {v: i for i, v in enumerate(df[column].astype("category").cat.categories)}
+
+# Done
 def df_map_column(df, column, mapper, join = "left"):
     """
     Map `df[column]` with according to `mapper`.
