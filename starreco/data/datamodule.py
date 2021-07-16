@@ -6,7 +6,7 @@ from scipy.sparse import issparse
 
 from starreco.preprocessing import Preprocessor
 from .dataset import BookCrossingDataset, MovielensDataset
-from .utils import MatrixDataset, sparse_batch_collate, ratings_to_sparse_matrix, df_map_column
+from .utils import MatrixDataset, sparse_batch_collate, ratings_to_sparse_matrix, df_reindex, df_map, df_map_column
 
 # Done
 class StarDataModule(pl.LightningDataModule):
@@ -39,7 +39,8 @@ class StarDataModule(pl.LightningDataModule):
                  item_features_ignore:list = [],
                  train_val_test_split:list = [60, 20 ,20],
                  num_workers:int = 8,
-                 cat_transformer:bool = "onehot"):
+                 cat_transformer:bool = "onehot",
+                 crawl_data:bool = True):
         assert download in self._downloads, (f"`download` = '{download}' not include in prefixed dataset downloads. Choose from {self._downloads}.")
         assert not(not matrix_form and matrix_transpose), ("`matrix_form` and 'matrix_transpose` must be either False:False, True:False or True:True, cannot be False:True.")
         assert not(not matrix_form and add_ids), ("`matrix_form` and 'add_ids` must be either False:False, True:False or True:True, cannot be False:True.")
@@ -55,12 +56,11 @@ class StarDataModule(pl.LightningDataModule):
         self.train_split, self.val_split, self.test_split = train_val_test_split
         self.num_workers = num_workers
         self.cat_transformer = cat_transformer
-        
         # Download dataset
         if download == "ml-1m": 
-            self.dataset = MovielensDataset()
+            self.dataset = MovielensDataset(crawl_data = crawl_data)
         elif download == "book-crossing": 
-            self.dataset = BookCrossingDataset()
+            self.dataset = BookCrossingDataset(crawl_data = crawl_data)
 
         super().__init__()
     
@@ -68,7 +68,13 @@ class StarDataModule(pl.LightningDataModule):
         """
         Prepare X and y dataset, along with user and item side information.
         """
-        ratings = self.dataset.rating.reindex
+        # Data cleaning
+        ratings, users, items = self.dataset.rating.clean()
+        users_map = df_map(ratings, self.dataset.user.column)
+        users = df_map_column(users, self.dataset.user.column, users_map, "left")
+        items_map = df_map(ratings, self.dataset.item.column)
+        items = df_map_column(items, self.dataset.item.column, items_map, "left")
+        ratings = df_reindex(df_reindex(ratings, self.dataset.user.column), self.dataset.item.column)
 
         self.X = ratings[[self.dataset.user.column, self.dataset.item.column]].values
         self.y = ratings[self.dataset.rating.column].values
@@ -76,12 +82,11 @@ class StarDataModule(pl.LightningDataModule):
         # Include features to batch
         if self.add_features:
             # user preprocessed features data            
-            user = df_map_column(self.dataset.user.df, self.dataset.user.column, self.dataset.rating.user_map, "left")
             user_cat_columns = list(set(self.dataset.user.cat_columns) - set(self.user_features_ignore))
             user_num_columns = list(set(self.dataset.user.num_columns) - set(self.user_features_ignore))
             user_set_columns = list(set(self.dataset.user.set_columns) - set(self.user_features_ignore))
             user_doc_columns = list(set(self.dataset.user.doc_columns) - set(self.user_features_ignore))
-            self.user_preprocessor = Preprocessor(user, 
+            self.user_preprocessor = Preprocessor(users, 
                                                   user_cat_columns, 
                                                   user_num_columns, 
                                                   user_set_columns, 
@@ -90,12 +95,11 @@ class StarDataModule(pl.LightningDataModule):
             self.user = self.user_preprocessor.transform()
 
             # item preprocessed features data
-            item = df_map_column(self.dataset.item.df, self.dataset.item.column, self.dataset.rating.item_map, "left")
             item_cat_columns = list(set(self.dataset.item.cat_columns) - set(self.item_features_ignore))
             item_num_columns = list(set(self.dataset.item.num_columns) - set(self.item_features_ignore))
             item_set_columns = list(set(self.dataset.item.set_columns) - set(self.item_features_ignore))
             item_doc_columns = list(set(self.dataset.item.doc_columns) - set(self.item_features_ignore))
-            self.item_preprocessor = Preprocessor(item, 
+            self.item_preprocessor = Preprocessor(items, 
                                                   item_cat_columns, 
                                                   item_num_columns, 
                                                   item_set_columns, 
