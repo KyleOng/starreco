@@ -76,9 +76,6 @@ class StarDataModule(pl.LightningDataModule):
             ratings = self.dataset.rating.df
             users = self.dataset.user.df
             items = self.dataset.item.df
-        
-        import pdb
-        pdb.set_trace()
 
         ratings = df_reindex(df_reindex(ratings, self.dataset.user.column), self.dataset.item.column)
 
