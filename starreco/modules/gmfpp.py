@@ -129,8 +129,8 @@ class GMFPP(GMF):
         """
         xs = batch[:-1]
         y = batch[-1]
-        y_hat, _, _ = self.forward(*xs)
-        loss = self.criterion(y_hat, y)
+        preds = self.forward(*xs)
+        loss = self.criterion(preds[0], y)
 
         return loss
 
