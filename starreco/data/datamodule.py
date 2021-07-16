@@ -39,7 +39,8 @@ class StarDataModule(pl.LightningDataModule):
                  item_features_ignore:list = [],
                  train_val_test_split:list = [60, 20 ,20],
                  num_workers:int = 8,
-                 cat_transformer:bool = "onehot",
+                 cat_transformer:str = "onehot",
+                 clean_data:bool = True,
                  crawl_data:bool = True):
         assert download in self._downloads, (f"`download` = '{download}' not include in prefixed dataset downloads. Choose from {self._downloads}.")
         assert not(not matrix_form and matrix_transpose), ("`matrix_form` and 'matrix_transpose` must be either False:False, True:False or True:True, cannot be False:True.")
@@ -56,6 +57,7 @@ class StarDataModule(pl.LightningDataModule):
         self.train_split, self.val_split, self.test_split = train_val_test_split
         self.num_workers = num_workers
         self.cat_transformer = cat_transformer
+        self.clean_data = clean_data
         # Download dataset
         if download == "ml-1m": 
             self.dataset = MovielensDataset(crawl_data = crawl_data)
@@ -68,12 +70,16 @@ class StarDataModule(pl.LightningDataModule):
         """
         Prepare X and y dataset, along with user and item side information.
         """
-        # Data cleaning
-        ratings, users, items = self.dataset.rating.clean()
-        users_map = df_map(ratings, self.dataset.user.column)
-        users = df_map_column(users, self.dataset.user.column, users_map, "left")
-        items_map = df_map(ratings, self.dataset.item.column)
-        items = df_map_column(items, self.dataset.item.column, items_map, "left")
+        if self.clean_data:
+            ratings, users, items = self.dataset.rating.clean()
+        else:
+            ratings = self.dataset.rating.df
+            users = self.dataset.user.df
+            items = self.dataset.item.df
+        
+        import pdb
+        pdb.set_trace()
+
         ratings = df_reindex(df_reindex(ratings, self.dataset.user.column), self.dataset.item.column)
 
         self.X = ratings[[self.dataset.user.column, self.dataset.item.column]].values
@@ -81,7 +87,9 @@ class StarDataModule(pl.LightningDataModule):
 
         # Include features to batch
         if self.add_features:
-            # user preprocessed features data            
+            # user preprocessed features data 
+            users_map = df_map(ratings, self.dataset.user.column)
+            users = df_map_column(users, self.dataset.user.column, users_map, "left")
             user_cat_columns = list(set(self.dataset.user.cat_columns) - set(self.user_features_ignore))
             user_num_columns = list(set(self.dataset.user.num_columns) - set(self.user_features_ignore))
             user_set_columns = list(set(self.dataset.user.set_columns) - set(self.user_features_ignore))
@@ -95,6 +103,8 @@ class StarDataModule(pl.LightningDataModule):
             self.user = self.user_preprocessor.transform()
 
             # item preprocessed features data
+            items_map = df_map(ratings, self.dataset.item.column)
+            items = df_map_column(items, self.dataset.item.column, items_map, "left")     
             item_cat_columns = list(set(self.dataset.item.cat_columns) - set(self.item_features_ignore))
             item_num_columns = list(set(self.dataset.item.num_columns) - set(self.item_features_ignore))
             item_set_columns = list(set(self.dataset.item.set_columns) - set(self.item_features_ignore))
