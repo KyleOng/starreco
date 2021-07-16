@@ -11,12 +11,13 @@ from tqdm import tqdm
 
 from .dataset import BaseDataset, User, Item, Rating
 
-
+# Done
+# Future work: solve http.client.RemoteDisconnected: Remote end closed connection without response
 class BookCrossingDataset(BaseDataset):
     """
     Dataset class for Book Crossing.
     """
-
+    
     def import_data(self):
         """
         Import Book Crossing rating, user and item dataframes. 
@@ -25,22 +26,22 @@ class BookCrossingDataset(BaseDataset):
         dataset_path = super().download_data("http://www2.informatik.uni-freiburg.de/~cziegler/BX/BX-CSV-Dump.zip")
         zf = zipfile.ZipFile(dataset_path)
 
-        # Read csv
-        ratings = pd.read_csv(zf.open("BX-Book-Ratings.csv"), delimiter = ";", escapechar = "\\", encoding = "ISO-8859-1")
-        users = pd.read_csv(zf.open("BX-Users.csv"), delimiter = ";", escapechar = "\\", encoding = "ISO-8859-1")
-        books = pd.read_csv(zf.open("BX-Books.csv"), delimiter = ";", escapechar = "\\", encoding = "ISO-8859-1")
-        
         # User dataframe
+        users = pd.read_csv(zf.open("BX-Users.csv"), delimiter = ";", escapechar = "\\", encoding = "ISO-8859-1")
         user = User(users, "User-ID")
         user.cat_columns = ["Location"]
         user.num_columns = ["Age"]
-        
+
         # Item dataframe
+        books = pd.read_csv(zf.open("BX-Books.csv"), delimiter = ";", escapechar = "\\", encoding = "ISO-8859-1")
+        # Get books descriptions
         books = self.get_books_with_descriptions(books)
         item = Item(books, "ISBN")
         item.cat_columns = ["Book-Author", "Publisher"]
+        item.doc_columns = ["description"]
 
         # Rating dataframe
+        ratings = pd.read_csv(zf.open("BX-Book-Ratings.csv"), delimiter = ";", escapechar = "\\", encoding = "ISO-8859-1")
         rating = Rating(ratings, "Book-Rating", user, item)
 
         return rating, user, item
@@ -98,5 +99,3 @@ class BookCrossingDataset(BaseDataset):
 
         print("End crawling")
         return books
-
-        # http.client.RemoteDisconnected: Remote end closed connection without response
