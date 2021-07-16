@@ -151,6 +151,7 @@ class _MDACF(MF):
 
         return loss
 
+# Done
 # Future work: allow sparse matrix factorization.
 class MDACF(_MDACF):
     """
