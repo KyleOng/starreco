@@ -56,63 +56,30 @@ class Rating:
         self.column = column
         self.num_users = df[user.column].nunique()
         self.num_items = df[item.column].nunique()
-    
-    @property
-    def reindex(self):
-        """
-        Return `self.df` with reindexed `self.user.column` and `self.item.column`
-        """
-        def _reindex(df, column):
-            df = df.copy()
-            df[column] = df[column].astype("category").cat.codes
-            return df
 
-        return _reindex(_reindex(self.df, self.user.column), self.item.column)
-    
-    @property
-    def user_map(self):
-        """
-        Return a map dictionary which store reindexed user values.
-        """
-        return {v: i for i, v in
-        enumerate(self.df[self.user.column].astype("category").cat.categories)}
+    def clean(self):
+        df = self.df.copy()
+        user_df = self.user.df.copy()
+        item_df = self.item.df.copy()
+
+        user_df = user_df.dropna()
+        item_df = item_df.dropna()
+
+        df = df.merge(user_df, on = self.user.column).merge(item_df, on = self.item.column)[df.columns]
+        user_df = user_df.merge(df[self.user.column].drop_duplicates(), on = self.user.column)
+        item_df = item_df.merge(df[self.item.column].drop_duplicates(), on = self.item.column)
         
-    @property
-    def item_map(self):
-        """
-        Return a map dictionary which store reindexed item values.
-        """
-        return {v: i for i, v in
-        enumerate(self.df[self.item.column].astype("category").cat.categories)}
-    
-    def _select_related(self, parent_df, column):
-        """
-        Return a dataframe which "follow" the foreign-key relationship on `column` between parent class 一 `parent_df` and foreign class 一 `self.df`. 
-        """
-        merge = self.df.merge(parent_df, on = column, how = "left")
-        return merge[parent_df.columns]
-    
-    @property
-    def user_select_related(self):
-        """
-        Return a dataframe which "follow" the foreign-key relationship on `self.user.column` between parent class 一 `self.user.df` and foreign class 一 `self.df`.
-        """
-        return self._select_related(self.user.df, self.user.column)
-    
-    @property
-    def item_select_related(self):
-        """
-        Return a dataframe which "follow" the foreign-key relationship on `self.item.column` between parent class 一 `self.item.df` and foreign class 一 `self.df`. 
-        """
-        return self._select_related(self.item.df, self.item.column)
 
+        return df, user_df, item_df
 
+# Done
 class BaseDataset:
     """
     Base class for dataset.
     """
 
-    def __init__(self):
+    def __init__(self, crawl_data:bool = True):
+        self.crawl_data = crawl_data
         # Import data when class object is created
         self.rating, self.user, self.item = self.import_data()
 

@@ -35,10 +35,12 @@ class BookCrossingDataset(BaseDataset):
         # Item dataframe
         books = pd.read_csv(zf.open("BX-Books.csv"), delimiter = ";", escapechar = "\\", encoding = "ISO-8859-1")
         # Get books descriptions
-        books = self.get_books_with_descriptions(books)
+        if self.crawl_data:
+            books = self.get_books_with_descriptions(books)
         item = Item(books, "ISBN")
         item.cat_columns = ["Book-Author", "Publisher"]
-        item.doc_columns = ["description"]
+        if self.crawl_data:
+            item.doc_columns = ["description"]
 
         # Rating dataframe
         ratings = pd.read_csv(zf.open("BX-Book-Ratings.csv"), delimiter = ";", escapechar = "\\", encoding = "ISO-8859-1")
@@ -69,7 +71,7 @@ class BookCrossingDataset(BaseDataset):
         # Start crawling
         for i in tqdm(range(last_valid_index, len(books))):
             isbn = books.loc[i, "ISBN"]
-            description = ""
+            description = np.nan
             google_api_link = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn.zfill(10)}"
 
             attempt = 0

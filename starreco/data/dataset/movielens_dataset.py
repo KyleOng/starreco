@@ -33,11 +33,13 @@ class MovielensDataset(BaseDataset):
         # Item dataframe
         movies = pd.read_csv(zf.open(f"ml-1m/movies.dat"), delimiter = "::", names = ["movieId", "title", "genre"], encoding = "ISO-8859-1", engine = "python")
         # Get movies plot
-        movies = self.get_movies_with_plots(movies)
+        if self.crawl_data:
+            movies = self.get_movies_with_plots(movies)
         movies["genre"] = movies["genre"].apply(lambda x:set(x.split("|")))
         item = Item(movies, "movieId")
         item.set_columns = ["genre"]
-        item.doc_columns = ["plot"]
+        if self.crawl_data:
+            item.doc_columns = ["plot"]
 
         # Rating dataframe
         ratings = pd.read_csv(zf.open(f"ml-1m/ratings.dat"), delimiter = "::", 
