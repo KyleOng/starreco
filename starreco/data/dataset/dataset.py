@@ -58,6 +58,9 @@ class Rating:
         self.num_items = df[item.column].nunique()
 
     def clean(self):
+        """
+        data cleaning.
+        """
         df = self.df.copy()
         user_df = self.user.df.copy()
         item_df = self.item.df.copy()
