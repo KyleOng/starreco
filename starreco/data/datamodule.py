@@ -76,6 +76,9 @@ class StarDataModule(pl.LightningDataModule):
             ratings = self.dataset.rating.df
             users = self.dataset.user.df
             items = self.dataset.item.df
+        
+        users_map = df_map(ratings, self.dataset.user.column)
+        items_map = df_map(ratings, self.dataset.item.column)
 
         ratings = df_reindex(df_reindex(ratings, self.dataset.user.column), self.dataset.item.column)
 
@@ -85,7 +88,6 @@ class StarDataModule(pl.LightningDataModule):
         # Include features to batch
         if self.add_features:
             # user preprocessed features data 
-            users_map = df_map(ratings, self.dataset.user.column)
             users = df_map_column(users, self.dataset.user.column, users_map, "left")
             user_cat_columns = list(set(self.dataset.user.cat_columns) - set(self.user_features_ignore))
             user_num_columns = list(set(self.dataset.user.num_columns) - set(self.user_features_ignore))
@@ -97,10 +99,9 @@ class StarDataModule(pl.LightningDataModule):
                                                   user_set_columns, 
                                                   user_doc_columns,
                                                   self.cat_transformer)
-            self.user = self.user_preprocessor.transform()
+            self.users = self.user_preprocessor.transform()
 
             # item preprocessed features data
-            items_map = df_map(ratings, self.dataset.item.column)
             items = df_map_column(items, self.dataset.item.column, items_map, "left")     
             item_cat_columns = list(set(self.dataset.item.cat_columns) - set(self.item_features_ignore))
             item_num_columns = list(set(self.dataset.item.num_columns) - set(self.item_features_ignore))
@@ -112,11 +113,11 @@ class StarDataModule(pl.LightningDataModule):
                                                   item_set_columns, 
                                                   item_doc_columns,
                                                   self.cat_transformer)
-            self.item = self.item_preprocessor.transform()
+            self.items = self.item_preprocessor.transform()
 
             # map user and item to ratings
-            self.user_X = self.user[self.X[:, 0]]
-            self.item_X = self.item[self.X[:, 1]]
+            self.user_X = self.users[self.X[:, 0]]
+            self.item_X = self.items[self.X[:, 1]]
 
     def split(self, random_state:int = 77):
         """
@@ -210,9 +211,9 @@ class StarDataModule(pl.LightningDataModule):
         if self.add_features:
             if self.matrix_form:
                 if self.matrix_transpose:
-                    train_data.insert(-1, self.item)
+                    train_data.insert(-1, self.items)
                 else:
-                    train_data.insert(-1, self.user)
+                    train_data.insert(-1, self.users)
             else:
                 train_data.insert(-1, self.user_X_train)
                 train_data.insert(-1, self.item_X_train)
@@ -238,9 +239,9 @@ class StarDataModule(pl.LightningDataModule):
         if self.add_features:
             if self.matrix_form:
                 if self.matrix_transpose:
-                    val_data.insert(-1, self.item)
+                    val_data.insert(-1, self.items)
                 else:
-                    val_data.insert(-1, self.user)
+                    val_data.insert(-1, self.users)
             else:
                 val_data.insert(-1, self.user_X_val)
                 val_data.insert(-1, self.item_X_val) 
@@ -267,9 +268,9 @@ class StarDataModule(pl.LightningDataModule):
             if self.add_features:
                 if self.matrix_form:
                     if self.matrix_transpose:
-                        test_data.insert(-1, self.item)
+                        test_data.insert(-1, self.items)
                     else:
-                        test_data.insert(-1, self.user)
+                        test_data.insert(-1, self.users)
                 else:
                     test_data.insert(-1, self.user_X_test)
                     test_data.insert(-1, self.item_X_test)
