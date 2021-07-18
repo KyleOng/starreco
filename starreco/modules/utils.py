@@ -1,15 +1,22 @@
 import torch
 
 # Done
-def weight_init(m, *instances):
+def weight_init(m, weight_fill = "xavier", bias_fill = 0, *instances):
     """
     Weight initialization on specific layer.
     """
+    assert weight_fill in ["xavier", "he"]
     if isinstance(m, (instances)):
-        torch.nn.init.xavier_uniform_(m.weight)
+        if weight_fill == "xavier":
+            torch.nn.init.xavier_uniform_(m.weight)
+        elif weight_fill == "he":
+            torch.nn.init.kaiming_uniform_(m.weight)
     
         if m.bias is not None:
-            torch.nn.init.zeros_(m.bias)
+            if bias_fill:
+                m.bias.data.fill_(bias_fill)
+            else:
+                torch.nn.init.zeros_(m.bias)
 
 # Done
 def freeze_partial_linear_params(layer:torch.nn.Linear, 
