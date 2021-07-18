@@ -74,8 +74,7 @@ class NMFPP(BaseModule):
         input_dim = gmfpp_hparams["embed_dim"]
         input_dim += gmfpp_hparams["user_sdae_hparams"]["hidden_dims"][-1] and gmfpp_hparams["item_sdae_hparams"]["hidden_dims"][-1]
         input_dim += ncfpp_hparams["hidden_dims"][-1]
-        self.net = MultilayerPerceptrons(input_dim = input_dim, 
-                                         output_layer = "relu")
+        self.net = MultilayerPerceptrons(input_dim = input_dim,  output_layer = "relu")
 
     def forward(self, x, user_x, item_x):
         # Fusion of GMF++ and NCF++

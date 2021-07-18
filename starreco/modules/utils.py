@@ -10,7 +10,7 @@ def weight_init(m, weight_fill = "xavier", bias_fill = 0, *instances):
         if weight_fill == "xavier":
             torch.nn.init.xavier_uniform_(m.weight)
         elif weight_fill == "he":
-            torch.nn.init.kaiming_uniform_(m.weight)
+            torch.nn.init.kaiming_uniform_(m.weight, nonlinearity = "relu")
     
         if m.bias is not None:
             if bias_fill:
