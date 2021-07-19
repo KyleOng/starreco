@@ -102,7 +102,7 @@ class NCFPP(NCF):
         # Item reconstruction loss
         item_loss = self.item_criterion(item_x_hat, item_x)
         item_reg = l2_regularization(self.item_weight_decay, self.item_sdae.parameters(), self.device)
-        item_loss *= self.criterion_alpha
+        item_loss *= self.criterion_beta
         item_loss += item_reg
 
         return user_loss + item_loss
