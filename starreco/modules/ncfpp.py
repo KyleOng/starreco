@@ -36,13 +36,13 @@ class NCFPP(NCF):
                  activations:Union[str, list] = "relu", 
                  dropouts:Union[int, float, list] = 0.5, 
                  batch_norm:bool = True,
-                 alpha:Union[int,float] = 1, 
-                 beta:Union[int,float] = 1,
                  lr:float = 1e-3,
                  weight_decay:float = 1e-3,
                  user_weight_decay:float = 1e-6,
                  item_weight_decay:float = 1e-6,
                  criterion = F.mse_loss,
+                 criterion_alpha:Union[int,float] = 1, 
+                 criterion_beta:Union[int,float] = 1,
                  user_criterion = F.mse_loss,
                  item_criterion = F.mse_loss):
         assert user_sdae_hparams["hidden_dims"][-1] and item_sdae_hparams["hidden_dims"][-1],\
@@ -51,11 +51,11 @@ class NCFPP(NCF):
         super().__init__(field_dims, embed_dim, hidden_dims, activations, dropouts, batch_norm, lr, 0, criterion)
         self.save_hyperparameters()
                 
-        self.alpha = alpha
-        self.beta = beta
         self.weight_decay = weight_decay
         self.user_weight_decay = user_weight_decay
         self.item_weight_decay = item_weight_decay
+        self.criterion_alpha = criterion_alpha
+        self.criterion_beta = criterion_beta
         self.user_criterion = user_criterion
         self.item_criterion = item_criterion
 
@@ -96,13 +96,13 @@ class NCFPP(NCF):
         # User reconstruction loss
         user_loss = self.user_criterion(user_x_hat, user_x)
         user_reg = l2_regularization(self.user_weight_decay, self.user_sdae.parameters(), self.device)
-        user_loss *= self.alpha
+        user_loss *= self.criterion_alpha
         user_loss += user_reg
 
         # Item reconstruction loss
         item_loss = self.item_criterion(item_x_hat, item_x)
         item_reg = l2_regularization(self.item_weight_decay, self.item_sdae.parameters(), self.device)
-        item_loss *= self.alpha
+        item_loss *= self.criterion_alpha
         item_loss += item_reg
 
         return user_loss + item_loss
