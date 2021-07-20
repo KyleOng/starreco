@@ -21,3 +21,6 @@ from .sdaecf import SDAECF
 from .ccae import CCAE
 from .cmf import CMF
 from .fgcnn import FGCNN
+from .gmfppp import GMFPPP
+from .ncfppp import NCFPPP
+from .nmfppp import NMFPPP

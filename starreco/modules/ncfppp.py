@@ -25,13 +25,15 @@ class NCFPPP(NCFPP):
         user_noise_mask = self.user_sdae.encoder_noise_masks[0]
         # Denoising loss
         user_x_denoised = user_x * user_noise_mask
-        user_denoising_loss = self.user_criterion_alpha * self.user_criterion(user_x_hat, user_x_denoised)
+        user_x_hat_denoised = user_x_hat * user_noise_mask
+        user_denoising_loss = self.user_criterion_alpha * self.user_criterion(user_x_hat_denoised, user_x_denoised)
         # Reconstruction loss
         user_x_reconstructed = user_x * ~user_noise_mask
-        user_reconstruction_loss = self.user_criterion_beta * self.user_criterion(user_x_hat, user_x_reconstructed)
+        user_x_hat_reconstructed = user_x_hat * ~user_noise_mask
+        user_reconstruction_loss = self.user_criterion_beta * self.user_criterion(user_x_hat_reconstructed, user_x_reconstructed)
         user_loss = user_denoising_loss + user_reconstruction_loss
         user_reg = l2_regularization(self.user_weight_decay, self.user_sdae.parameters(), self.device)
-        user_loss *= self.alpha
+        user_loss *= self.criterion_alpha
         user_loss += user_reg
 
         # Item denoising and reconstruction loss
@@ -39,13 +41,15 @@ class NCFPPP(NCFPP):
         item_noise_mask = self.item_sdae.encoder_noise_masks[0]
         # Denoising loss
         item_x_denoised = item_x * item_noise_mask
-        item_denoising_loss = self.item_criterion_alpha * self.item_criterion(item_x_hat, item_x_denoised)
+        item_x_hat_denoised = item_x_hat * item_noise_mask
+        item_denoising_loss = self.item_criterion_alpha * self.item_criterion(item_x_hat_denoised, item_x_denoised)
         # Reconstruction loss
         item_x_reconstructed = item_x * ~item_noise_mask
-        item_reconstruction_loss = self.item_criterion_beta * self.item_criterion(item_x_hat, item_x_reconstructed)
+        item_x_hat_reconstructed = item_x_hat * ~item_noise_mask
+        item_reconstruction_loss = self.item_criterion_beta * self.item_criterion(item_x_hat_reconstructed, item_x_reconstructed)
         item_loss = item_denoising_loss + item_reconstruction_loss
         item_reg = l2_regularization(self.item_weight_decay, self.item_sdae.parameters(), self.device)
-        item_loss *= self.beta
+        item_loss *= self.criterion_alpha
         item_loss += item_reg
-
+        
         return user_loss + item_loss
