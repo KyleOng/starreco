@@ -76,8 +76,7 @@ class NMFPPP(BaseModule):
         input_dim += ncfppp_hparams["hidden_dims"][-1]
         self.net = MultilayerPerceptrons(input_dim = input_dim,  output_layer = "relu")
 
-    def forward(self, x, user_x, item_x):
-        # Fusion of GMF+++ and NCF+++
+    def fusion(self, x, user_x, item_x):
         if self.shared_embed == "gmf+++":
             # Share embeddings from GMF+++ features embedding layer
             x_embed_gmfppp = x_embed_ncfppp = self.gmfppp.features_embedding(x.int())
@@ -148,15 +147,21 @@ class NMFPPP(BaseModule):
         # Concatenate GMF+++ element wise product and NCF+++ last hidden layer output
         fusion = torch.cat([output_ncfppp, output_gmfppp], dim = 1)
 
-        # Non linear on fusion vectors
-        y = self.net(fusion)
-
         if self.shared_sdaes== "gmf+++":
-            return y, user_y, item_y
+            return [fusion, user_y, item_y]
         elif self.shared_sdaes == "ncf+++":
-            return y, user_y, item_y
+            return [fusion, user_y, item_y]
         else:
-            return y, user_y_gmfppp, item_y_gmfppp, user_y_ncfppp, item_y_ncfppp
+            return [fusion, user_y_gmfppp, item_y_gmfppp, user_y_ncfppp, item_y_ncfppp]
+
+    def forward(self, x, user_x, item_x):
+        # Fusion of GMF+++ and NCF+++
+        outputs = self.fusion(x, user_x, item_x)
+
+        # Non linear on fusion vectors
+        outputs[0] = self.net(outputs[0])
+        
+        return outputs
 
     def l2_regularization(self):
         """
