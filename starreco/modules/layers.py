@@ -299,7 +299,8 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
         return x + noise, noise_mask
 
     def encode(self, x, extra = None, add_noise = True):
-        if self.training:
+        # Reset noise_masks array during training and if add_noise boolean is True
+        if self.training and add_noise:
             self.encoder_noise_masks = []
 
         for i, module in enumerate(self.encoder.mlp):
@@ -316,7 +317,8 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
         return x
 
     def decode(self, x, extra = None, add_noise = True):
-        if self.training:
+        # Reset noise_masks array during training and if add_noise boolean is True
+        if self.training and add_noise:
             self.decoder_noise_masks = []
 
         for i, module in enumerate(self.decoder.mlp):
