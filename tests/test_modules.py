@@ -233,20 +233,22 @@ def test_ccae(matrix_transpose = False):
     ccae = CCAE(input_output_dim)
     return quick_test(dm, ccae)
 
-# Testing
+# Done
 def test_cmf(pretrain = True):
     dm = StarDataModule(add_features = True,
                         user_features_ignore = ["zipCode"],
-                        item_features_ignore = ["genre"])
+                        item_features_ignore = ["genre"],
+                        crawl_data = True,
+                        clean_data = True)
     dm.setup()
     user_dim = dm.dataset.rating.num_users
     word_dim = dm.item_preprocessor.column_transformer.named_transformers_["document"].vocab_size + 2
-    max_len = dm.item.shape[-1]
+    max_len = dm.items.shape[-1]
     vocab_map = dm.item_preprocessor.column_transformer.named_transformers_["document"].vocab_map
 
     cmf = CMF(user_dim, word_dim, max_len)
     if pretrain:
-        cmf.load_pretrain_embeddings(vocab_map)
+        cmf.cnn.load_pretrain_embeddings(vocab_map)
     return quick_test(dm, cmf)
 
 # Testing
