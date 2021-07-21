@@ -59,7 +59,7 @@ class Rating:
 
     def clean(self):
         """
-        data cleaning.
+        Data cleaning.
         """
         df = self.df.copy()
         user_df = self.user.df.copy()
@@ -68,11 +68,12 @@ class Rating:
         user_df = user_df.dropna()
         item_df = item_df.dropna()
 
-        df = df.merge(user_df, on = self.user.column).merge(item_df, on = self.item.column)[df.columns]
-        user_df = user_df.merge(df[self.user.column].drop_duplicates(), on = self.user.column)
-        item_df = item_df.merge(df[self.item.column].drop_duplicates(), on = self.item.column)
-        
+        df = df[df[self.user.column].isin(user_df[self.user.column])]
+        df = df[df[self.item.column].isin(item_df[self.item.column])]
 
+        user_df = user_df[user_df[self.user.column].isin(df[self.user.column])]
+        item_df = item_df[item_df[self.item.column].isin(df[self.item.column])]
+        
         return df, user_df, item_df
 
 # Done
