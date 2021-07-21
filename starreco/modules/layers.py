@@ -485,7 +485,11 @@ class DocumentContextAnalysis(torch.nn.Module):
 
         self.cnn = torch.nn.Sequential(*cnn_blocks)
 
-    def load_pretrain_embeddings(self, vocab_map, glove_path = "glove.6B/glove.6B.200d.txt"):
+    def load_pretrain_embeddings(self, 
+                                 vocab_map, 
+                                 glove_path = "glove.6B/glove.6B.200d.txt", 
+                                 freeze = False,
+                                 progress_bar = True):
         """
         Load pretrain word embeddings.
         """
@@ -493,8 +497,11 @@ class DocumentContextAnalysis(torch.nn.Module):
         word_embeddings = {}
         num_lines = sum(1 for _ in open(glove_path, 'r', encoding="utf-8"))
         with open(glove_path, 'r', encoding="utf-8") as f:
-            f_tqdm = tqdm(f, total = num_lines)
-            f_tqdm.set_description("loading pretrained")
+            if progress_bar: 
+                f_tqdm = tqdm(f, total = num_lines, bar_format = "{desc:}{percentage:3.0f}%|{bar:10}{r_bar}")
+                f_tqdm.set_description("[DCA] Loading pretrained glove weights")
+            else:
+                f_tqdm = f
             for line in f_tqdm:
                 values = line.split()
                 word = values[0]
@@ -514,11 +521,16 @@ class DocumentContextAnalysis(torch.nn.Module):
             pretrained_embeddings.append(pretrained_embedding)
 
         # Load pretrained word embeddings to embedding layer
-        self.word_embedding = self.word_embedding.from_pretrained(torch.tensor(pretrained_embeddings))
+        self.word_embedding = self.word_embedding.from_pretrained(torch.tensor(pretrained_embeddings), freeze)
 
     def forward(self, x_document):
+        # Word embedding vecotrs
         word_embed = self.word_embedding(x_document.int())
+
+        # Reshape tensor such that it contains a single depth to be inputted to CNN
         word_embed = word_embed.unsqueeze(1)
+
+        # Get document latent vector from CNN
         latent_document = self.cnn(word_embed)
         return latent_document
         

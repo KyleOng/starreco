@@ -24,3 +24,5 @@ from .fgcnn import FGCNN
 from .gmfppp import GMFPPP
 from .ncfppp import NCFPPP
 from .nmfppp import NMFPPP
+from .cnmfpp import CNMFPP
+from .cnmfppp import CNMFPPP
