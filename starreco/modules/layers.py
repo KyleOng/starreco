@@ -222,7 +222,6 @@ class StackedDenoisingAutoEncoder(torch.nn.Module):
                  noise_rate:Union[int, float] = 1,
                  noise_factor:Union[int, float] = 1,
                  noise_all:bool = True,
-                 noise_mask:bool = False,
                  mean:Union[int, float] = 0,
                  std:Union[int, float] = 1):
         super().__init__()
