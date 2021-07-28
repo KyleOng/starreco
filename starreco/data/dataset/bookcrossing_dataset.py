@@ -67,9 +67,11 @@ class BookCrossingDataset(BaseDataset):
             
             print(f"{books_path} exist. Continue from last description value index {last_valid_index}.")
             logging.info(f"{books_path} exist. Continue from last description value index {last_valid_index}.")
+        else:
+            assert books is not None
 
         # Start crawling
-        for i in tqdm(range(last_valid_index, len(books))):
+        for i in tqdm(range(last_valid_index, len(books)), total = len(books)):
             isbn = books.loc[i, "ISBN"]
             description = np.nan
             google_api_link = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn.zfill(10)}"
