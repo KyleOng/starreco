@@ -49,17 +49,11 @@ Research Models
 |[MLP++](https://github.com/KyleOng/starreco/blob/master/starreco/modules/ncfpp.py)|Multilayer Perceptrons ++|<a href="#1">[19]|
 |[NeuMF++](https://github.com/KyleOng/starreco/blob/master/starreco/modules/nmfpp.py)|Neural Matrix Factorization ++|<a href="#20">[20]|
 
-Architecture
----
-<p align="center">
-  <img src="asset/architecture.png" alt="starrreco v0.1 architecture">
-  <br>
-  <b>Figure</b>: starreco overall architecture
-</p>
-
 Datasets
 ---
 - **Movielen Dataset**: A movie rating dataset collected from the Movielens websites by the GroupLensResearch Project  at University of Minnesota. The datasets were collected over various time periods, depending on the sizes given. **Movielen 1M Dataset**** has been chosen. It contains 1,000,209 anonymous ratings of approximately 3,900 movies made by 6,040 MovieLens users who joined MovieLens in 2000.
+
+- **Bookcrossing Dataset**: The BookCrossing (BX) dataset was collected by Cai-Nicolas Ziegler in a 4-week crawl (August / September 2004) from the Book-Crossing community with kind permission from Ron Hornbaker, CTO of Humankind Systems. It contains 278,858 users (anonymized but with demographic information) providing 1,149,780 ratings (explicit / implicit) about 271,379 books.
 
 Getting Started<a name="start"></a>
 ---
